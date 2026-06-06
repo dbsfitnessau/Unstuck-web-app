@@ -124,13 +124,18 @@ looks finished and could survive real users. Grouped so we can do a slice at a t
       *(Best done together with streaming — the server only knows a search happened mid-turn.)*
 
 ## Cost, limits & abuse protection (do before any public/beta deploy)
-- [ ] **Raise coach throughput.** The 4 docs (~40K tokens) ride on every request; the entry
-      tier allows 30K input tokens/min (~1 request/min). Options: advance usage tier, route
-      routine questions to a cheaper model (Haiku) and only escalate when needed, and/or trim
-      what's sent as cached context.
-- [ ] **Protect `/api/coach`.** It's currently open — anyone who finds the URL can spend your
-      tokens. Add basic rate limiting per IP/session and a simple abuse guard.
-- [ ] Add a request timeout/abort on the Claude call so a stuck turn fails fast.
+- [x] **Protect `/api/coach`.** *(Per-IP rate limit via `express-rate-limit` — 12 req/min,
+      env-tunable — returning our friendly JSON 429; plus input caps: max 40 messages,
+      4000 chars/message, role validation, all rejected with 400 BEFORE any Claude call.
+      Verified: validation 400s fire, limiter flips to 429 at the cap, happy path intact.)*
+- [x] Add a request timeout/abort on the Claude call so a stuck turn fails fast. *(60s
+      timeout + 1 retry on each Messages API call, via `COACH_TIMEOUT_MS`.)*
+- [ ] **Raise coach throughput** *(partly done in code; rest is a billing decision).* The 4
+      docs (~40K tokens) ride on every request; the entry tier allows 30K input tokens/min
+      (~1 request/min). Code levers in place: model is env-configurable (`COACH_MODEL` →
+      Haiku for cheap traffic) and input caps stop wasted spend. **Remaining (Lea's call):**
+      advance the Anthropic usage tier so concurrent users don't hit the per-minute cap.
+      (Not trimming the cached docs — they carry the load-bearing safety content.)
 
 ## Content depth
 - [ ] Replace dummy content with the full parsed markdown for all four docs (build-time parse),

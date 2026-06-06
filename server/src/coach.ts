@@ -18,6 +18,13 @@ const client = new Anthropic({ apiKey });
 
 const MODEL = process.env.COACH_MODEL ?? "claude-sonnet-4-5";
 
+// Per-request safety net. If Claude hasn't responded within this window, the SDK aborts
+// and throws — our endpoint then returns the safe fallback rather than hanging the user's
+// browser. maxRetries:1 keeps a single retry on transient network blips without piling up
+// duplicate (billable) calls. Configurable via COACH_TIMEOUT_MS.
+const REQUEST_TIMEOUT_MS = Number(process.env.COACH_TIMEOUT_MS) || 60_000;
+const REQUEST_OPTS = { timeout: REQUEST_TIMEOUT_MS, maxRetries: 1 } as const;
+
 // ── The safety/voice system prompt (verbatim from prompt.md) ────────────────────────
 // This is non-negotiable content: it makes the coach honour the stop-signs and
 // contraindications and push medical questions to a physio. Do not soften it.
@@ -121,7 +128,7 @@ export async function runCoach(history: ChatMessage[]): Promise<CoachResult> {
     messages,
   };
 
-  let response = await client.messages.create(request);
+  let response = await client.messages.create(request, REQUEST_OPTS);
 
   // ── pause_turn loop ──────────────────────────────────────────────────────────────
   // A web search can make Claude's turn long enough that the API returns early with
@@ -132,7 +139,7 @@ export async function runCoach(history: ChatMessage[]): Promise<CoachResult> {
   // but the API still returns it at runtime when a long (e.g. search) turn is paused.
   while ((response.stop_reason as string) === "pause_turn" && resumes < MAX_PAUSE_RESUMES) {
     messages = [...messages, { role: "assistant", content: response.content }];
-    response = await client.messages.create({ ...request, messages });
+    response = await client.messages.create({ ...request, messages }, REQUEST_OPTS);
     resumes += 1;
   }
 
