@@ -90,16 +90,22 @@ lives ONLY on the server, never in the browser. Source of truth: `spec.md` §4 a
 ## Verify
 - [x] Confirm the API key never appears in any client bundle or network request from the browser. *(Grepped `dist/` — clean; only the harmless server URL is bundled.)*
 - [x] Server pipeline confirmed end-to-end: valid key/model/request reach Anthropic (auth OK), CORS preflight passes, bad requests return 400, errors fall back safely.
-- [ ] ⛔ **BLOCKED on API credits** — Coach answers a program question grounded in the docs (no web search needed).
-- [ ] ⛔ **BLOCKED on API credits** — Coach performs a web search when asked for current external info, and shows citations.
-- [ ] ⛔ **BLOCKED on API credits** — Coach refuses/redirects a medical question to a physio and keeps the stop-signs intact.
+- [x] Coach answers a program question grounded in the docs (no web search needed). *(Verified: "slept badly → drop a tier", quoting the program's own guidance.)*
+- [x] Coach performs a web search when asked for current external info, and shows citations. *(Verified: stretching-research question returned an answer + 4 real citations.)*
+- [x] Coach refuses/redirects a medical question to a physio and keeps the stop-signs intact. *(Verified: sharp/radiating leg pain → "stop, see a physio", both stop-signs named.)*
 
-> **Note (2026-06-06):** All code is complete and wired. The three live-behaviour checks
-> above can't be run yet because the Anthropic account returns *"credit balance is too
-> low."* Add credits at console.anthropic.com → Plans & Billing, restart the server, and
-> these will pass. (Also: the dev key was shared in chat — rotate it.)
+> **Note (2026-06-06):** ✅ Milestone 2 complete and verified live. All three behaviours
+> confirmed against the running server after API credits were added.
+>
+> **Operational note — rate limits / cost:** the 4 docs are ~40K tokens and ride on every
+> request as cached context. On the entry usage tier (30K input tokens/min) the coach can
+> only handle ~1 request/minute before hitting `rate_limit_error`. To raise throughput:
+> advance usage tier (more credits), and/or route routine traffic to a cheaper model, and/or
+> trim the cached docs. Revisit before any real user load.
+>
+> **Security:** the dev key was shared in chat — rotate it and update `server/.env`.
 
-**Done when:** the coach answers a program question from the docs, web-searches when asked for current info, displays citations, and the key stays server-side.
+**Done when:** the coach answers a program question from the docs, web-searches when asked for current info, displays citations, and the key stays server-side. ✅ **ALL MET.**
 
 ---
 
