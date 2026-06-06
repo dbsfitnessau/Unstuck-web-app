@@ -7,7 +7,7 @@ const tabs = [
   { to: "/home", icon: "🏠", label: "Home" },
   { to: "/program", icon: "🗓", label: "Program" },
   { to: "/worksheet", icon: "✅", label: "Worksheet" },
-  { to: "/testing", icon: "📐", label: "Testing" },
+  { to: "/testing", icon: "📐", label: "Assessment" },
   { to: "/search", icon: "🔍", label: "Search" },
 ];
 

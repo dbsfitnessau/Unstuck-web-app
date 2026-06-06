@@ -62,9 +62,9 @@ export default function Testing() {
   return (
     <div>
       <div className="stop-box">
-        <h3>📐 Field tests - not clinical assessments</h3>
+        <h3>📐 Progress Assessment</h3>
         <p className="small">
-          Re-test every 28 days: Day 0 (baseline), Day 28, Day 56, Day 84… Treat changes
+          Measure on Day 0 (Baseline), then re-test every 28 days. Treat changes
           under ~1cm or ~5° as noise.
         </p>
       </div>

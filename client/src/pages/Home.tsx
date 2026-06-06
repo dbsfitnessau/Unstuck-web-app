@@ -12,9 +12,9 @@ import { cheatsheet } from "../data/dummyContent";
 const TABS = [
   { icon: "🗓", name: "Program", blurb: "Your daily sessions. Pick a week, pick a day, follow each movement. Every stretch has three options - 🟢 Recreational, 🟡 Intermediate, 🔴 Athlete. Start honest, not heroic." },
   { icon: "✅", name: "Worksheet", blurb: "Tick off each stretch as you go, log effort and load, reflect each week. It remembers where you are - come back and pick up." },
-  { icon: "📐", name: "Testing", blurb: "Measure yourself on Day 0, then re-test every 28 days. Numbers keep you honest when it doesn't feel like progress." },
+  { icon: "📐", name: "Assessment", blurb: "Measure yourself on Day 0, then re-test every 28 days. Numbers keep you honest when it doesn't feel like progress." },
   { icon: "🔍", name: "Search", blurb: "Find any movement, term, or test in a second." },
-  { icon: "💬", name: "Coach", blurb: "Stuck on a cue or need a swap? Ask. (Coming online soon.)" },
+  { icon: "💬", name: "Coach", blurb: "Stuck on a cue or need a swap? Ask." },
 ];
 
 export default function Home() {
@@ -25,13 +25,10 @@ export default function Home() {
       {/* Welcome - always visible, sets the tone. */}
       <div className="card">
         <h3 style={{ marginTop: 0 }}>Welcome to UNSTUCK</h3>
-        <p className="small">
+        <p className="small" style={{ marginBottom: 0 }}>
           A 28-day mobility reset. No fluff, no 400 exercises you'll never do - five
           short sessions a week, scaled to where you actually are. Two weeks to build
           the foundation, two weeks to load it.
-        </p>
-        <p className="small" style={{ marginBottom: 0 }}>
-          <strong>Don't be sh*t. Move better.</strong>
         </p>
       </div>
 

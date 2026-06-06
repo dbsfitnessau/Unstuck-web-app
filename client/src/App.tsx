@@ -19,7 +19,6 @@ export default function App() {
       <div className="app-shell">
         <header className="topbar">
           <h1>UNSTUCK<span className="accent-dot">.</span></h1>
-          <span className="tagline">Don't Be Sh*t. Move better.</span>
         </header>
         <div className="app-content">
           {/* If a page throws while rendering, the boundary shows a recovery

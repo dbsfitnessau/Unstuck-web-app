@@ -83,9 +83,9 @@ const WEEKS: WeekDef[] = [
 
 // One day's log. `stretchDone` is keyed by the stretch's index in the session.
 // Empty strings / empty object = "not filled in yet".
-interface Entry { tier: Tier | ""; effort: string; load: string; note: string; stretchDone: Record<number, boolean>; }
+interface Entry { tier: Tier | ""; effort: string; load: string; note: string; stretchDone: Record<number, boolean>; activity: string; rested: boolean; }
 interface Reflection { hardest: string; surprising: string; differently: string; }
-const EMPTY_ENTRY: Entry = { tier: "", effort: "", load: "", note: "", stretchDone: {} };
+const EMPTY_ENTRY: Entry = { tier: "", effort: "", load: "", note: "", stretchDone: {}, activity: "", rested: false };
 const EMPTY_REFLECTION: Reflection = { hardest: "", surprising: "", differently: "" };
 
 interface LogState {
@@ -218,14 +218,17 @@ export default function QuickCards() {
       {w.days.map((d) => {
         const e = entry(w.week, d.day);
         const complete = dayComplete(w.week, d.day);
+        // "Done" for the badge/highlight: a training day fully ticked, day 6 once an
+        // activity is chosen, day 7 once rest is ticked.
+        const dayDone = d.train ? complete : d.day === 6 ? !!e.activity : d.day === 7 ? e.rested : false;
         return (
-          <div className={`card ${complete ? "day-complete" : ""}`} key={d.day} style={{ padding: 14 }}>
+          <div className={`card ${dayDone ? "day-complete" : ""}`} key={d.day} style={{ padding: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div>
                 <strong className="small">Day {d.day}</strong>
                 <div className="small muted">{d.session}</div>
               </div>
-              {d.train && complete && <span className="done-badge">✓ Done</span>}
+              {dayDone && <span className="done-badge">✓ Done</span>}
             </div>
 
             {/* Recovery/rest days only need the line above. Training days get the
@@ -294,6 +297,39 @@ export default function QuickCards() {
                   </button>
                 </div>
               </>
+            )}
+
+            {/* Day 6 (active recovery): pick what you did. */}
+            {!d.train && d.day === 6 && (
+              <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+                <label className="small muted" htmlFor={`rec-w${w.week}d${d.day}`}>Active recovery:</label>
+                <select
+                  id={`rec-w${w.week}d${d.day}`}
+                  value={e.activity}
+                  onChange={(ev) => setEntry(w.week, d.day, { activity: ev.target.value })}
+                >
+                  <option value="">Choose…</option>
+                  <option value="Walk">Walk</option>
+                  <option value="Cycle">Cycle</option>
+                  <option value="Swim">Swim</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            )}
+
+            {/* Day 7 (rest): a simple tick to mark it done. */}
+            {!d.train && d.day === 7 && (
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
+                <button
+                  className={`checkbtn ${e.rested ? "on" : ""}`}
+                  aria-pressed={e.rested}
+                  aria-label="Mark rest day done"
+                  onClick={() => setEntry(w.week, d.day, { rested: !e.rested })}
+                >
+                  {e.rested ? "✓" : "○"}
+                </button>
+                <span className="small muted">Mark rest day done</span>
+              </div>
             )}
           </div>
         );
