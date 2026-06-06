@@ -83,6 +83,15 @@ function validateMessages(messages: unknown): string | null {
   return null;
 }
 
+// Friendly root message. This server is an API only (no web pages), so visiting "/" in a
+// browser would otherwise show "Cannot GET /", which looks broken. This explains it.
+app.get("/", (_req, res) => {
+  res.type("text/plain").send(
+    "UNSTUCK Coach API — this is the backend, there's no page here.\n" +
+      "The app talks to it. Health check: /api/health",
+  );
+});
+
 // Simple health check — handy for "is the server up?" without calling Claude.
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true, model: process.env.COACH_MODEL ?? "claude-sonnet-4-5" });
