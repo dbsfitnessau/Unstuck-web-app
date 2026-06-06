@@ -307,8 +307,9 @@ button.primary {
 
 /* Program week picker: 4 weeks stacked vertically, filling the page height. */
 .week-stack { display: flex; flex-direction: column; gap: var(--s-3); min-height: calc(100dvh - 190px); }
-.week-pick { width: 100%; flex: 1 1 0; min-height: 80px; justify-content: center; }
-.week-pick strong { font-size: 18px; }
+.week-pick { width: 100%; flex: 1 1 0; min-height: 80px; justify-content: center; align-items: center; text-align: center; }
+.week-pick strong { font-size: 22px; }
+.week-pick .small { font-size: 17px; }
 
 /* "back-link" is the ghost text button at the top of a drill-down step. */
 .back-link {
