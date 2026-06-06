@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 // Beta access gate. Wraps the whole app: until the visitor enters a valid access code,
 // they see only this screen. The code is checked by the SERVER (POST /api/access), which
@@ -19,11 +19,48 @@ export function getAccessToken(): string {
   }
 }
 
+// Call this when the token is no longer valid (e.g. the server rejected it with 401
+// because the code was revoked). It clears the token and tells the gate to re-lock with
+// a "you've been logged out" message. Used by the coach when it gets a 401.
+export function lockApp() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(new Event("unstuck:locked"));
+}
+
 export default function AccessGate({ children }: { children: ReactNode }) {
   const [unlocked, setUnlocked] = useState(() => !!getAccessToken());
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  // True when the session was unlocked but the token later expired / was cleared /
+  // revoked — so we can show a "locked again" message instead of the first-time one.
+  const [reLocked, setReLocked] = useState(false);
+
+  // Re-lock the app if the token disappears mid-session: either the coach hit a 401
+  // (lockApp() fires "unstuck:locked"), or the token was cleared in another tab (the
+  // browser's native "storage" event).
+  useEffect(() => {
+    function onLocked() {
+      setUnlocked(false);
+      setReLocked(true);
+    }
+    function onStorage(e: StorageEvent) {
+      if (e.key === STORAGE_KEY && !e.newValue) {
+        setUnlocked(false);
+        setReLocked(true);
+      }
+    }
+    window.addEventListener("unstuck:locked", onLocked);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("unstuck:locked", onLocked);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,6 +77,7 @@ export default function AccessGate({ children }: { children: ReactNode }) {
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.ok) {
         localStorage.setItem(STORAGE_KEY, data.token || value);
+        setReLocked(false);
         setUnlocked(true);
       } else if (res.status === 429) {
         setError("Too many attempts. Wait a few minutes and try again.");
@@ -59,7 +97,11 @@ export default function AccessGate({ children }: { children: ReactNode }) {
     <div className="gate">
       <div className="gate-card">
         <h1 className="gate-logo">UNSTUCK<span className="accent-dot">.</span></h1>
-        <p className="gate-tag small muted">Private beta — enter your access code to continue.</p>
+        <p className="gate-tag small muted">
+          {reLocked
+            ? "UNSTUCK is locked - enter your access code."
+            : "Private beta - enter your access code to continue."}
+        </p>
         <form onSubmit={submit} className="gate-form">
           <input
             className="search-input"

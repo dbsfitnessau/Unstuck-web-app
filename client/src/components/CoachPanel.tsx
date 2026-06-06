@@ -2,7 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useLocalStorage } from "../state/useLocalStorage";
-import { getAccessToken } from "./AccessGate";
+import { getAccessToken, lockApp } from "./AccessGate";
 
 // The in-app coach. It STREAMS: it POSTs the chat history to /api/coach/stream and the
 // server sends back Server-Sent Events — text chunks as they're generated, a "searching"
@@ -118,6 +118,12 @@ export default function CoachPanel() {
         headers: { "Content-Type": "application/json", "x-access-token": getAccessToken() },
         body: JSON.stringify({ messages: apiMessages }),
       });
+      if (res.status === 401) {
+        // Token expired or was revoked → re-lock the app; the gate reappears with the
+        // "UNSTUCK is locked" message so they can re-enter a valid code.
+        lockApp();
+        return;
+      }
       if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "stream failed");
