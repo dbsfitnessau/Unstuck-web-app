@@ -14,24 +14,22 @@ export default function Program() {
 
   // ---- STEP 1: choose a week ----
   if (week === null) {
+    // Flatten the two phases into a single Week 1 -> 4 list so the options stack
+    // vertically and fill the page (instead of a 2x2 grid grouped by phase).
+    const weekList = phases.flatMap((phase) => phase.weeks.map((w) => ({ w, phase })));
     return (
       <div>
         <h2 className="section-title">Choose your week</h2>
-        {phases.map((phase) => (
-          <div key={phase.id}>
-            <p className="small muted" style={{ margin: "8px 0" }}>
-              {phase.label} · {phase.duration} · effort {phase.effort.split("-")[0].trim()}
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 8 }}>
-              {phase.weeks.map((w) => (
-                <button key={w} className="pick-btn" onClick={() => setWeek(w)}>
-                  <strong>Week {w}</strong>
-                  <span className="muted small">{phase.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="week-stack">
+          {weekList.map(({ w, phase }) => (
+            <button key={w} className="pick-btn week-pick" onClick={() => setWeek(w)}>
+              <strong>Week {w}</strong>
+              <span className="muted small">
+                {phase.label} · {phase.duration} · effort {phase.effort.split("-")[0].trim()}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }
