@@ -1,11 +1,18 @@
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useLocalStorage } from "../state/useLocalStorage";
 
-// Milestone 2: the coach is now REAL. Instead of a canned reply, this panel POSTs the
-// chat history to our Express server (/api/coach), which calls Claude with the program
-// docs + safety prompt + web search, and returns the answer (plus any source citations).
+// Milestone 2: the coach is real — it POSTs the chat history to our Express server
+// (/api/coach), which calls Claude with the program docs + safety prompt + web search.
 //
-// The server URL is configurable via VITE_API_URL (set in client/.env for production).
-// Locally it defaults to the dev server on port 8787 — no config needed.
+// Milestone 3 polish (this file):
+//   - Render the coach's Markdown properly (bold/headings/lists) instead of raw text.
+//   - Persist the conversation in localStorage so it survives a page reload.
+//   - A "Clear" button to start fresh.
+//   - Friendly handling when the server is busy (rate limit) or unreachable.
+//
+// The server URL is configurable via VITE_API_URL; locally it defaults to port 8787.
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
 
 interface Citation {
@@ -26,7 +33,14 @@ export default function CoachPanel() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [msgs, setMsgs] = useState<Msg[]>([GREETING]);
+  // Persisted chat: behaves like useState but is saved to localStorage and reloaded
+  // on the next visit. Key is namespaced so it won't collide with other saved state.
+  const [msgs, setMsgs] = useLocalStorage<Msg[]>("unstuck-coach-chat", [GREETING]);
+
+  function clearChat() {
+    setMsgs([GREETING]);
+    setInput("");
+  }
 
   async function send() {
     const text = input.trim();
@@ -51,6 +65,8 @@ export default function CoachPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: apiMessages }),
       });
+      // The server returns a friendly `reply` even for 429 (busy) / 502 (down), so we
+      // render data.reply regardless of status. fetch only throws on network failure.
       const data = await res.json();
       setMsgs((m) => [
         ...m,
@@ -84,12 +100,34 @@ export default function CoachPanel() {
           <div className="coach-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="coach-head">
               <strong>UNSTUCK Coach</strong>
-              <button className="checkbtn" onClick={() => setOpen(false)}>Close</button>
+              <div className="coach-head-actions">
+                <button className="checkbtn" onClick={clearChat} disabled={loading}>Clear</button>
+                <button className="checkbtn" onClick={() => setOpen(false)}>Close</button>
+              </div>
             </div>
             <div className="coach-msgs">
               {msgs.map((m, i) => (
                 <div key={i} className={`msg ${m.role}`}>
-                  <div>{m.text}</div>
+                  {m.role === "coach" ? (
+                    // Render the coach's Markdown. Links open in a new tab, safely.
+                    <div className="md">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a(props) {
+                            const { node, ...rest } = props;
+                            void node;
+                            return <a {...rest} target="_blank" rel="noopener noreferrer" />;
+                          },
+                        }}
+                      >
+                        {m.text}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    // The user's own text — render plain (they didn't write Markdown).
+                    <div>{m.text}</div>
+                  )}
                   {m.citations && m.citations.length > 0 && (
                     <div className="msg-citations">
                       <span className="muted small">Sources</span>

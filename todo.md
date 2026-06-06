@@ -57,7 +57,7 @@
 
 ---
 
-# ⬜ Milestone 2 — Connect the Claude coach with web search
+# ✅ Milestone 2 — Connect the Claude coach with web search (COMPLETE)
 
 **Goal:** stand up the thin Express backend and make the coach real. The API key
 lives ONLY on the server, never in the browser. Source of truth: `spec.md` §4 and
@@ -109,12 +109,46 @@ lives ONLY on the server, never in the browser. Source of truth: `spec.md` §4 a
 
 ---
 
-# ⬜ Milestone 3 — Polish & persistence (optional, only if M1 + M2 land cleanly)
+# ⬜ Milestone 3 — Polish, hardening & persistence
 
-- [ ] Replace dummy content with the full parsed markdown for all four docs (build-time parse).
+**Goal:** take the working app + coach from "demo on my laptop" to something that
+looks finished and could survive real users. Grouped so we can do a slice at a time.
+
+## Coach polish (quick wins, surfaced while testing M2)
+- [x] **Render Markdown in coach replies.** *(Added `react-markdown` + `remark-gfm`; links open in a new tab with `rel="noopener"`. Verified live — bold/headings/lists render, no raw `**`.)*
+- [x] **Handle the rate-limit (429) nicely in the UI.** *(Server now returns 429 with a calm "I'm busy, give me ~Ns" message + `retryAfter` from the upstream `retry-after` header; client renders it like any reply.)*
+- [x] **Persist the chat** across page reloads (localStorage), with a "Clear chat" button. *(Reuses `useLocalStorage` under key `unstuck-coach-chat`; verified survives reload, Clear resets to the greeting.)*
+- [ ] **Stream the reply** token-by-token so it feels live instead of waiting for the whole
+      answer (uses the SDK's streaming mode; the server would stream to the client).
+- [ ] Distinguish "Thinking…" from "Searching the web…" so the loading text is honest.
+      *(Best done together with streaming — the server only knows a search happened mid-turn.)*
+
+## Cost, limits & abuse protection (do before any public/beta deploy)
+- [ ] **Raise coach throughput.** The 4 docs (~40K tokens) ride on every request; the entry
+      tier allows 30K input tokens/min (~1 request/min). Options: advance usage tier, route
+      routine questions to a cheaper model (Haiku) and only escalate when needed, and/or trim
+      what's sent as cached context.
+- [ ] **Protect `/api/coach`.** It's currently open — anyone who finds the URL can spend your
+      tokens. Add basic rate limiting per IP/session and a simple abuse guard.
+- [ ] Add a request timeout/abort on the Claude call so a stuck turn fails fast.
+
+## Content depth
+- [ ] Replace dummy content with the full parsed markdown for all four docs (build-time parse),
+      so the app and the coach read from exactly the same source.
 - [ ] Photo capture in the Testing Area (local only) + before/after chart (radar or bars).
 - [ ] Session timers for holds and PAILs/RAILs cycles.
-- [ ] Light accessibility + responsive pass.
+
+## Deploy
+- [ ] Host the server (with `ANTHROPIC_API_KEY` set as a real env var, not a committed file)
+      and the client; ship the 4 docs alongside the server so `docs.ts` can read them.
+- [ ] Point the client at the live server via `VITE_API_URL`, and add the production URL to
+      the server's `CORS_ORIGIN`.
+
+## Housekeeping (small, discovered during M2)
+- [ ] Remove the stale compiled `client/vite.config.js` + `vite.config.d.ts` (leftover build
+      artifacts next to the real `vite.config.ts`) and gitignore `tsconfig.tsbuildinfo` so it
+      stops showing up as a change.
+- [ ] Light accessibility + responsive pass across all surfaces (incl. the coach sheet).
 
 ---
 

@@ -42,6 +42,22 @@ app.post("/api/coach", async (req, res) => {
     // Never leak internals (or the key) to the client. Log server-side, return a safe,
     // on-brand fallback that still carries the core safety message.
     console.error("[/api/coach] error:", err);
+
+    // Special-case rate limits (HTTP 429). On the entry usage tier we can exceed the
+    // input-tokens-per-minute cap. We surface this as a 429 with the upstream's
+    // retry-after (seconds) so the client can show a calm "I'm busy" message and tell
+    // the user how long to wait — rather than a generic failure.
+    const status = (err as { status?: number })?.status;
+    if (status === 429) {
+      const retryAfter = Number((err as { headers?: Record<string, string> })?.headers?.["retry-after"]) || 30;
+      return res.status(429).json({
+        reply: `I'm getting more questions than my current limit allows. Give me about ${retryAfter} seconds and ask again. (If anything hurts — sharp, radiating, or lingering pain — stop and see a physio.)`,
+        citations: [],
+        error: true,
+        retryAfter,
+      });
+    }
+
     res.status(502).json({
       reply:
         "The coach is unavailable right now — try again in a moment. And if anything hurts (sharp, radiating, or lingering pain), stop and see a physio.",
