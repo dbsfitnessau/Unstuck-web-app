@@ -6,7 +6,7 @@ import "./env.js"; // MUST be first: loads server/.env into process.env before a
 import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import { runCoach, type ChatMessage } from "./coach.js";
+import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
 
 const app = express();
 
@@ -127,6 +127,47 @@ app.post("/api/coach", coachLimiter, async (req, res) => {
       citations: [],
       error: true,
     });
+  }
+});
+
+// Streaming version of the coach. Same guards (rate limit + validation), but instead of
+// one JSON reply it sends Server-Sent Events: `delta` (text chunks), `searching` (a web
+// search began), `done` (with citations), or `error`. The browser shows the answer as it
+// types. Same friendly fallbacks as /api/coach.
+app.post("/api/coach/stream", coachLimiter, async (req, res) => {
+  const messages = req.body?.messages as ChatMessage[] | undefined;
+
+  const validationError = validateMessages(messages);
+  if (validationError) {
+    return res.status(400).json({ error: validationError });
+  }
+
+  // SSE headers. no-transform stops proxies from buffering the stream.
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders?.();
+
+  const send = (event: string, data: unknown) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const { citations } = await runCoachStream(messages!, {
+      onText: (delta) => send("delta", { text: delta }),
+      onSearch: () => send("searching", {}),
+    });
+    send("done", { citations });
+  } catch (err) {
+    console.error("[/api/coach/stream] error:", err);
+    const status = (err as { status?: number })?.status;
+    const message =
+      status === 429
+        ? "I'm getting more questions than my current limit allows. Give me a moment, then ask again. (If anything hurts - sharp, radiating, or lingering pain - stop and see a physio.)"
+        : "The coach is unavailable right now - try again in a moment. And if anything hurts (sharp, radiating, or lingering pain), stop and see a physio.";
+    send("error", { message });
+  } finally {
+    res.end();
   }
 });
 

@@ -146,6 +146,71 @@ export async function runCoach(history: ChatMessage[]): Promise<CoachResult> {
   return extractResult(response);
 }
 
+// Callbacks the streaming endpoint passes in to forward progress to the browser.
+export interface StreamHandlers {
+  onText: (delta: string) => void; // a chunk of the answer was generated
+  onSearch: () => void;            // a web search just started
+}
+
+// Streaming variant of runCoach. Forwards text deltas as they arrive and signals when a
+// web search starts, handles the pause_turn resume loop, and returns the de-duped
+// citations once the whole turn is finished.
+export async function runCoachStream(history: ChatMessage[], handlers: StreamHandlers): Promise<{ citations: Citation[] }> {
+  let messages: Anthropic.MessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
+  const request = {
+    model: MODEL,
+    max_tokens: 1024,
+    system: SYSTEM_BLOCKS,
+    tools: [WEB_SEARCH_TOOL as unknown as Anthropic.Tool],
+    messages,
+  };
+
+  const seen = new Set<string>();
+  const citations: Citation[] = [];
+  let resumes = 0;
+
+  while (true) {
+    const stream = client.messages.stream({ ...request, messages }, REQUEST_OPTS);
+
+    // Forward the answer text as it's generated.
+    stream.on("text", (delta) => handlers.onText(delta));
+
+    // Detect the start of a web search so the UI can say "Searching the web…".
+    stream.on("streamEvent", (event) => {
+      const e = event as { type?: string; content_block?: { type?: string } };
+      if (e.type === "content_block_start" && e.content_block?.type === "server_tool_use") {
+        handlers.onSearch();
+      }
+    });
+
+    const final = await stream.finalMessage();
+
+    // Collect citations from this turn's text blocks.
+    for (const block of final.content) {
+      if (block.type === "text") {
+        const blockCitations = (block as { citations?: unknown[] }).citations ?? [];
+        for (const c of blockCitations) {
+          const cit = c as { type?: string; url?: string; title?: string };
+          if (cit.type === "web_search_result_location" && cit.url && !seen.has(cit.url)) {
+            seen.add(cit.url);
+            citations.push({ url: cit.url, title: cit.title || cit.url });
+          }
+        }
+      }
+    }
+
+    // pause_turn: append what we have and resume; otherwise the turn is done.
+    if ((final.stop_reason as string) === "pause_turn" && resumes < MAX_PAUSE_RESUMES) {
+      messages = [...messages, { role: "assistant", content: final.content }];
+      resumes += 1;
+      continue;
+    }
+    break;
+  }
+
+  return { citations };
+}
+
 // Pull the human-readable answer + web citations out of Claude's response blocks.
 function extractResult(response: Anthropic.Message): CoachResult {
   let reply = "";

@@ -118,10 +118,13 @@ looks finished and could survive real users. Grouped so we can do a slice at a t
 - [x] **Render Markdown in coach replies.** *(Added `react-markdown` + `remark-gfm`; links open in a new tab with `rel="noopener"`. Verified live — bold/headings/lists render, no raw `**`.)*
 - [x] **Handle the rate-limit (429) nicely in the UI.** *(Server now returns 429 with a calm "I'm busy, give me ~Ns" message + `retryAfter` from the upstream `retry-after` header; client renders it like any reply.)*
 - [x] **Persist the chat** across page reloads (localStorage), with a "Clear chat" button. *(Reuses `useLocalStorage` under key `unstuck-coach-chat`; verified survives reload, Clear resets to the greeting.)*
-- [~] **Stream the reply** token-by-token + honest "Searching…" label. **Deferred (optional
-      polish).** It's perceived-latency only, it would rework the verified-working `/api/coach`
-      contract (SSE + the web-search pause/resume flow), and the account's ~1 req/min rate limit
-      caps the benefit anyway. Revisit after the usage tier is raised. Not worth the risk now.
+- [x] **Stream the reply** token-by-token + honest "Searching…" label. *(New SSE endpoint
+      `POST /api/coach/stream`: emits `delta`/`searching`/`done`/`error` events; same rate-limit
+      + validation guards. `runCoachStream` handles the web-search pause/resume loop and
+      collects citations. CoachPanel renders the answer as it types, keeps live tokens in
+      ephemeral state (only the finished message is persisted), and flips the loading label to
+      "Searching the web…" on the web-search event. The non-streaming `/api/coach` stays as a
+      fallback. Verified live: answer types in, commits to history.)*
 
 ## Cost, limits & abuse protection (do before any public/beta deploy)
 - [x] **Protect `/api/coach`.** *(Per-IP rate limit via `express-rate-limit` — 12 req/min,
