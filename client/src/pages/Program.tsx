@@ -39,18 +39,21 @@ export default function Program() {
   // ---- STEP 2: choose a day ----
   if (day === null) {
     return (
-      <div>
+      <div className="pick-page">
         <button className="back-link" onClick={() => setWeek(null)}>← Weeks</button>
         <h2 className="section-title">Week {week} · {phase.label} - choose a day</h2>
         <div className="stop-box" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
           <p className="small"><strong>Before you start:</strong> {phase.warmup}</p>
         </div>
-        {phase.days.map((d) => (
-          <button key={d.day} className="pick-btn wide" onClick={() => setDay(d.day)}>
-            <strong>Day {d.day} - {d.focus}</strong>
-            <span className="muted small">{d.exercises.length} movements</span>
-          </button>
-        ))}
+        {/* Days fill the remaining page height, stacked and centred. */}
+        <div className="day-stack">
+          {phase.days.map((d) => (
+            <button key={d.day} className="pick-btn week-pick" onClick={() => setDay(d.day)}>
+              <strong>Day {d.day} - {d.focus}</strong>
+              <span className="muted small">{d.exercises.length} movements</span>
+            </button>
+          ))}
+        </div>
       </div>
     );
   }

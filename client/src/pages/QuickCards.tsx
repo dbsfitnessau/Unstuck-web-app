@@ -32,7 +32,7 @@ const WEEKS: WeekDef[] = [
     note: "Ease in. Pick a tier you can run with clean form for all five sessions.",
     days: [
       { day: 1, session: "Hips & Hamstrings", train: true },
-      { day: 2, session: "T-Spine & Shoulders", train: true },
+      { day: 2, session: "Thoracic Spine & Shoulders", train: true },
       { day: 3, session: "Full-Body Flow & Breath", train: true },
       { day: 4, session: "Ankles & Deep Squat", train: true },
       { day: 5, session: "Posterior Chain & Wind-Down", train: true },
@@ -45,7 +45,7 @@ const WEEKS: WeekDef[] = [
     note: "Progress holds (+15s) and active sets (+1–2 reps). Same tier or step up - your call.",
     days: [
       { day: 1, session: "Hips & Hamstrings (progress)", train: true },
-      { day: 2, session: "T-Spine & Shoulders (progress)", train: true },
+      { day: 2, session: "Thoracic Spine & Shoulders (progress)", train: true },
       { day: 3, session: "Full-Body Flow & Breath", train: true },
       { day: 4, session: "Ankles & Deep Squat (progress)", train: true },
       { day: 5, session: "Posterior Chain & Wind-Down (progress)", train: true },
@@ -58,7 +58,7 @@ const WEEKS: WeekDef[] = [
     note: "Sessions are now 25–30 min. Warm up 2–3 min first. Load starts here.",
     days: [
       { day: 1, session: "Hips & Hamstrings, Loaded", train: true },
-      { day: 2, session: "T-Spine & Shoulders, Loaded", train: true },
+      { day: 2, session: "Thoracic Spine & Shoulders, Loaded", train: true },
       { day: 3, session: "Full-Body Flow, Athletic", train: true },
       { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
       { day: 5, session: "Posterior Chain, Loaded", train: true },
@@ -71,7 +71,7 @@ const WEEKS: WeekDef[] = [
     note: "Final push. Hold form over load - a clean rep beats a heavy ugly one.",
     days: [
       { day: 1, session: "Hips & Hamstrings, Loaded", train: true },
-      { day: 2, session: "T-Spine & Shoulders, Loaded", train: true },
+      { day: 2, session: "Thoracic Spine & Shoulders, Loaded", train: true },
       { day: 3, session: "Full-Body Flow, Athletic", train: true },
       { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
       { day: 5, session: "Posterior Chain, Loaded", train: true },

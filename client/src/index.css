@@ -322,6 +322,11 @@ button.primary {
 .week-pick strong { font-size: 22px; }
 .week-pick .small { font-size: 17px; }
 
+/* Program day picker (step 2): the day list fills the space left under the
+   heading + warm-up box, stacked and centred. */
+.pick-page { display: flex; flex-direction: column; min-height: calc(100dvh - 140px); }
+.day-stack { flex: 1; display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-3); }
+
 /* "back-link" is the ghost text button at the top of a drill-down step. */
 .back-link {
   background: none;
