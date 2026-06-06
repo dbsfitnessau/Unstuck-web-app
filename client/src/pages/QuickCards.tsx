@@ -110,8 +110,14 @@ export default function QuickCards() {
     reflections: {},
   });
 
-  const entry = (week: number, day: number): Entry =>
-    log.entries[`w${week}d${day}`] ?? EMPTY_ENTRY;
+  // Always merge a saved entry over EMPTY_ENTRY so EVERY field is guaranteed to
+  // exist — including `stretchDone`. This matters because data saved by older
+  // versions of the app may be missing newer fields; without this, reading e.g.
+  // `e.stretchDone[i]` on a legacy entry would throw and blank the whole page.
+  const entry = (week: number, day: number): Entry => {
+    const saved = log.entries[`w${week}d${day}`];
+    return { ...EMPTY_ENTRY, ...saved, stretchDone: saved?.stretchDone ?? {} };
+  };
 
   // Immutably update one day's entry. We spread the old state so React sees a
   // brand-new object and re-renders (mutating in place wouldn't trigger that).
@@ -145,7 +151,7 @@ export default function QuickCards() {
     setEntry(week, day, { stretchDone: {} });
 
   const reflection = (week: number): Reflection =>
-    log.reflections[week] ?? EMPTY_REFLECTION;
+    ({ ...EMPTY_REFLECTION, ...log.reflections[week] });
 
   const setReflection = (week: number, patch: Partial<Reflection>) =>
     setLog((prev) => ({

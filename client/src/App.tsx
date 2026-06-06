@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { TierProvider } from "./state/TierContext";
 import BottomNav from "./components/BottomNav";
 import CoachPanel from "./components/CoachPanel";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import Program from "./pages/Program";
 import QuickCards from "./pages/QuickCards";
@@ -21,17 +22,21 @@ export default function App() {
           <span className="tagline">Don't Be Sh*t. Move better.</span>
         </header>
         <div className="app-content">
-          <Routes>
-            {/* Default: send "/" to Home */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/program" element={<Program />} />
-            <Route path="/worksheet" element={<QuickCards />} />
-            <Route path="/testing" element={<Testing />} />
-            <Route path="/search" element={<Search />} />
-            {/* Anything unknown falls back to Home */}
-            <Route path="*" element={<Navigate to="/home" replace />} />
-          </Routes>
+          {/* If a page throws while rendering, the boundary shows a recovery
+              screen instead of a blank page — and the nav below stays usable. */}
+          <ErrorBoundary>
+            <Routes>
+              {/* Default: send "/" to Home */}
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/program" element={<Program />} />
+              <Route path="/worksheet" element={<QuickCards />} />
+              <Route path="/testing" element={<Testing />} />
+              <Route path="/search" element={<Search />} />
+              {/* Anything unknown falls back to Home */}
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </ErrorBoundary>
         </div>
 
         <CoachPanel />

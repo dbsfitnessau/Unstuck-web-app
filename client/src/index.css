@@ -714,6 +714,10 @@ button.primary {
 .md table { border-collapse: collapse; font-size: 13px; }
 .md th, .md td { border: 1px solid var(--line); padding: 4px 8px; }
 
+/* ── Error boundary fallback ────────────────────────────────────────────── */
+.error-fallback { padding: 24px; max-width: 520px; margin: 24px auto; }
+.error-fallback h2 { margin: 0 0 8px; }
+
 /* ── Session timer ──────────────────────────────────────────────────────── */
 .timer-card { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
 .timer-card > summary { cursor: pointer; font-weight: 700; }
