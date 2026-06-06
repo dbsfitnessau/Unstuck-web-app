@@ -2,6 +2,7 @@ import { useState } from "react";
 import { STOP_SIGNS, CONTRAINDICATIONS, TIERS, type Tier } from "../data/dummyContent";
 import { phaseForWeek, type Exercise } from "../data/program";
 import { useLocalStorage } from "../state/useLocalStorage";
+import Timer from "../components/Timer";
 
 // ---------------------------------------------------------------------------
 // The "Worksheet" tab = the 28-day log from the printed worksheet, made
@@ -188,6 +189,12 @@ export default function QuickCards() {
         <h3 style={{ margin: 0, fontSize: 28 }}>{doneCount} / {totalTrainingDays}</h3>
         <p className="small muted" style={{ margin: "4px 0 0" }}>days completed (all stretches ticked)</p>
       </div>
+
+      {/* Session timer — collapsible so it's out of the way until you're mid-session. */}
+      <details className="card timer-card">
+        <summary>⏱ Session timer <span className="small muted">— holds &amp; PAILs/RAILs</span></summary>
+        <Timer />
+      </details>
 
       {/* Week sub-tabs — one week per tab. */}
       <div className="seg-tabs" role="tablist" aria-label="Week">

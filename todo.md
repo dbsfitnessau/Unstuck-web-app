@@ -138,10 +138,20 @@ looks finished and could survive real users. Grouped so we can do a slice at a t
       (Not trimming the cached docs — they carry the load-bearing safety content.)
 
 ## Content depth
-- [ ] Replace dummy content with the full parsed markdown for all four docs (build-time parse),
-      so the app and the coach read from exactly the same source.
-- [ ] Photo capture in the Testing Area (local only) + before/after chart (radar or bars).
-- [ ] Session timers for holds and PAILs/RAILs cycles.
+- [~] ~~Replace dummy content with the full parsed markdown (build-time parse).~~
+      **Intentionally descoped.** The app's `program.ts` is already complete and faithful to
+      the source docs (verified day-by-day), and it's *structured* (how / key-focus / why /
+      per-tier / contraindications) — which a parse of human-prose markdown would only degrade.
+      The coach already reads the raw docs (LLMs want prose); the app reads structure (UIs want
+      fields). That split is correct, not a bug to fix. Real risk = drift if the docs change;
+      handle that with a periodic consistency check, not a permanent fragile parser.
+- [ ] Photo capture in the Testing Area (local only) + before/after chart. *(Deferred — Lea is
+      collating photos to add later.)*
+- [x] Session timers for holds and PAILs/RAILs cycles. *(New `Timer` component in the Worksheet:
+      Hold countdown (30/45/60/90s) + guided PAILs·RAILs sequence (60s hold → 20s PAILs → 20s
+      RAILs, 1–2 cycles), with beep + vibrate at each change. Deadline-based clock so it stays
+      accurate under StrictMode/throttling. Verified live: accurate countdown + auto-advance
+      Hold→PAILs→RAILs.)*
 
 ## Deploy
 - [ ] Host the server (with `ANTHROPIC_API_KEY` set as a real env var, not a committed file)
