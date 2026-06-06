@@ -5,7 +5,7 @@ import { useLocalStorage } from "../state/useLocalStorage";
 // ---------------------------------------------------------------------------
 // The Testing area = the 7 field tests, re-tested on a rolling 28-day cadence.
 // Instead of a fixed "Day 0 vs Day 28", testing now runs in ROUNDS: Day 0, 28,
-// 56, 84, … — so someone repeating the program keeps logging progress over
+// 56, 84, … - so someone repeating the program keeps logging progress over
 // months. You pick a round at the top, fill that round's tests, and add the
 // next round (+28 days) when you reach it. The scorecard compares every round
 // against your Day 0 baseline.
@@ -62,14 +62,14 @@ export default function Testing() {
   return (
     <div>
       <div className="stop-box">
-        <h3>📐 Field tests — not clinical assessments</h3>
+        <h3>📐 Field tests - not clinical assessments</h3>
         <p className="small">
           Re-test every 28 days: Day 0 (baseline), Day 28, Day 56, Day 84… Treat changes
           under ~1cm or ~5° as noise.
         </p>
       </div>
 
-      {/* Round selector — one tab per milestone, plus "add round". */}
+      {/* Round selector - one tab per milestone, plus "add round". */}
       <div className="seg-tabs" role="tablist" aria-label="Testing round">
         {milestones.map((day) => (
           <button
@@ -89,7 +89,7 @@ export default function Testing() {
 
       <p className="small muted" style={{ margin: "0 0 12px" }}>
         Filling <strong>{roundLabel(activeDay)}</strong>
-        {activeDay === 0 ? " — your baseline." : ` — compared against Day 0 in the scorecard below.`}
+        {activeDay === 0 ? " - your baseline." : ` - compared against Day 0 in the scorecard below.`}
       </p>
 
       {tests.map((t) => {
@@ -150,13 +150,13 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
       const change =
         baseline && latest && !isNaN(+baseline) && !isNaN(+latest)
           ? (+latest - +baseline).toFixed(1)
-          : "—";
+          : "-";
       return { name: t.name, unit: t.metric!.unit, values, change };
     });
 
   return (
     <>
-      <h2 className="section-title">Scorecard — change from Day 0</h2>
+      <h2 className="section-title">Scorecard - change from Day 0</h2>
       <div className="card table-scroll">
         <table className="grid">
           <thead>
@@ -170,8 +170,8 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
             {rows.map((r, i) => (
               <tr key={i}>
                 <td>{r.name} <span className="muted small">({r.unit})</span></td>
-                {r.values.map((v, j) => <td key={j}>{v || "—"}</td>)}
-                <td style={{ color: r.change !== "—" ? "var(--olive)" : "var(--text-dim)", fontWeight: 700 }}>{r.change}</td>
+                {r.values.map((v, j) => <td key={j}>{v || "-"}</td>)}
+                <td style={{ color: r.change !== "-" ? "var(--olive)" : "var(--text-dim)", fontWeight: 700 }}>{r.change}</td>
               </tr>
             ))}
           </tbody>

@@ -10,7 +10,7 @@ import Timer from "../components/Timer";
 // see the week you're in.
 //
 // For each TRAINING day you:
-//   - pick the colour (tier) you're running that day — once picked, every
+//   - pick the colour (tier) you're running that day - once picked, every
 //     stretch shows just that colour's cue (the other two hide);
 //   - tick off each stretch as you finish it (tick again to undo and redo);
 //   - rate effort /10, (weeks 3-4) log load in kg, and jot a note.
@@ -18,7 +18,7 @@ import Timer from "../components/Timer";
 // Each week also has the three reflection prompts from the worksheet.
 //
 // Everything is saved to the browser's localStorage (via useLocalStorage) so it
-// survives a refresh or closing the tab — no account or server needed for M1.
+// survives a refresh or closing the tab - no account or server needed for M1.
 // ---------------------------------------------------------------------------
 
 // The fixed schedule. `train: false` marks recovery/rest days (no stretches).
@@ -36,20 +36,20 @@ const WEEKS: WeekDef[] = [
       { day: 3, session: "Full-Body Flow & Breath", train: true },
       { day: 4, session: "Ankles & Deep Squat", train: true },
       { day: 5, session: "Posterior Chain & Wind-Down", train: true },
-      { day: 6, session: "Active Recovery — walk / cycle / swim", train: false },
+      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
       { day: 7, session: "Rest", train: false },
     ],
   },
   {
     week: 2, phase: "Foundation", loaded: false,
-    note: "Progress holds (+15s) and active sets (+1–2 reps). Same tier or step up — your call.",
+    note: "Progress holds (+15s) and active sets (+1–2 reps). Same tier or step up - your call.",
     days: [
       { day: 1, session: "Hips & Hamstrings (progress)", train: true },
       { day: 2, session: "T-Spine & Shoulders (progress)", train: true },
       { day: 3, session: "Full-Body Flow & Breath", train: true },
       { day: 4, session: "Ankles & Deep Squat (progress)", train: true },
       { day: 5, session: "Posterior Chain & Wind-Down (progress)", train: true },
-      { day: 6, session: "Active Recovery — walk / cycle / swim", train: false },
+      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
       { day: 7, session: "Rest", train: false },
     ],
   },
@@ -62,20 +62,20 @@ const WEEKS: WeekDef[] = [
       { day: 3, session: "Full-Body Flow, Athletic", train: true },
       { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
       { day: 5, session: "Posterior Chain, Loaded", train: true },
-      { day: 6, session: "Active Recovery — walk / cycle / swim", train: false },
+      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
       { day: 7, session: "Rest", train: false },
     ],
   },
   {
     week: 4, phase: "Progression", loaded: true,
-    note: "Final push. Hold form over load — a clean rep beats a heavy ugly one.",
+    note: "Final push. Hold form over load - a clean rep beats a heavy ugly one.",
     days: [
       { day: 1, session: "Hips & Hamstrings, Loaded", train: true },
       { day: 2, session: "T-Spine & Shoulders, Loaded", train: true },
       { day: 3, session: "Full-Body Flow, Athletic", train: true },
       { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
       { day: 5, session: "Posterior Chain, Loaded", train: true },
-      { day: 6, session: "Active Recovery — walk / cycle / swim", train: false },
+      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
       { day: 7, session: "Rest", train: false },
     ],
   },
@@ -190,13 +190,7 @@ export default function QuickCards() {
         <p className="small muted" style={{ margin: "4px 0 0" }}>days completed (all stretches ticked)</p>
       </div>
 
-      {/* Session timer — collapsible so it's out of the way until you're mid-session. */}
-      <details className="card timer-card">
-        <summary>⏱ Session timer <span className="small muted">— holds &amp; PAILs/RAILs</span></summary>
-        <Timer />
-      </details>
-
-      {/* Week sub-tabs — one week per tab. */}
+      {/* Week sub-tabs - one week per tab. */}
       <div className="seg-tabs" role="tablist" aria-label="Week">
         {WEEKS.map((x) => (
           <button
@@ -254,6 +248,13 @@ export default function QuickCards() {
                   stretchDone={e.stretchDone}
                   onToggle={(i) => toggleStretch(w.week, d.day, i)}
                 />
+
+                {/* Per-day session timer - collapsed by default so it's there when
+                    you need it (holds, PAILs/RAILs) without cluttering the day. */}
+                <details className="timer-card">
+                  <summary>⏱ Timer <span className="small muted">- holds &amp; PAILs/RAILs</span></summary>
+                  <Timer />
+                </details>
 
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                   <label className="small muted" style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -344,7 +345,7 @@ function StretchChecklist({
               {done ? "✓" : "○"}
             </button>
 
-            {/* Photo slot — placeholder until a real image URL is added to the
+            {/* Photo slot - placeholder until a real image URL is added to the
                 exercise's `image` field, then it shows here. */}
             {ex.image ? (
               <img className="stretch-photo" src={ex.image} alt={ex.name} />

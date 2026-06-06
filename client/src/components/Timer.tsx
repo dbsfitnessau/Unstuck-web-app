@@ -2,18 +2,18 @@ import { useEffect, useRef, useState } from "react";
 
 // ---------------------------------------------------------------------------
 // Session timer for the Worksheet. Two modes:
-//   • Hold        — a plain countdown (30 / 45 / 60 / 90s presets) for static holds.
-//   • PAILs·RAILs — a GUIDED sequence: 60s hold → 20s PAILs → 20s RAILs, with an
+//   • Hold        - a plain countdown (30 / 45 / 60 / 90s presets) for static holds.
+//   • PAILs·RAILs - a GUIDED sequence: 60s hold → 20s PAILs → 20s RAILs, with an
 //                   optional second cycle (the 🔴 tier does two). Auto-advances
 //                   between phases and beeps/vibrates at each change.
 //
-// IMPORTANT design choice — the countdown is DEADLINE-based, not tick-based.
+// IMPORTANT design choice - the countdown is DEADLINE-based, not tick-based.
 // When a phase starts we record the wall-clock time it should END (`endAt`).
 // Every tick we compute "seconds left" = endAt − now. We do NOT decrement a
 // counter. Why: a decrement-per-tick timer runs too fast if more than one
 // interval ever fires per second (which React StrictMode / hot-reload can
 // cause). Deriving from the clock makes the displayed time correct no matter
-// how often (or how rarely — e.g. a throttled background tab) the tick runs.
+// how often (or how rarely - e.g. a throttled background tab) the tick runs.
 // ---------------------------------------------------------------------------
 
 interface Phase {
@@ -27,8 +27,8 @@ const holdPhases = (seconds: number): Phase[] => [{ label: "Hold", seconds, tone
 const pailsRailsPhases = (rounds: number): Phase[] => {
   const phases: Phase[] = [{ label: "Hold", seconds: 60, tone: "hold" }];
   for (let r = 0; r < rounds; r++) {
-    phases.push({ label: "PAILs — push", seconds: 20, tone: "pails" });
-    phases.push({ label: "RAILs — pull deeper", seconds: 20, tone: "rails" });
+    phases.push({ label: "PAILs - push", seconds: 20, tone: "pails" });
+    phases.push({ label: "RAILs - pull deeper", seconds: 20, tone: "rails" });
   }
   return phases;
 };
@@ -53,7 +53,7 @@ const makeState = (phases: Phase[]): TimerState => ({
 
 // --- Audio + haptics ------------------------------------------------------
 // One shared AudioContext, created lazily on the first beep (which only ever
-// happens after the user has pressed Start — browsers require a user gesture
+// happens after the user has pressed Start - browsers require a user gesture
 // before audio can play).
 let audioCtx: AudioContext | null = null;
 function beep(times = 1) {
@@ -76,14 +76,14 @@ function beep(times = 1) {
       t += 0.28;
     }
   } catch {
-    // Audio unavailable (e.g. autoplay blocked) — the visual countdown still works.
+    // Audio unavailable (e.g. autoplay blocked) - the visual countdown still works.
   }
 }
 function vibrate(pattern: number | number[]) {
   try {
     if ("vibrate" in navigator) navigator.vibrate(pattern);
   } catch {
-    /* not supported — ignore */
+    /* not supported - ignore */
   }
 }
 
@@ -96,7 +96,7 @@ export default function Timer() {
   const [state, setState] = useState<TimerState>(() => makeState(holdPhases(60)));
 
   // Beep on phase CHANGE and on completion. We do this in effects (watching the
-  // values) rather than inside the tick, so the state updater stays pure — pure
+  // values) rather than inside the tick, so the state updater stays pure - pure
   // updaters are safe under React StrictMode's intentional double-invocation.
   const prevPhase = useRef(0);
   useEffect(() => {
@@ -110,7 +110,7 @@ export default function Timer() {
   }, [state.finished]);
 
   // The clock. One interval while running; it only READS the deadline and
-  // recomputes seconds-left — it never decrements a counter.
+  // recomputes seconds-left - it never decrements a counter.
   useEffect(() => {
     if (!state.running) return;
     const id = setInterval(() => {
@@ -235,7 +235,7 @@ export default function Timer() {
         </button>
       </div>
       <p className="small muted" style={{ margin: "8px 0 0", textAlign: "center" }}>
-        Beeps at each change. Earn depth — don't force it.
+        Beeps at each change. Earn depth - don't force it.
       </p>
     </div>
   );

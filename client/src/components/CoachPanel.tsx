@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useLocalStorage } from "../state/useLocalStorage";
 
-// Milestone 2: the coach is real — it POSTs the chat history to our Express server
+// Milestone 2: the coach is real - it POSTs the chat history to our Express server
 // (/api/coach), which calls Claude with the program docs + safety prompt + web search.
 //
 // Milestone 3 polish (this file):
@@ -26,7 +26,7 @@ interface Msg {
 }
 
 // The opening message. It's a "coach" turn but we never send it to the API (the API
-// requires the conversation to start with a user turn — see the filter in send()).
+// requires the conversation to start with a user turn - see the filter in send()).
 const GREETING: Msg = { role: "coach", text: "Ask me anything about your session today." };
 
 export default function CoachPanel() {
@@ -82,7 +82,7 @@ export default function CoachPanel() {
         ...m,
         {
           role: "coach",
-          text: "Couldn't reach the coach — is the server running? If anything hurts (sharp, radiating, or lingering pain), stop and see a physio.",
+          text: "Couldn't reach the coach - is the server running? If anything hurts (sharp, radiating, or lingering pain), stop and see a physio.",
         },
       ]);
     } finally {
@@ -125,7 +125,7 @@ export default function CoachPanel() {
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    // The user's own text — render plain (they didn't write Markdown).
+                    // The user's own text - render plain (they didn't write Markdown).
                     <div>{m.text}</div>
                   )}
                   {m.citations && m.citations.length > 0 && (
@@ -153,7 +153,7 @@ export default function CoachPanel() {
             <div className="coach-input">
               <input
                 className="search-input"
-                placeholder="e.g. Slept badly — what tier today?"
+                placeholder="e.g. Slept badly - what tier today?"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && send()}

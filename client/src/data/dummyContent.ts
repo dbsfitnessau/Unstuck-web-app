@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // Dummy content for Milestone 1.
-// This is a realistic SLICE of the real UNSTUCK docs — enough to build and test
+// This is a realistic SLICE of the real UNSTUCK docs - enough to build and test
 // every screen. In a later milestone this gets replaced by the parsed markdown
 // or an API response, but the SHAPES (types) below can stay the same.
 // ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ export const STOP_SIGNS: string[] = [
 ];
 
 export const CONTRAINDICATIONS =
-  "Not for pregnancy or early postpartum, recent surgery, or anyone with a history of disc symptoms attempting any loaded spinal flexion. When in doubt, drop to 🟢, small range, no load — and see a physio.";
+  "Not for pregnancy or early postpartum, recent surgery, or anyone with a history of disc symptoms attempting any loaded spinal flexion. When in doubt, drop to 🟢, small range, no load - and see a physio.";
 
 // ---- Cheatsheet ----
 export interface Principle { title: string; body: string; practical: string; }
@@ -35,9 +35,9 @@ export interface Faq { q: string; a: string; }
 export const cheatsheet = {
   principles: [
     {
-      title: "Tightness is often a nervous-system signal — not just a short muscle.",
+      title: "Tightness is often a nervous-system signal - not just a short muscle.",
       body: "A lot of what you feel as 'tight' is a protective output from your CNS deciding a range is unsafe. Stretch tolerance changes faster than tissue length.",
-      practical: "Long exhales. Time under tension. Don't force depth — earn it.",
+      practical: "Long exhales. Time under tension. Don't force depth - earn it.",
     },
     {
       title: "Joints adapt to the angles you load them at.",
@@ -45,7 +45,7 @@ export const cheatsheet = {
       practical: "Range you don't load is range you lose. Visit end ranges weekly.",
     },
     {
-      title: "Passive range and active range are different — the gap is where you get hurt.",
+      title: "Passive range and active range are different - the gap is where you get hurt.",
       body: "Passive = what gravity can push you into. Active = what you can produce yourself. A hamstring that lengthens but can't produce force at end range is exposed.",
       practical: "Passive flexibility without active strength is decorative. Train both.",
     },
@@ -61,15 +61,15 @@ export const cheatsheet = {
     },
   ] as Principle[],
   vocabulary: [
-    { term: "CARs", meaning: "Controlled Articular Rotations — slow, full-range circles of one joint.", why: "Trains the joint to own its full range under your own control." },
+    { term: "CARs", meaning: "Controlled Articular Rotations - slow, full-range circles of one joint.", why: "Trains the joint to own its full range under your own control." },
     { term: "PAILs", meaning: "At end range, push the stretched tissue into the floor/wall ~20s.", why: "Builds force production at end range." },
     { term: "RAILs", meaning: "At end range, pull yourself deeper using the opposite muscles ~20s.", why: "Trains active control of new range." },
-    { term: "End range", meaning: "The deepest position you can get into.", why: "Where adaptation lives — and where injuries live if untrained." },
+    { term: "End range", meaning: "The deepest position you can get into.", why: "Where adaptation lives - and where injuries live if untrained." },
     { term: "Joint capsule", meaning: "The connective sleeve around a joint.", why: "The deepest layer of 'tightness'. Slowest to adapt." },
   ] as Vocab[],
   faq: [
-    { q: "What if I miss a session?", a: "One missed session in 28 days is noise — pick up where you left off. Two+ in a week, restart the week." },
-    { q: "Should I train through DOMS?", a: "Mobility, yes — often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp." },
+    { q: "What if I miss a session?", a: "One missed session in 28 days is noise - pick up where you left off. Two+ in a week, restart the week." },
+    { q: "Should I train through DOMS?", a: "Mobility, yes - often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp." },
     { q: "What if I'm travelling with no equipment?", a: "Run the 🟢 tier of every session. The bodyweight version is a complete program." },
   ] as Faq[],
 };
@@ -100,8 +100,8 @@ export const schedule = [
   { day: "Day 3 (Wed)", focus: "Full-Body Flow & Breath", wk12: "20 min", wk34: "25–30 min" },
   { day: "Day 4 (Thu)", focus: "Ankles & Deep Squat", wk12: "20 min", wk34: "25–30 min" },
   { day: "Day 5 (Fri)", focus: "Posterior Chain & Wind-Down", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Sat", focus: "Active recovery — walk, cycle, or swim", wk12: "—", wk34: "—" },
-  { day: "Sun", focus: "Full rest or easy walk", wk12: "—", wk34: "—" },
+  { day: "Sat", focus: "Active recovery - walk, cycle, or swim", wk12: "-", wk34: "-" },
+  { day: "Sun", focus: "Full rest or easy walk", wk12: "-", wk34: "-" },
 ];
 
 // Full program data (all days, both phases) lives in ./program.ts.

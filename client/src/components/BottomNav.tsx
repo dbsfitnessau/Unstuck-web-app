@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 // The fixed bottom tab bar. <NavLink> is like a normal link but it automatically
-// gets an "active" class when its route is the current page — that's how the
+// gets an "active" class when its route is the current page - that's how the
 // active tab lights up in the accent colour.
 const tabs = [
   { to: "/home", icon: "🏠", label: "Home" },

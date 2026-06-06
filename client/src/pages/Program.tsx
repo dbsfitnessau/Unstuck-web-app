@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { phases, phaseForWeek } from "../data/program";
 import { TIERS } from "../data/dummyContent";
-import { useTier } from "../state/TierContext";
-import TierToggle from "../components/TierToggle";
 
 // The Program tab is a drill-down with three steps:
 //   1. Pick a WEEK (1-4)
@@ -13,7 +11,6 @@ import TierToggle from "../components/TierToggle";
 export default function Program() {
   const [week, setWeek] = useState<number | null>(null);
   const [day, setDay] = useState<number | null>(null);
-  const { tier } = useTier();
 
   // ---- STEP 1: choose a week ----
   if (week === null) {
@@ -23,7 +20,7 @@ export default function Program() {
         {phases.map((phase) => (
           <div key={phase.id}>
             <p className="small muted" style={{ margin: "8px 0" }}>
-              {phase.label} · {phase.duration} · effort {phase.effort.split("—")[0].trim()}
+              {phase.label} · {phase.duration} · effort {phase.effort.split("-")[0].trim()}
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 8 }}>
               {phase.weeks.map((w) => (
@@ -46,13 +43,13 @@ export default function Program() {
     return (
       <div>
         <button className="back-link" onClick={() => setWeek(null)}>← Weeks</button>
-        <h2 className="section-title">Week {week} · {phase.label} — choose a day</h2>
+        <h2 className="section-title">Week {week} · {phase.label} - choose a day</h2>
         <div className="stop-box" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
           <p className="small"><strong>Before you start:</strong> {phase.warmup}</p>
         </div>
         {phase.days.map((d) => (
           <button key={d.day} className="pick-btn wide" onClick={() => setDay(d.day)}>
-            <strong>Day {d.day} — {d.focus}</strong>
+            <strong>Day {d.day} - {d.focus}</strong>
             <span className="muted small">{d.exercises.length} movements</span>
           </button>
         ))}
@@ -62,7 +59,6 @@ export default function Program() {
 
   // ---- STEP 3: the full session ----
   const session = phase.days.find((d) => d.day === day)!;
-  const tierMeta = TIERS.find((t) => t.id === tier)!;
 
   return (
     <div>
@@ -70,20 +66,15 @@ export default function Program() {
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "4px 0 12px" }}>
         <div>
-          <h3 style={{ margin: 0 }}>Day {day} — {session.focus}</h3>
+          <h3 style={{ margin: 0 }}>Day {day} - {session.focus}</h3>
           <span className="small muted">Week {week} · {phase.label} · {phase.duration}</span>
         </div>
       </div>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-        <TierToggle />
-      </div>
-      <p className="small muted" style={{ marginTop: 0 }}>Showing {tierMeta.emoji} {tierMeta.label}</p>
-
       {session.exercises.map((ex, i) => {
         // A whole-exercise SKIP (e.g. Jefferson Curl on 🟢) gets the red safety
         // callout. We test the GREEN tier specifically and case-SENSITIVELY: only
-        // a true "SKIP — substitute…" trips it, not casual notes like
+        // a true "SKIP - substitute…" trips it, not casual notes like
         // "Skip overhead reach".
         const isSkip = ex.tier.green.startsWith("SKIP");
         return (
@@ -93,7 +84,7 @@ export default function Program() {
               <span className="small muted" style={{ whiteSpace: "nowrap" }}>{ex.setsReps}</span>
             </div>
 
-            {/* Image slot — a placeholder for now; drop a real illustration URL
+            {/* Image slot - a placeholder for now; drop a real illustration URL
                 into the exercise's `image` field later and it renders here. */}
             {ex.image ? (
               <img className="ex-image" src={ex.image} alt={ex.name} />
@@ -109,10 +100,7 @@ export default function Program() {
                 tier highlighted so they see where they sit relative to the rest. */}
             <div className="tier-options">
               {TIERS.map((t) => (
-                <div
-                  key={t.id}
-                  className={`tier-option${t.id === tier ? " active" : ""}`}
-                >
+                <div key={t.id} className="tier-option">
                   <span className="tier-option__head">{t.emoji} {t.label}</span>
                   <span className="tier-option__body">{ex.tier[t.id]}</span>
                 </div>

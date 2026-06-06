@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------------
-   UNSTUCK design system — built on the DBS Fitness Australia brand reference.
+   UNSTUCK design system - built on the DBS Fitness Australia brand reference.
    We define the brand "tokens" (colours, type, spacing, form) once here as CSS
    variables, then reuse them everywhere. Change a value here -> it updates
    app-wide. This is the single source of truth for how the app looks.
@@ -12,9 +12,9 @@
 --------------------------------------------------------------------------- */
 :root {
   /* ---- Core palette (the only three brand colours) ---- */
-  --olive: #606C38;       /* PRIMARY — CTAs, accents, active states, chants */
-  --black: #000000;       /* INK — type, chrome (top/bottom bars), borders */
-  --white: #ffffff;       /* PAPER — the ground everything sits on */
+  --olive: #606C38;       /* PRIMARY - CTAs, accents, active states, chants */
+  --black: #000000;       /* INK - type, chrome (top/bottom bars), borders */
+  --white: #ffffff;       /* PAPER - the ground everything sits on */
 
   /* ---- Roles derived from the palette ---- */
   --bg: var(--white);     /* page ground */
@@ -25,7 +25,7 @@
   --line: #e7e6df;        /* hairline for table rows / internal dividers */
   --on-olive: var(--white);/* text that sits ON an olive surface (white ✓) */
 
-  /* Tier colours — a SAFETY signalling system, always paired with an emoji and
+  /* Tier colours - a SAFETY signalling system, always paired with an emoji and
      label, never colour alone. Kept distinct from the brand palette on purpose. */
   --tier-green: #4d7c34;
   --tier-amber: #b7791f;
@@ -39,7 +39,7 @@
   /* ---- Radii: sharp by default, pill for CTAs ---- */
   --r-0: 0px;  --r-sm: 4px; --r-md: 8px; --r-lg: 14px; --r-pill: 999px;
 
-  /* ---- Hard offset shadows (poster energy — no blur) ---- */
+  /* ---- Hard offset shadows (poster energy - no blur) ---- */
   --shadow-hard: 4px 4px 0 var(--black);
   --shadow-hard-olive: 4px 4px 0 var(--olive);
 
@@ -157,7 +157,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
 .muted { color: var(--text-dim); }
 .small { font-size: 13px; }
 
-/* Eyebrow / section label — League Spartan, uppercase, letterspaced, olive. */
+/* Eyebrow / section label - League Spartan, uppercase, letterspaced, olive. */
 h2.section-title {
   font-family: var(--font-ui);
   font-size: 12px;
@@ -193,7 +193,7 @@ h2.section-title {
   color: var(--on-olive);
 }
 
-/* tier dots — the safety colour system */
+/* tier dots - the safety colour system */
 .tier-dot { font-size: 12px; }
 .tier-green { color: var(--tier-green); }
 .tier-amber { color: var(--tier-amber); }
@@ -267,7 +267,7 @@ input[type="number"]:focus, input[type="text"]:focus {
 }
 .checkbtn.on { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
 
-/* Primary CTA — olive fill, white text, PILL radius (the one rounded thing). */
+/* Primary CTA - olive fill, white text, PILL radius (the one rounded thing). */
 button.primary {
   background: var(--olive);
   color: var(--on-olive);
@@ -409,7 +409,7 @@ button.primary {
   line-height: 1.4;
 }
 
-/* Contraindications line — a red safety eyebrow + note. */
+/* Contraindications line - a red safety eyebrow + note. */
 .contra {
   font-size: 13px;
   line-height: 1.45;
@@ -696,7 +696,7 @@ button.primary {
 /* Header actions (Clear / Close) sit together on the right */
 .coach-head-actions { display: flex; gap: var(--s-2); }
 
-/* Rendered Markdown inside a coach bubble — tame the default browser margins so it
+/* Rendered Markdown inside a coach bubble - tame the default browser margins so it
    reads like a chat message, not a web page. */
 .md > :first-child { margin-top: 0; }
 .md > :last-child { margin-bottom: 0; }
@@ -715,6 +715,7 @@ button.primary {
 .md th, .md td { border: 1px solid var(--line); padding: 4px 8px; }
 
 /* ── Session timer ──────────────────────────────────────────────────────── */
+.timer-card { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
 .timer-card > summary { cursor: pointer; font-weight: 700; }
 .timer { margin-top: 12px; }
 .timer-presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
