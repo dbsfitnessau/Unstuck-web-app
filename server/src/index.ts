@@ -21,7 +21,7 @@ const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173,http:/
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: allowedOrigins, allowedHeaders: ["Content-Type", "x-access-token"] }));
 
 // If deployed behind a reverse proxy / load balancer (Render, Heroku, Nginx, etc.), set
 // TRUST_PROXY=1 so the rate limiter sees the real client IP instead of the proxy's. Off
@@ -56,6 +56,49 @@ const coachLimiter = rateLimit({
       error: true,
     });
   },
+});
+
+// ── Beta access gate ────────────────────────────────────────────────────────────────
+// A simple shared/per-tester access code locks the app during the private beta. Codes
+// live in BETA_ACCESS_CODES (comma-separated) so you can add or revoke testers without a
+// code change — just edit the env var and redeploy. If it's empty the gate is OFF (handy
+// for local dev), so the app behaves exactly as before until you set codes in production.
+const ACCESS_CODES = (process.env.BETA_ACCESS_CODES ?? "")
+  .split(",")
+  .map((c) => c.trim())
+  .filter(Boolean);
+const gateEnabled = ACCESS_CODES.length > 0;
+
+// Slow down code-guessing: max 10 attempts per IP per 5 minutes.
+const accessLimiter = rateLimit({
+  windowMs: 5 * 60_000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  handler: (_req, res) => res.status(429).json({ ok: false, error: "Too many attempts. Wait a few minutes and try again." }),
+});
+
+// Gate middleware for protected endpoints (the coach). When the gate is on, the request
+// must carry a valid code in the x-access-token header. This protects your API spend even
+// if someone bypasses the client UI.
+function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (!gateEnabled) return next();
+  const token = String(req.header("x-access-token") ?? "").trim();
+  if (ACCESS_CODES.includes(token)) return next();
+  return res.status(401).json({
+    error: "Access code required.",
+    reply: "This beta is locked. Enter your access code to use the coach.",
+    citations: [],
+    locked: true,
+  });
+}
+
+// The gate check the client calls when someone types a code. Returns a token to store.
+app.post("/api/access", accessLimiter, (req, res) => {
+  const code = String(req.body?.code ?? "").trim();
+  if (!gateEnabled) return res.json({ ok: true, token: "open" }); // gate off → always allow
+  if (ACCESS_CODES.includes(code)) return res.json({ ok: true, token: code });
+  return res.status(401).json({ ok: false });
 });
 
 // Validate the body BEFORE spending a single token on Claude. Returns an error string if
@@ -99,7 +142,7 @@ app.get("/api/health", (_req, res) => {
 
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.
 // coachLimiter runs first (rate limit), then we validate the body, then we call Claude.
-app.post("/api/coach", coachLimiter, async (req, res) => {
+app.post("/api/coach", requireAccess, coachLimiter, async (req, res) => {
   const messages = req.body?.messages as ChatMessage[] | undefined;
 
   const validationError = validateMessages(messages);
@@ -143,7 +186,7 @@ app.post("/api/coach", coachLimiter, async (req, res) => {
 // one JSON reply it sends Server-Sent Events: `delta` (text chunks), `searching` (a web
 // search began), `done` (with citations), or `error`. The browser shows the answer as it
 // types. Same friendly fallbacks as /api/coach.
-app.post("/api/coach/stream", coachLimiter, async (req, res) => {
+app.post("/api/coach/stream", requireAccess, coachLimiter, async (req, res) => {
   const messages = req.body?.messages as ChatMessage[] | undefined;
 
   const validationError = validateMessages(messages);
@@ -185,4 +228,5 @@ app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
   console.log(`Limits: ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
+  console.log(`Beta gate: ${gateEnabled ? `ON (${ACCESS_CODES.length} code(s))` : "OFF"}`);
 });

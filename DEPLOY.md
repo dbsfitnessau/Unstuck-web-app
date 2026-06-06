@@ -60,7 +60,14 @@ ANTHROPIC_API_KEY = sk-ant-...        # your key
 COACH_MODEL       = claude-sonnet-4-5 # or claude-opus-4-8
 CORS_ORIGIN       = https://YOUR-CLIENT-URL   # fill in after Step 3 (no trailing slash)
 TRUST_PROXY       = 1                  # host sits behind a proxy → real client IPs for rate limiting
+BETA_ACCESS_CODES = code1,code2        # beta gate: codes that unlock the app (empty = open)
 ```
+
+**Beta access gate:** set `BETA_ACCESS_CODES` to a comma-separated list of codes (e.g.
+`alex-2026,sam-2026`). Visitors must enter one to use the app, and the coach rejects
+requests without a valid code. Give each tester their own code so you can revoke one
+(edit the list + redeploy) without affecting the others. Leave it **empty** to turn the
+gate off (fully open).
 
 Deploy, then hit `https://YOUR-SERVER-URL/api/health` — you should see `{"ok":true,...}`.
 

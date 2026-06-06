@@ -2,6 +2,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useLocalStorage } from "../state/useLocalStorage";
+import { getAccessToken } from "./AccessGate";
 
 // The in-app coach. It STREAMS: it POSTs the chat history to /api/coach/stream and the
 // server sends back Server-Sent Events — text chunks as they're generated, a "searching"
@@ -114,7 +115,7 @@ export default function CoachPanel() {
     try {
       const res = await fetch(`${API_URL}/api/coach/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-access-token": getAccessToken() },
         body: JSON.stringify({ messages: apiMessages }),
       });
       if (!res.ok || !res.body) {

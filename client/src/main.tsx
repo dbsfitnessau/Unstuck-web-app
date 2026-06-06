@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
+import AccessGate from "./components/AccessGate";
 import "./index.css";
 
 // This is the ignition switch. It finds the empty <div id="root"> in index.html
@@ -13,7 +14,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     {/* future flags: opt in early to React Router v7 behaviour. This just
         silences the upgrade-warning noise in the console - no behaviour change. */}
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <App />
+      {/* The whole app sits behind the beta access gate. */}
+      <AccessGate>
+        <App />
+      </AccessGate>
     </BrowserRouter>
   </React.StrictMode>
 );
