@@ -6,7 +6,8 @@ The digital companion for **UNSTUCK: The 28-Day Mobility Reset** (DBS Fitness Au
 
 ## What's here
 
-- **`client/`** — the React app (Vite + TypeScript). Milestone 1: all surfaces running on dummy data.
+- **`client/`** — the React app (Vite + TypeScript). All surfaces running on dummy data.
+- **`server/`** — the thin Express proxy for the Claude coach (Milestone 2). Holds the API key; one endpoint, `POST /api/coach`.
 - **`spec.md`** — the app spec (requirements, tech stack, milestones).
 - **`prompt.md`** — the Claude coach system prompt (Milestone 2).
 - **`todo.md`** — milestone to-do list and progress.
@@ -24,6 +25,8 @@ The digital companion for **UNSTUCK: The 28-Day Mobility Reset** (DBS Fitness Au
 
 ## Running the app
 
+**1. Frontend (the app itself):**
+
 ```bash
 cd client
 npm install
@@ -31,6 +34,22 @@ npm run dev
 ```
 
 Then open the local URL Vite prints (e.g. `http://localhost:5173`).
+
+**2. Coach backend (Milestone 2 — needed for the chat coach to work):**
+
+```bash
+cd server
+npm install
+cp .env.example .env      # then paste your ANTHROPIC_API_KEY into .env
+npm run dev
+```
+
+The server runs on `http://localhost:8787`. The app talks to it automatically (no
+client config needed in local dev). The API key lives **only** in `server/.env`, which
+is gitignored — it never reaches the browser or the repo.
+
+> Requires Anthropic API **credits** on the account. If the coach returns
+> "unavailable", check the server log — a low credit balance is the usual cause.
 
 ## Milestones
 
