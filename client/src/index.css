@@ -68,6 +68,15 @@ body {
 /* Headings use the UI face (League Spartan), tight and bold. */
 h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1; }
 
+/* Accessibility: a clear, consistent focus ring for keyboard users on EVERY
+   interactive element. :focus-visible only shows it for keyboard nav (not mouse
+   clicks), so it helps keyboard/switch users without adding mouse-click noise. */
+:focus-visible {
+  outline: 3px solid var(--olive);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* App shell: content area + fixed bottom nav. Content scrolls; nav stays put. */
 .app-shell {
   max-width: var(--maxw);
@@ -183,7 +192,9 @@ h2.section-title {
   color: var(--text);
   font-family: var(--font-ui);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
+  min-width: 44px;
+  min-height: 40px;
   padding: 6px 12px;
   border-radius: var(--r-pill);
   cursor: pointer;

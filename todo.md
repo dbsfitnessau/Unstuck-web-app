@@ -118,10 +118,10 @@ looks finished and could survive real users. Grouped so we can do a slice at a t
 - [x] **Render Markdown in coach replies.** *(Added `react-markdown` + `remark-gfm`; links open in a new tab with `rel="noopener"`. Verified live — bold/headings/lists render, no raw `**`.)*
 - [x] **Handle the rate-limit (429) nicely in the UI.** *(Server now returns 429 with a calm "I'm busy, give me ~Ns" message + `retryAfter` from the upstream `retry-after` header; client renders it like any reply.)*
 - [x] **Persist the chat** across page reloads (localStorage), with a "Clear chat" button. *(Reuses `useLocalStorage` under key `unstuck-coach-chat`; verified survives reload, Clear resets to the greeting.)*
-- [ ] **Stream the reply** token-by-token so it feels live instead of waiting for the whole
-      answer (uses the SDK's streaming mode; the server would stream to the client).
-- [ ] Distinguish "Thinking…" from "Searching the web…" so the loading text is honest.
-      *(Best done together with streaming — the server only knows a search happened mid-turn.)*
+- [~] **Stream the reply** token-by-token + honest "Searching…" label. **Deferred (optional
+      polish).** It's perceived-latency only, it would rework the verified-working `/api/coach`
+      contract (SSE + the web-search pause/resume flow), and the account's ~1 req/min rate limit
+      caps the benefit anyway. Revisit after the usage tier is raised. Not worth the risk now.
 
 ## Cost, limits & abuse protection (do before any public/beta deploy)
 - [x] **Protect `/api/coach`.** *(Per-IP rate limit via `express-rate-limit` — 12 req/min,
@@ -154,16 +154,24 @@ looks finished and could survive real users. Grouped so we can do a slice at a t
       Hold→PAILs→RAILs.)*
 
 ## Deploy
-- [ ] Host the server (with `ANTHROPIC_API_KEY` set as a real env var, not a committed file)
-      and the client; ship the 4 docs alongside the server so `docs.ts` can read them.
-- [ ] Point the client at the live server via `VITE_API_URL`, and add the production URL to
-      the server's `CORS_ORIGIN`.
+- [x] **Deploy prep done.** `DEPLOY.md` written (static client + Node server, env vars, SPA
+      rewrite, CORS wiring). `docs.ts` now also reads `server/content/` so the docs can ship
+      with the server. Key stays a server env var.
+- [ ] **Execute the deploy (needs Lea).** Pick a host, create the account, set
+      `ANTHROPIC_API_KEY` / `VITE_API_URL` / `CORS_ORIGIN`, copy the 4 docs into
+      `server/content/`. Follow `DEPLOY.md`. (Account creation + login are yours to do.)
 
 ## Housekeeping (small, discovered during M2)
-- [ ] Remove the stale compiled `client/vite.config.js` + `vite.config.d.ts` (leftover build
-      artifacts next to the real `vite.config.ts`) and gitignore `tsconfig.tsbuildinfo` so it
-      stops showing up as a change.
-- [ ] Light accessibility + responsive pass across all surfaces (incl. the coach sheet).
+- [x] gitignore `*.tsbuildinfo` + the compiled `vite.config.js`/`.d.ts` so they stop showing
+      up as changes going forward.
+- [ ] **Untrack the already-committed artifacts (needs Lea — `rm`/`git rm` are denied by
+      settings).** Run once: `git rm --cached client/vite.config.js client/vite.config.d.ts
+      client/tsconfig.tsbuildinfo client/tsconfig.node.tsbuildinfo && rm client/vite.config.js
+      client/vite.config.d.ts && git commit -m "drop tracked build artifacts"`.
+- [x] **Accessibility + responsive pass.** Global `:focus-visible` ring for keyboard users;
+      `aria-label`s on icon-only controls (worksheet tier buttons, search + coach inputs);
+      larger touch targets on tier buttons (≥40px); browser-tab title de-em-dashed; contrast
+      checked (olive on white ≈ 4.8:1, AA pass). Mobile-first layout already responsive.
 
 ---
 

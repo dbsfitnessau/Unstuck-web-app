@@ -9,6 +9,11 @@ build/
 client/dist/
 server/dist/
 
+# TypeScript incremental build cache + compiled config artifacts (should not be committed)
+*.tsbuildinfo
+client/vite.config.js
+client/vite.config.d.ts
+
 # Secrets — never commit API keys
 .env
 .env.*

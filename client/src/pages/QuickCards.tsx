@@ -237,12 +237,14 @@ export default function QuickCards() {
               <>
                 <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
                   <span className="small muted">Today's colour:</span>
-                  <div className="tier-toggle">
+                  <div className="tier-toggle" role="group" aria-label="Today's colour (tier)">
                     {TIERS.map((t) => (
                       <button
                         key={t.id}
                         className={e.tier === t.id ? "active" : ""}
                         onClick={() => setEntry(w.week, d.day, { tier: e.tier === t.id ? "" : t.id })}
+                        aria-pressed={e.tier === t.id}
+                        aria-label={t.label}
                         title={t.label}
                       >
                         {t.emoji}

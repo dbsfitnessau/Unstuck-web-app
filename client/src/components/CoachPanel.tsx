@@ -153,6 +153,7 @@ export default function CoachPanel() {
             <div className="coach-input">
               <input
                 className="search-input"
+                aria-label="Ask the coach a question"
                 placeholder="e.g. Slept badly - what tier today?"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

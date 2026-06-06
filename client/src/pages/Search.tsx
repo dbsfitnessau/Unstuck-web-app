@@ -21,6 +21,8 @@ export default function Search() {
       <h2 className="section-title">Search everything</h2>
       <input
         className="search-input"
+        type="search"
+        aria-label="Search the app"
         placeholder="Search moves, tests, principles…"
         value={q}
         onChange={(e) => setQ(e.target.value)}
