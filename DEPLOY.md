@@ -86,9 +86,13 @@ On Render: **New → Static Site**, same repo, then:
 
 > `VITE_API_URL` is read at **build time**, so if you change it you must rebuild the client.
 
-Single-page-app routing: add a rewrite so deep links (e.g. `/worksheet`) load the app —
-on Render, add a rewrite rule `/*  →  /index.html`. (Netlify: a `_redirects` file with
-`/*  /index.html  200`. Vercel: a catch-all rewrite to `/`.)
+Single-page-app routing: deep links (e.g. `/worksheet`) must load the app, not 404.
+- **Automatic fallback (in repo):** the build emits a `404.html` copy of `index.html`, which
+  Render serves for unknown paths — so deep links work even with no dashboard config (they
+  return a 404 *status* but the app boots and routes correctly).
+- **Cleaner (recommended):** also add a Render **Rewrite** rule — Source `/*`, Destination
+  `/index.html`, Action **Rewrite** — so unknown paths serve the app with a 200 status.
+  (Netlify: a `_redirects` file with `/*  /index.html  200`. Vercel: a catch-all rewrite.)
 
 ---
 
