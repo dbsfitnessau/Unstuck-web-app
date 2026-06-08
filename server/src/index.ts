@@ -7,6 +7,8 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
+import { signToken, verifyToken } from "./auth.js";
+import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js";
 
 const app = express();
 
@@ -67,7 +69,8 @@ const ACCESS_CODES = (process.env.BETA_ACCESS_CODES ?? "")
   .split(",")
   .map((c) => c.trim())
   .filter(Boolean);
-const gateEnabled = ACCESS_CODES.length > 0;
+// The gate is active if there are beta codes OR Gumroad licensing is configured.
+const gateEnabled = ACCESS_CODES.length > 0 || gumroadConfigured;
 
 // Slow down code-guessing: max 10 attempts per IP per 5 minutes.
 const accessLimiter = rateLimit({
@@ -84,20 +87,49 @@ const accessLimiter = rateLimit({
 function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (!gateEnabled) return next();
   const token = String(req.header("x-access-token") ?? "").trim();
-  if (ACCESS_CODES.includes(token)) return next();
+  // Accept a raw beta code (back-compat for existing testers) OR a valid signed token.
+  if (ACCESS_CODES.includes(token) || verifyToken(token)) return next();
   return res.status(401).json({
-    error: "Access code required.",
-    reply: "This beta is locked. Enter your access code to use the coach.",
+    error: "Access required.",
+    reply: "This is locked. Enter your access code or license key to continue.",
     citations: [],
     locked: true,
   });
 }
 
-// The gate check the client calls when someone types a code. Returns a token to store.
-app.post("/api/access", accessLimiter, (req, res) => {
-  const code = String(req.body?.code ?? "").trim();
-  if (!gateEnabled) return res.json({ ok: true, token: "open" }); // gate off → always allow
-  if (ACCESS_CODES.includes(code)) return res.json({ ok: true, token: code });
+// The gate check the client calls. Validates a beta code OR a Gumroad license key, and on
+// success returns a SIGNED session token to store (see auth.ts). Rate-limited to slow
+// guessing/brute-forcing.
+app.post("/api/access", accessLimiter, async (req, res) => {
+  const input = String(req.body?.code ?? "").trim();
+
+  if (!gateEnabled) return res.json({ ok: true, token: signToken({ kind: "open" }) });
+
+  // 1) Beta access code.
+  if (ACCESS_CODES.includes(input)) {
+    return res.json({ ok: true, token: signToken({ kind: "beta" }) });
+  }
+
+  // 2) Gumroad license key.
+  if (gumroadConfigured && input) {
+    try {
+      const result = await verifyLicense(input);
+      if (result.valid && !result.overLimit) {
+        return res.json({ ok: true, token: signToken({ kind: "license" }) });
+      }
+      if (result.overLimit) {
+        return res.status(403).json({
+          ok: false,
+          reason: "device_limit",
+          message: `This purchase has reached its device limit (${MAX_ACTIVATIONS} devices). Use one of your existing devices, or contact support to reset it.`,
+        });
+      }
+    } catch (err) {
+      console.error("[/api/access] Gumroad verify error:", err);
+      return res.status(502).json({ ok: false, reason: "verify_failed", message: "Couldn't check your license right now — try again in a moment." });
+    }
+  }
+
   return res.status(401).json({ ok: false });
 });
 
@@ -228,5 +260,5 @@ app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
   console.log(`Limits: ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
-  console.log(`Beta gate: ${gateEnabled ? `ON (${ACCESS_CODES.length} code(s))` : "OFF"}`);
+  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"}`);
 });

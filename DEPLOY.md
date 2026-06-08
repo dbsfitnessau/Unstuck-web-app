@@ -116,5 +116,44 @@ Single-page-app routing: deep links (e.g. `/worksheet`) must load the app, not 4
 
 ---
 
+## Going paid — Gumroad license keys (one-time purchase)
+
+The app can unlock via a **Gumroad license key** instead of (or alongside) beta codes.
+Flow: buyer pays on Gumroad → gets a license key → enters it in the app → the server
+verifies it with Gumroad and unlocks. No passwords. A per-purchase **device cap** limits
+sharing.
+
+**1. In Gumroad:**
+- Create the product (one-time). Under its settings, tick **"Generate a unique license
+  key per sale"**.
+- Find the **product ID** (Gumroad: product → ... → it's in the product's advanced
+  settings / API; or via the API `GET /v2/products`).
+- In the product's receipt/confirmation, tell buyers their license key unlocks the app at
+  your app URL.
+
+**2. On the Render *server* → Environment:**
+
+| Key | Value |
+| :-- | :-- |
+| `GUMROAD_PRODUCT_ID` | your product's ID (turns license unlocking ON) |
+| `SESSION_SECRET` | a long random string (keep it stable) — `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `MAX_ACTIVATIONS` | device cap per purchase (default 4) |
+
+Save → redeploy. Beta codes keep working too (run both during the transition, then clear
+`BETA_ACCESS_CODES` when the beta ends).
+
+**Anti-sharing:** each new device that activates a key uses one of its `MAX_ACTIVATIONS`.
+Once verified, that device gets a 180-day signed token and won't re-verify, so normal use
+(phone + laptop) is fine; a key shared widely burns through its activations and stops.
+This is a "good enough" deterrent without a database. For exact per-device control (named
+devices, self-service "log out everywhere", resets), the next step is a small database
+(Supabase) — ask when you want it.
+
+**Hard content-lock (later):** today the program text still ships in the app bundle (soft
+lock — the gate protects the coach/API and deters casual access). To make it a true
+paywall, the gated content moves behind the authenticated API. That's a follow-up build.
+
+---
+
 *The key never ships to the browser — confirm by searching the built `client/dist` for
 `sk-ant` (should find nothing).*

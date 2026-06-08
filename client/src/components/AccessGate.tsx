@@ -79,10 +79,15 @@ export default function AccessGate({ children }: { children: ReactNode }) {
         localStorage.setItem(STORAGE_KEY, data.token || value);
         setReLocked(false);
         setUnlocked(true);
+      } else if (res.status === 403 && data.message) {
+        // e.g. the purchase has hit its device limit.
+        setError(data.message);
       } else if (res.status === 429) {
         setError("Too many attempts. Wait a few minutes and try again.");
+      } else if (res.status === 502 && data.message) {
+        setError(data.message);
       } else {
-        setError("That code didn't work. Check it and try again.");
+        setError("That code or license key didn't work. Check it and try again.");
       }
     } catch {
       setError("Couldn't reach the server. Try again in a moment.");
@@ -99,14 +104,14 @@ export default function AccessGate({ children }: { children: ReactNode }) {
         <h1 className="gate-logo">UNSTUCK<span className="accent-dot">.</span></h1>
         <p className="gate-tag small muted">
           {reLocked
-            ? "UNSTUCK is locked - enter your access code."
-            : "Private beta - enter your access code to continue."}
+            ? "UNSTUCK is locked - enter your access code or license key."
+            : "Enter your access code or license key to continue."}
         </p>
         <form onSubmit={submit} className="gate-form">
           <input
             className="search-input"
-            aria-label="Access code"
-            placeholder="Access code"
+            aria-label="Access code or license key"
+            placeholder="Access code or license key"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             autoFocus
