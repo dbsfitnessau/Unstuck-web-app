@@ -11,8 +11,12 @@
 //   1. Create the product, tick "Generate a unique license key per sale".
 //   2. Put the product's ID in GUMROAD_PRODUCT_ID (env). Then this turns on automatically.
 
+// You can identify the product EITHER by its product ID (GUMROAD_PRODUCT_ID) or, more
+// easily, by its permalink — the short code in the product URL gumroad.com/l/XXXX
+// (GUMROAD_PRODUCT_PERMALINK = XXXX). Set whichever is easier to find.
 const PRODUCT_ID = process.env.GUMROAD_PRODUCT_ID ?? "";
-export const gumroadConfigured = PRODUCT_ID.length > 0;
+const PRODUCT_PERMALINK = process.env.GUMROAD_PRODUCT_PERMALINK ?? "";
+export const gumroadConfigured = PRODUCT_ID.length > 0 || PRODUCT_PERMALINK.length > 0;
 
 // Max devices/activations per purchase. Generous enough for reinstalls; low enough to stop
 // "I bought it and shared the key with ten friends".
@@ -30,10 +34,12 @@ export async function verifyLicense(licenseKey: string): Promise<LicenseResult> 
   if (!gumroadConfigured) return { valid: false, uses: 0, reason: "not_configured" };
 
   const params = new URLSearchParams({
-    product_id: PRODUCT_ID,
     license_key: licenseKey,
     increment_uses_count: "true", // counts this as one activation
   });
+  // Prefer product_id; fall back to the easier-to-find permalink.
+  if (PRODUCT_ID) params.set("product_id", PRODUCT_ID);
+  else params.set("product_permalink", PRODUCT_PERMALINK);
 
   const res = await fetch("https://api.gumroad.com/v2/licenses/verify", {
     method: "POST",
