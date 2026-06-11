@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { STOP_SIGNS, CONTRAINDICATIONS, TIERS, type Tier } from "../data/dummyContent";
 import { phaseForWeek, type Exercise } from "../data/program";
+import { WEEKS } from "../data/schedule";
 import { useLocalStorage } from "../state/useLocalStorage";
 import Timer from "../components/Timer";
 
@@ -21,65 +23,10 @@ import Timer from "../components/Timer";
 // survives a refresh or closing the tab - no account or server needed for M1.
 // ---------------------------------------------------------------------------
 
-// The fixed schedule. `train: false` marks recovery/rest days (no stretches).
-// Weeks 3-4 set `loaded: true`, which reveals the extra "Load (kg)" field.
-interface DayRow { day: number; session: string; train: boolean; }
-interface WeekDef { week: number; phase: string; note: string; loaded: boolean; days: DayRow[]; }
-
-const WEEKS: WeekDef[] = [
-  {
-    week: 1, phase: "Foundation", loaded: false,
-    note: "Ease in. Pick a tier you can run with clean form for all five sessions.",
-    days: [
-      { day: 1, session: "Hips & Hamstrings", train: true },
-      { day: 2, session: "Thoracic Spine & Shoulders", train: true },
-      { day: 3, session: "Full-Body Flow & Breath", train: true },
-      { day: 4, session: "Ankles & Deep Squat", train: true },
-      { day: 5, session: "Posterior Chain & Wind-Down", train: true },
-      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
-      { day: 7, session: "Rest", train: false },
-    ],
-  },
-  {
-    week: 2, phase: "Foundation", loaded: false,
-    note: "Progress holds (+15s) and active sets (+1–2 reps). Same tier or step up - your call.",
-    days: [
-      { day: 1, session: "Hips & Hamstrings (progress)", train: true },
-      { day: 2, session: "Thoracic Spine & Shoulders (progress)", train: true },
-      { day: 3, session: "Full-Body Flow & Breath", train: true },
-      { day: 4, session: "Ankles & Deep Squat (progress)", train: true },
-      { day: 5, session: "Posterior Chain & Wind-Down (progress)", train: true },
-      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
-      { day: 7, session: "Rest", train: false },
-    ],
-  },
-  {
-    week: 3, phase: "Progression", loaded: true,
-    note: "Sessions are now 25–30 min. Warm up 2–3 min first. Load starts here.",
-    days: [
-      { day: 1, session: "Hips & Hamstrings, Loaded", train: true },
-      { day: 2, session: "Thoracic Spine & Shoulders, Loaded", train: true },
-      { day: 3, session: "Full-Body Flow, Athletic", train: true },
-      { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
-      { day: 5, session: "Posterior Chain, Loaded", train: true },
-      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
-      { day: 7, session: "Rest", train: false },
-    ],
-  },
-  {
-    week: 4, phase: "Progression", loaded: true,
-    note: "Final push. Hold form over load - a clean rep beats a heavy ugly one.",
-    days: [
-      { day: 1, session: "Hips & Hamstrings, Loaded", train: true },
-      { day: 2, session: "Thoracic Spine & Shoulders, Loaded", train: true },
-      { day: 3, session: "Full-Body Flow, Athletic", train: true },
-      { day: 4, session: "Ankles & Deep Squat, Loaded", train: true },
-      { day: 5, session: "Posterior Chain, Loaded", train: true },
-      { day: 6, session: "Active Recovery - walk / cycle / swim", train: false },
-      { day: 7, session: "Rest", train: false },
-    ],
-  },
-];
+// The fixed schedule now lives in data/schedule.ts (imported above) because
+// Home's progress ring needs it too — one source of truth for both screens.
+// `train: false` marks recovery/rest days; weeks 3-4 set `loaded: true`,
+// which reveals the extra "Load (kg)" field.
 
 // One day's log. `stretchDone` is keyed by the stretch's index in the session.
 // Empty strings / empty object = "not filled in yet".
@@ -104,7 +51,24 @@ const totalTrainingDays = WEEKS.reduce(
 ); // = 20
 
 export default function QuickCards() {
-  const [activeWeek, setActiveWeek] = useState(1);
+  // Home's "Continue Day N" button arrives with ?week=2&day=3 in the address:
+  // we open that week's tab and scroll its day card into view.
+  const [searchParams] = useSearchParams();
+  const [activeWeek, setActiveWeek] = useState(() => {
+    const w = Number(searchParams.get("week"));
+    return w >= 1 && w <= 4 ? w : 1;
+  });
+  useEffect(() => {
+    const d = Number(searchParams.get("day"));
+    if (!d) return;
+    // Wait a beat for the cards to render, then scroll to the requested day.
+    const t = setTimeout(() => {
+      document.getElementById(`day-card-${d}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [log, setLog] = useLocalStorage<LogState>("unstuck:worksheet-log", {
     entries: {},
     reflections: {},
@@ -146,9 +110,11 @@ export default function QuickCards() {
       };
     });
 
-  // Clear every tick for a day so the program can be re-run.
+  // Reset a day back to a blank slate so it can be re-run: ticks, effort,
+  // load and quick note all clear. "Today's colour" (tier) is kept - it's a
+  // preference, not part of the day's log.
   const resetDay = (week: number, day: number) =>
-    setEntry(week, day, { stretchDone: {} });
+    setEntry(week, day, { stretchDone: {}, effort: "", load: "", note: "" });
 
   const reflection = (week: number): Reflection =>
     ({ ...EMPTY_REFLECTION, ...log.reflections[week] });
@@ -222,7 +188,7 @@ export default function QuickCards() {
         // recovery/rest day (6 or 7) once it's ticked.
         const dayDone = d.train ? complete : (d.day === 6 || d.day === 7) ? e.rested : false;
         return (
-          <div className={`card ${dayDone ? "day-complete" : ""}`} key={d.day} style={{ padding: 14 }}>
+          <div className={`card ${dayDone ? "day-complete" : ""}`} key={d.day} id={`day-card-${d.day}`} style={{ padding: 14 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div>
                 <strong className="small">Day {d.day}</strong>
@@ -263,7 +229,7 @@ export default function QuickCards() {
                 {/* Per-day session timer - collapsed by default so it's there when
                     you need it (holds, PAILs/RAILs) without cluttering the day. */}
                 <details className="timer-card">
-                  <summary>⏱ Timer <span className="small muted">- holds &amp; PAILs/RAILs</span></summary>
+                  <summary>⏱ Timer <span className="small muted">- Holds &amp; PAILs/RAILs</span></summary>
                   <Timer />
                 </details>
 
@@ -295,15 +261,17 @@ export default function QuickCards() {
                     onChange={(ev) => setEntry(w.week, d.day, { note: ev.target.value })}
                   />
                   <button className="reset-link" onClick={() => resetDay(w.week, d.day)}>
-                    Reset ticks
+                    Reset Day
                   </button>
                 </div>
               </>
             )}
 
-            {/* Day 6 (active recovery): a tick to mark it done. */}
+            {/* Day 6 (active recovery): a tick to mark it done, plus a quick
+                note (what you did - walk, swim, how it felt). Saved to the same
+                entry's `note` field the training days use. */}
             {!d.train && d.day === 6 && (
-              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10 }}>
                 <button
                   className={`checkbtn ${e.rested ? "on" : ""}`}
                   aria-pressed={e.rested}
@@ -313,6 +281,12 @@ export default function QuickCards() {
                   {e.rested ? "✓" : "○"}
                 </button>
                 <span className="small muted">Mark active recovery done</span>
+                <input
+                  type="text" placeholder="Quick note"
+                  style={{ flex: 1, minWidth: 140 }}
+                  value={e.note}
+                  onChange={(ev) => setEntry(w.week, d.day, { note: ev.target.value })}
+                />
               </div>
             )}
 

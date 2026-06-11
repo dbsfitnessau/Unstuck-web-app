@@ -61,12 +61,17 @@ export default function Testing() {
 
   return (
     <div>
-      <div className="stop-box">
-        <h3>📐 Progress Assessment</h3>
-        <p className="small">
-          Measure on Day 0 (Baseline), then re-test every 28 days. Treat changes
-          under ~1cm or ~5° as noise.
-        </p>
+      {/* Intro note: informational, not a safety warning - so it gets the
+          olive "before you start" treatment, not the red stop-box. */}
+      <div className="warmup-box" style={{ marginBottom: 16 }}>
+        <span className="ico" aria-hidden="true">📐</span>
+        <div>
+          <h3>Progress Assessment</h3>
+          <p className="small">
+            Measure on Day 0 (Baseline). Re-test every 28 days.<br />
+            Treat changes under ~1cm or ~5° as noise.
+          </p>
+        </div>
       </div>
 
       {/* Round selector - one tab per milestone, plus "add round". */}
@@ -98,6 +103,18 @@ export default function Testing() {
         return (
           <div className="card" key={t.id}>
             <h3>{t.name}</h3>
+
+            {/* Illustration slot, same as the Program day pages: tests render
+                the dashed placeholder until bespoke illustrations are ready.
+                (Web-sized demo photos already exist in client/public/tests/ -
+                to use one, set the test's `image` field, e.g.
+                image: "/tests/deep-squat.jpg".) */}
+            {t.image ? (
+              <img className="ex-image" src={t.image} alt={`${t.name} demonstration`} loading="lazy" />
+            ) : (
+              <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
+            )}
+
             <p className="small muted">{t.setup}</p>
 
             <div style={{ marginTop: 12 }}>

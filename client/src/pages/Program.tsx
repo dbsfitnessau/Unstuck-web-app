@@ -23,10 +23,16 @@ export default function Program() {
         <div className="week-stack">
           {weekList.map(({ w, phase }) => (
             <button key={w} className="pick-btn week-pick" onClick={() => setWeek(w)}>
-              <strong>Week {w}</strong>
-              <span className="muted small">
-                {phase.label} · {phase.duration} · effort {phase.effort.split("-")[0].trim()}
+              {/* Foundation weeks get the tinted chip, Progression the solid one -
+                  so the program's two halves read differently at a glance. */}
+              <span className={`pick-num ${phase.label === "Progression" ? "solid" : ""}`}>{w}</span>
+              <span className="pick-info">
+                <strong>Week {w}</strong>
+                <span className="muted small">
+                  {phase.label} · {phase.duration} · effort {phase.effort.split("-")[0].trim()}
+                </span>
               </span>
+              <span className="pick-arrow" aria-hidden="true">→</span>
             </button>
           ))}
         </div>
@@ -42,15 +48,20 @@ export default function Program() {
       <div className="pick-page">
         <button className="back-link" onClick={() => setWeek(null)}>← Weeks</button>
         <h2 className="section-title">Week {week} · {phase.label} - choose a day</h2>
-        <div className="stop-box" style={{ borderColor: "var(--border)", background: "var(--surface)" }}>
+        <div className="warmup-box">
+          <span className="ico" aria-hidden="true">🔥</span>
           <p className="small"><strong>Before you start:</strong> {phase.warmup}</p>
         </div>
         {/* Days fill the remaining page height, stacked and centred. */}
         <div className="day-stack">
           {phase.days.map((d) => (
             <button key={d.day} className="pick-btn week-pick" onClick={() => setDay(d.day)}>
-              <strong>Day {d.day} - {d.focus}</strong>
-              <span className="muted small">{d.exercises.length} movements</span>
+              <span className="pick-num">{d.day}</span>
+              <span className="pick-info">
+                <strong>{d.focus}</strong>
+                <span className="muted small">Day {d.day} · {d.exercises.length} movements</span>
+              </span>
+              <span className="pick-arrow" aria-hidden="true">→</span>
             </button>
           ))}
         </div>

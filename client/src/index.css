@@ -1,54 +1,67 @@
 /* ---------------------------------------------------------------------------
-   UNSTUCK design system - built on the DBS Fitness Australia brand reference.
-   We define the brand "tokens" (colours, type, spacing, form) once here as CSS
-   variables, then reuse them everywhere. Change a value here -> it updates
-   app-wide. This is the single source of truth for how the app looks.
+   UNSTUCK design system — "Soft Studio" edition.
 
-   DBS rules we're enforcing:
-   - THREE colours, no exceptions: Olive / Black / White.
-   - SHARP corners by default; pill radius only on CTAs.
-   - HARD offset shadows (no blur) for "poster energy".
-   - Three type faces with strict roles (display / UI / body).
+   Same idea as before: brand tokens (colours, type, spacing, shadows) are
+   defined ONCE here as CSS variables and reused everywhere. Change a value
+   here -> it updates app-wide.
+
+   What changed from the poster system (June 2026 redesign):
+   - Corners are ROUNDED (cards 20px, controls pill) instead of sharp.
+   - Shadows are SOFT and layered (no more hard 4px offset blocks).
+   - Surfaces use olive TINTS on warm paper instead of pure white + black ink.
+   - A frosted-glass sticky header and a floating pill bottom nav.
+   - Motion: one spring curve everywhere, entrance reveals, hover lifts.
+
+   What did NOT change:
+   - The three brand colours (olive/black/white) — tints are derived, never new hues.
+   - The three typefaces and their roles (display / UI / body).
+   - The tier colours and safety red: a SIGNALLING system, always paired with
+     an emoji or label, never colour alone, and kept distinct from the brand.
 --------------------------------------------------------------------------- */
 :root {
-  /* ---- Core palette (the only three brand colours) ---- */
-  --olive: #606C38;       /* PRIMARY - CTAs, accents, active states, chants */
-  --black: #000000;       /* INK - type, chrome (top/bottom bars), borders */
-  --white: #ffffff;       /* PAPER - the ground everything sits on */
+  /* ---- Core palette ---- */
+  --olive: #606C38;        /* PRIMARY - CTAs, accents, active states */
+  --olive-deep: #49532b;   /* darker olive for gradients / text on tints */
+  --olive-tint: #eef0e4;   /* soft olive wash for icon chips / fills */
+  --olive-tint-2: #dfe3cd; /* slightly stronger wash */
+  --black: #111111;        /* INK - softened from pure black */
+  --white: #ffffff;
+  --paper: #f7f6f1;        /* the warm page ground */
 
-  /* ---- Roles derived from the palette ---- */
-  --bg: var(--white);     /* page ground */
-  --surface: var(--white);/* cards sit on white with a black poster border */
-  --text: var(--black);   /* body/headlines */
-  --text-dim: #5f6450;    /* muted: a desaturated olive-grey, used sparingly */
-  --border: var(--black); /* poster card borders are solid black */
-  --line: #e7e6df;        /* hairline for table rows / internal dividers */
-  --on-olive: var(--white);/* text that sits ON an olive surface (white ✓) */
+  /* ---- Roles ---- */
+  --bg: var(--paper);
+  --surface: var(--white);
+  --text: var(--black);
+  --text-dim: #6b7058;
+  --line: #e7e6df;
+  --on-olive: var(--white);
 
-  /* Tier colours - a SAFETY signalling system, always paired with an emoji and
-     label, never colour alone. Kept distinct from the brand palette on purpose. */
+  /* Tier colours - safety signalling, never brand. */
   --tier-green: #4d7c34;
   --tier-amber: #b7791f;
   --tier-red: #b91c1c;
-  --stop: #c01818;        /* stop-signs / contraindications */
+  --stop: #c01818;
 
   /* ---- Spacing scale (4px base) ---- */
   --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
   --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
 
-  /* ---- Radii: sharp by default, pill for CTAs ---- */
-  --r-0: 0px;  --r-sm: 4px; --r-md: 8px; --r-lg: 14px; --r-pill: 999px;
+  /* ---- Radii: rounded by default now ---- */
+  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-pill: 999px;
 
-  /* ---- Hard offset shadows (poster energy - no blur) ---- */
-  --shadow-hard: 4px 4px 0 var(--black);
-  --shadow-hard-olive: 4px 4px 0 var(--olive);
+  /* ---- Soft layered shadows (the depth system) ---- */
+  --shadow-soft: 0 1px 2px rgba(17,17,17,.05), 0 8px 24px rgba(17,17,17,.09);
+  --shadow-float: 0 2px 6px rgba(17,17,17,.08), 0 18px 40px rgba(17,17,17,.14);
 
-  --maxw: 720px;          /* keep content readable; centred on desktop */
+  /* ---- Motion: ONE spring curve everywhere = coherent feel ---- */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --maxw: 720px;
 
   /* ---- Type faces with strict roles ---- */
-  --font-display: "Oswald", "Arial Narrow", sans-serif; /* hero / chants (Norwester stand-in) */
-  --font-ui: "League Spartan", system-ui, sans-serif;   /* headings / eyebrows / buttons */
-  --font-body: "Montserrat", system-ui, sans-serif;     /* body / captions */
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-ui: "League Spartan", system-ui, sans-serif;
+  --font-body: "Montserrat", system-ui, sans-serif;
 
   font-family: var(--font-body);
 }
@@ -59,25 +72,51 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: #ecebe4; /* slightly deeper than the app surface so the column reads as a card on desktop */
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   line-height: 1.55;
 }
 
-/* Headings use the UI face (League Spartan), tight and bold. */
 h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1; }
 
-/* Accessibility: a clear, consistent focus ring for keyboard users on EVERY
-   interactive element. :focus-visible only shows it for keyboard nav (not mouse
-   clicks), so it helps keyboard/switch users without adding mouse-click noise. */
+/* Keyboard-user focus ring on every interactive element. */
 :focus-visible {
   outline: 3px solid var(--olive);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
-/* App shell: content area + fixed bottom nav. Content scrolls; nav stays put. */
+/* ---- Motion primitives -------------------------------------------------- */
+/* Entrance: content rises into place. Applied to page roots and key blocks.
+   CSS animations only run when an element is ADDED to the page, so switching
+   tabs replays it (feels like a page transition) but ordinary re-renders
+   (ticking a checkbox) don't. */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* Each route's page rises in on navigation. */
+.app-content > * { animation: rise 0.45s var(--spring) both; }
+
+/* Key blocks stagger in after the page itself. */
+.card, .pick-btn, .tile, .acc, .result-item { animation: rise 0.5s var(--spring) both; }
+.card:nth-child(2), .tile:nth-child(2), .acc:nth-child(2) { animation-delay: 0.05s; }
+.card:nth-child(3), .tile:nth-child(3), .acc:nth-child(3) { animation-delay: 0.1s; }
+.card:nth-child(4), .tile:nth-child(4), .acc:nth-child(4) { animation-delay: 0.15s; }
+.card:nth-child(5), .tile:nth-child(5), .acc:nth-child(5) { animation-delay: 0.2s; }
+.card:nth-child(6), .tile:nth-child(6) { animation-delay: 0.25s; }
+
+/* Respect users who turn animations off at the OS level. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* App shell: content area + floating bottom nav. */
 .app-shell {
   max-width: var(--maxw);
   margin: 0 auto;
@@ -89,92 +128,283 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
 
 .app-content {
   flex: 1;
-  padding: var(--s-5) var(--s-4) 96px; /* bottom padding clears the fixed nav */
+  padding: var(--s-5) var(--s-4) 130px; /* bottom padding clears the floating nav */
 }
 
-/* ---- Top bar (black chrome) ---- */
+/* ---- Top bar: frosted glass, sticky ---- */
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--s-3);
   padding: var(--s-3) var(--s-4);
-  background: var(--black);
-  color: var(--white);
+  background: rgba(247, 246, 241, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
 }
 .topbar h1 {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 20px;
   letter-spacing: 1px;
   text-transform: uppercase;
   margin: 0;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text);
 }
 .topbar .accent-dot { color: var(--olive); }
-.topbar .tagline {
-  color: var(--white);
-  opacity: 0.7;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--olive-tint-2);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
 }
 
-/* ---- Bottom navigation (black chrome, olive active) ---- */
+/* ---- Bottom navigation: floating frosted pill, six tabs ---- */
 .bottom-nav {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 0;
-  width: 100%;
-  max-width: var(--maxw);
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  width: calc(100% - 24px);
+  max-width: 600px;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  background: var(--black);
-  border-top: 2px solid var(--olive);
-  padding-bottom: env(safe-area-inset-bottom); /* iPhone home-bar clearance */
+  grid-template-columns: repeat(6, 1fr);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-float);
+  padding: 7px;
+  z-index: 60;
 }
-.bottom-nav a {
+.bottom-nav a,
+.bottom-nav button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 10px 4px;
+  gap: 2px;
+  padding: 8px 1px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.6);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-dim);
   font-family: var(--font-ui);
-  font-size: 10px;
+  font-size: 8px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  border-radius: var(--r-pill);
+  transition: background 0.3s, color 0.3s, transform 0.3s var(--spring);
 }
-.bottom-nav a .icon { font-size: 18px; line-height: 1; }
-.bottom-nav a.active { color: var(--olive); }
+.bottom-nav .icon { font-size: 17px; line-height: 1; transition: transform 0.35s var(--spring); }
+.bottom-nav a.active,
+.bottom-nav button.active { background: var(--olive); color: var(--on-olive); }
+.bottom-nav a:active,
+.bottom-nav button:active { transform: scale(0.92); }
 
-/* ---- Generic cards (white, black poster border, hard shadow) ---- */
+/* ---- Cards: rounded, soft shadow, gentle hover lift ---- */
 .card {
   background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--r-0);
-  box-shadow: var(--shadow-hard);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
   padding: var(--s-4);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
+  transition: box-shadow 0.35s, transform 0.35s var(--spring);
+  scroll-margin-top: 72px; /* deep-link scrolls stop below the sticky topbar */
 }
+.card:hover { box-shadow: var(--shadow-float); }
 .card h3 { margin: 0 0 var(--s-2); font-size: 17px; }
 .muted { color: var(--text-dim); }
 .small { font-size: 13px; }
 
-/* Eyebrow / section label - League Spartan, uppercase, letterspaced, olive. */
+/* Eyebrow / section label. */
 h2.section-title {
   font-family: var(--font-ui);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: var(--olive);
-  margin: var(--s-6) 0 var(--s-3);
+  color: var(--text-dim);
+  margin: var(--s-6) var(--s-1) var(--s-3);
+  font-weight: 700;
+}
+
+/* ---- Home: hero (olive gradient, floating blobs, progress ring) ---- */
+.hero {
+  position: relative;
+  border-radius: var(--r-xl);
+  padding: var(--s-5);
+  color: var(--on-olive);
+  background: linear-gradient(135deg, var(--olive) 0%, var(--olive-deep) 100%);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  margin-bottom: var(--s-4);
+  animation: rise 0.5s var(--spring) both;
+}
+.hero h2 { font-family: var(--font-ui); font-weight: 800; font-size: 24px; margin: 0; }
+.hero p { font-size: 13px; margin: var(--s-3) 0 0; opacity: 0.92; position: relative; }
+.hero .blob {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.09);
+  animation: float 7s ease-in-out infinite;
+  pointer-events: none;
+}
+.hero .b1 { width: 150px; height: 150px; right: -40px; top: -50px; }
+.hero .b2 { width: 90px; height: 90px; right: 50px; bottom: -35px; animation-delay: -3.5s; }
+.hero-row { display: flex; align-items: center; gap: var(--s-4); }
+.hero-text { flex: 1; }
+
+/* The progress ring draws itself on load (the fill circle transitions from
+   empty to the real value once React flips a class after mount). */
+.ring { flex: 0 0 auto; width: 86px; height: 86px; position: relative; }
+.ring svg { transform: rotate(-90deg); }
+.ring .track { stroke: rgba(255, 255, 255, 0.22); }
+.ring .fill {
+  stroke: var(--white);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+}
+.ring .label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-ui);
   font-weight: 800;
+  line-height: 1;
+}
+.ring .label .day-num { font-size: 34px; }
+.ring .label small { font-size: 9px; font-weight: 700; opacity: 0.85; letter-spacing: 0.5px; margin-top: 3px; }
+
+/* Primary CTA - pill, springy press. Works as <button> or <a>. */
+button.primary, a.cta, button.cta {
+  display: inline-block;
+  background: var(--olive);
+  color: var(--on-olive);
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 12px 22px;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: none;
+  text-align: center;
+  transition: transform 0.25s var(--spring), box-shadow 0.25s;
+}
+button.primary:hover, a.cta:hover, button.cta:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(17,17,17,0.18); }
+button.primary:active, a.cta:active, button.cta:active { transform: scale(0.95); }
+/* On the olive hero the CTA inverts: white pill, olive text. */
+.hero .cta { background: var(--white); color: var(--olive-deep); margin-top: var(--s-4); box-shadow: 0 6px 16px rgba(0,0,0,0.18); position: relative; }
+
+/* ---- Home: toolkit tiles ---- */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.tile {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  transition: transform 0.35s var(--spring), box-shadow 0.35s;
+}
+.tile:hover { transform: translateY(-5px); box-shadow: var(--shadow-float); }
+.tile:active { transform: scale(0.97); }
+.tile .ico {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  background: var(--olive-tint);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  margin-bottom: var(--s-3);
+}
+.tile.alt .ico { background: var(--olive-tint-2); }
+.tile h4 { font-family: var(--font-ui); font-weight: 800; font-size: 15px; margin: 0 0 4px; }
+.tile p { font-size: 12px; color: var(--text-dim); margin: 0; }
+.tile.wide { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: var(--s-3); }
+.tile.wide .ico { margin: 2px 0 0; flex: 0 0 auto; }
+
+/* ---- Accordions (Home "The details") ---- */
+.acc {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+  margin-bottom: var(--s-3);
+  transition: box-shadow 0.3s;
+}
+.acc.open { box-shadow: var(--shadow-float); }
+.acc-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 15px;
+  text-align: left;
+  color: var(--text);
+}
+.acc-ico {
+  width: 34px; height: 34px;
+  border-radius: 11px;
+  background: var(--olive-tint);
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+.acc-ico.stop-ico { background: rgba(192, 24, 24, 0.1); }
+.acc-head .chev { margin-left: auto; color: var(--text-dim); transition: transform 0.4s var(--spring); }
+.acc.open .chev { transform: rotate(180deg); }
+/* The open/close animation: grid rows 0fr -> 1fr (animatable "height auto"). */
+.acc-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.45s var(--spring); }
+.acc.open .acc-body { grid-template-rows: 1fr; }
+.acc-inner { overflow: hidden; }
+.acc-inner > div { padding: 0 18px var(--s-4); }
+
+/* Small content blocks inside accordions. */
+.mini { background: var(--paper); border-radius: var(--r-md); padding: var(--s-3) 14px; margin-bottom: var(--s-2); }
+.mini h5 { font-family: var(--font-ui); margin: 0 0 4px; font-size: 13.5px; }
+.mini p { margin: 0; font-size: 12.5px; color: var(--text-dim); }
+.mini ul { margin: 0; padding-left: 18px; }
+.mini li { font-size: 12.5px; margin-bottom: 5px; }
+.mini li:last-child { margin-bottom: 0; }
+/* Safety variant: red-tinted, kept visually distinct from everything brand. */
+.mini.stop { background: rgba(192, 24, 24, 0.06); }
+.mini.stop h5 { color: #a31515; }
+.mini.stop li, .mini.stop p { color: #5c4444; }
+
+/* Tiny label pill (used for "practical" lines in the principles). */
+.pill {
+  display: inline-block;
+  background: var(--olive-tint);
+  color: var(--olive-deep);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 3px 10px;
+  margin-top: 6px;
 }
 
 /* ---- Tier toggle ---- */
@@ -182,9 +412,10 @@ h2.section-title {
   display: inline-flex;
   gap: var(--s-1);
   background: var(--white);
-  border: 2px solid var(--black);
+  border: 1px solid var(--line);
   border-radius: var(--r-pill);
   padding: 3px;
+  box-shadow: var(--shadow-soft);
 }
 .tier-toggle button {
   border: none;
@@ -198,11 +429,10 @@ h2.section-title {
   padding: 6px 12px;
   border-radius: var(--r-pill);
   cursor: pointer;
+  transition: background 0.25s, transform 0.25s var(--spring);
 }
-.tier-toggle button.active {
-  background: var(--olive);
-  color: var(--on-olive);
-}
+.tier-toggle button:active { transform: scale(0.92); }
+.tier-toggle button.active { background: var(--olive); color: var(--on-olive); }
 
 /* tier dots - the safety colour system */
 .tier-dot { font-size: 12px; }
@@ -212,22 +442,19 @@ h2.section-title {
 
 /* ---- Stop-signs / contraindications (safety red, never brand) ---- */
 .stop-box {
-  border: 2px solid var(--stop);
-  background: rgba(192, 24, 24, 0.06);
-  border-radius: var(--r-0);
+  border: 1px solid rgba(192, 24, 24, 0.25);
+  background: rgba(192, 24, 24, 0.05);
+  border-radius: var(--r-lg);
   padding: var(--s-3) var(--s-4);
-  margin-bottom: var(--s-5);
+  margin-bottom: var(--s-4);
+  animation: rise 0.5s var(--spring) both;
 }
 .stop-box h3 { color: var(--stop); margin-top: 0; }
 .stop-box ul { margin: var(--s-2) 0 0; padding-left: 18px; }
 .stop-box li { margin-bottom: var(--s-1); }
 
-/* ---- Tables (program/schedule) ---- */
-table.grid {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
+/* ---- Tables (scorecard) ---- */
+table.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
 table.grid th, table.grid td {
   text-align: left;
   padding: var(--s-2) 6px;
@@ -242,7 +469,7 @@ table.grid th {
   letter-spacing: 0.5px;
 }
 
-/* ---- Forms (testing area + check-offs) ---- */
+/* ---- Forms ---- */
 .field-row {
   display: flex;
   align-items: center;
@@ -252,50 +479,41 @@ table.grid th {
   border-bottom: 1px solid var(--line);
 }
 .field-row:last-child { border-bottom: none; }
+/* Note: input[type="search"] is deliberately NOT in this width rule — the
+   search bar uses .search-input (full width) and a more specific selector
+   here would override it. */
 input[type="number"], input[type="text"] {
   background: var(--white);
-  border: 2px solid var(--black);
+  border: 1px solid var(--line);
   color: var(--text);
-  border-radius: var(--r-0);
-  padding: 8px 10px;
+  border-radius: var(--r-md);
+  padding: 9px 12px;
   width: 90px;
   font-family: var(--font-body);
   font-size: 14px;
+  box-shadow: inset 0 1px 2px rgba(17,17,17,0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 input[type="number"]:focus, input[type="text"]:focus {
   outline: none;
   border-color: var(--olive);
+  box-shadow: 0 0 0 3px rgba(96, 108, 56, 0.15);
 }
 .checkbtn {
-  border: 2px solid var(--black);
+  border: 1px solid var(--line);
   background: var(--white);
   color: var(--text);
-  border-radius: var(--r-0);
+  border-radius: var(--r-md);
   padding: 6px 12px;
   cursor: pointer;
   font-family: var(--font-ui);
   font-weight: 700;
+  transition: background 0.25s, transform 0.2s var(--spring), border-color 0.25s;
 }
+.checkbtn:active { transform: scale(0.92); }
 .checkbtn.on { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
 
-/* Primary CTA - olive fill, white text, PILL radius (the one rounded thing). */
-button.primary {
-  background: var(--olive);
-  color: var(--on-olive);
-  border: none;
-  border-radius: var(--r-pill);
-  padding: 12px 20px;
-  font-family: var(--font-ui);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
 /* ---- Drill-down pickers (Program: week -> day) ---- */
-/* A "pick-btn" is a big tappable card-button. The plain version is half-width
-   (used in the 2-col week grid); ".wide" stretches full-width (day list). */
 .pick-btn {
   display: flex;
   flex-direction: column;
@@ -303,33 +521,79 @@ button.primary {
   gap: 2px;
   text-align: left;
   background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--r-0);
-  box-shadow: var(--shadow-hard);
+  border: none;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
   padding: var(--s-4);
   cursor: pointer;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 15px;
+  transition: transform 0.35s var(--spring), box-shadow 0.35s;
 }
-.pick-btn:hover { box-shadow: var(--shadow-hard-olive); border-color: var(--olive); }
+.pick-btn:hover { transform: translateY(-4px); box-shadow: var(--shadow-float); }
+.pick-btn:active { transform: scale(0.97); }
 .pick-btn strong { font-family: var(--font-ui); font-size: 16px; }
 .pick-btn.wide { width: 100%; margin-bottom: var(--s-3); }
 
-/* Program week picker: 4 weeks stacked vertically, filling the page height. */
-.week-stack { display: flex; flex-direction: column; gap: var(--s-3); min-height: calc(100dvh - 190px); }
-.week-pick { width: 100%; flex: 1 1 0; min-height: 80px; justify-content: center; align-items: center; text-align: center; }
-.week-pick strong { font-size: 22px; }
-.week-pick .small { font-size: 17px; }
+.week-stack { display: flex; flex-direction: column; gap: var(--s-3); min-height: calc(100dvh - 230px); }
+/* Week/day picker rows: numbered chip + label + arrow, matching the Home
+   tiles' language. The chip flips to solid olive for the Progression phase
+   so the two halves of the program read differently at a glance. */
+.week-pick {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 84px;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--s-4);
+  text-align: left;
+}
+.week-pick strong { font-size: 19px; display: block; }
+.week-pick .small { font-size: 13px; }
+.pick-num {
+  flex: 0 0 auto;
+  width: 48px; height: 48px;
+  border-radius: 16px;
+  background: var(--olive-tint);
+  color: var(--olive-deep);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 19px;
+}
+.pick-num.solid { background: var(--olive); color: var(--on-olive); }
+.pick-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.pick-arrow {
+  flex: 0 0 auto;
+  color: var(--olive);
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 18px;
+  transition: transform 0.3s var(--spring);
+}
+.pick-btn:hover .pick-arrow { transform: translateX(4px); }
 
-/* Program day picker (step 2): the day list fills the space left under the
-   heading + warm-up box, stacked and centred. */
-.pick-page { display: flex; flex-direction: column; min-height: calc(100dvh - 140px); }
-/* Keep the "← Weeks" link hugging the left instead of stretching across the flex column. */
+/* "Before you start" warm-up note on the day picker - olive, not safety red. */
+.warmup-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  background: var(--olive-tint);
+  border-radius: var(--r-lg);
+  padding: var(--s-3) var(--s-4);
+  margin-top: var(--s-2);
+  animation: rise 0.5s var(--spring) both;
+}
+.warmup-box .ico { flex: 0 0 auto; font-size: 18px; margin-top: 1px; }
+.warmup-box p { margin: 0; color: var(--olive-deep); }
+.warmup-box h3 { margin: 0 0 4px; font-size: 16px; color: var(--olive-deep); }
+
+.pick-page { display: flex; flex-direction: column; min-height: calc(100dvh - 180px); }
 .pick-page .back-link { align-self: flex-start; }
 .day-stack { flex: 1; display: flex; flex-direction: column; gap: var(--s-3); margin-top: var(--s-3); }
 
-/* "back-link" is the ghost text button at the top of a drill-down step. */
 .back-link {
   background: none;
   border: none;
@@ -343,7 +607,6 @@ button.primary {
   cursor: pointer;
 }
 
-/* A small inline pill that carries the tier emoji + label next to a cue. */
 .tier-pill {
   display: inline-block;
   background: var(--olive);
@@ -358,27 +621,19 @@ button.primary {
 
 /* A card that needs a safety callout (e.g. a "SKIP" tier substitution). */
 .warn-card {
-  border-color: var(--stop);
-  box-shadow: 4px 4px 0 var(--stop);
-  background: rgba(192, 24, 24, 0.05);
+  border: 1px solid rgba(192, 24, 24, 0.3);
+  background: rgba(192, 24, 24, 0.04);
 }
 
 /* ---- Program: full per-exercise detail ---- */
-
-/* Image slot above each exercise. The placeholder variant is a dashed box
-   until a real illustration URL is added to the exercise's `image` field. */
-.ex-image {
-  display: block;
-  width: 100%;
-  border-radius: var(--r-0);
-  margin: var(--s-2) 0 var(--s-3);
-}
+.ex-image { display: block; width: 100%; border-radius: var(--r-md); margin: var(--s-2) 0 var(--s-3); }
 .ex-image--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 96px;
-  border: 2px dashed var(--line);
+  background: var(--paper);
+  border: 1px dashed var(--line);
   color: var(--text-dim);
   font-family: var(--font-ui);
   font-size: 12px;
@@ -386,12 +641,7 @@ button.primary {
   letter-spacing: 0.04em;
 }
 
-/* How / Key focus / Why lines. The label is an olive uppercase eyebrow. */
-.ex-field {
-  font-size: 14px;
-  line-height: 1.45;
-  margin: var(--s-2) 0 0;
-}
+.ex-field { font-size: 14px; line-height: 1.45; margin: var(--s-2) 0 0; }
 .ex-label {
   display: inline-block;
   color: var(--olive);
@@ -403,53 +653,30 @@ button.primary {
   margin-right: var(--s-1);
 }
 
-/* The three tier (colour) options, always shown together. */
-.tier-options {
-  display: grid;
-  gap: var(--s-2);
-  margin: var(--s-3) 0 0;
-}
+.tier-options { display: grid; gap: var(--s-2); margin: var(--s-3) 0 0; }
 .tier-option {
-  border: 2px solid var(--line);
-  border-radius: var(--r-0);
+  border-radius: var(--r-md);
   padding: var(--s-2) var(--s-3);
-  background: var(--surface);
+  background: var(--paper);
+  transition: background 0.25s, box-shadow 0.25s;
 }
-/* The user's currently-selected tier is highlighted in olive. */
-.tier-option.active {
-  border-color: var(--olive);
-  box-shadow: var(--shadow-hard-olive);
-}
-.tier-option__head {
-  display: block;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 2px;
-}
-.tier-option__body {
-  display: block;
-  font-size: 14px;
-  line-height: 1.4;
-}
+.tier-option.active { background: var(--olive-tint); box-shadow: inset 0 0 0 2px var(--olive); }
+.tier-option__head { display: block; font-family: var(--font-ui); font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.tier-option__body { display: block; font-size: 14px; line-height: 1.4; }
 
-/* Contraindications line - a red safety eyebrow + note. */
 .contra {
   font-size: 13px;
   line-height: 1.45;
   margin: var(--s-3) 0 0;
   padding: var(--s-2) var(--s-3);
   border-left: 3px solid var(--stop);
+  border-radius: 0 var(--r-md) var(--r-md) 0;
   background: rgba(192, 24, 24, 0.05);
 }
 .contra .ex-label { color: var(--stop); }
 
 /* ---- Worksheet: compact per-stretch list under each training day ---- */
-.stretch-list {
-  margin-top: var(--s-3);
-  border-top: 2px solid var(--line);
-}
-/* Each stretch row: [tick] [photo] [body]. */
+.stretch-list { margin-top: var(--s-3); border-top: 1px solid var(--line); }
 .stretch-row {
   display: flex;
   align-items: flex-start;
@@ -458,78 +685,49 @@ button.primary {
   border-bottom: 1px solid var(--line);
 }
 .stretch-row:last-child { border-bottom: none; }
-/* A ticked stretch dims slightly so the eye lands on what's left to do. */
-.stretch-row.ticked .stretch-body { opacity: 0.55; }
-.stretch-row .checkbtn { flex: 0 0 auto; }
+.stretch-row.ticked .stretch-body { opacity: 0.55; transition: opacity 0.3s; }
+.stretch-row .checkbtn { flex: 0 0 auto; border-radius: 50%; width: 36px; height: 36px; padding: 0; }
 .stretch-body { flex: 1; min-width: 0; }
-.stretch-head {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s-2);
-}
+.stretch-head { display: flex; justify-content: space-between; gap: var(--s-2); }
 
-/* Per-stretch photo slot. Placeholder is a sharp olive-tinted box with a camera
-   glyph until a real image URL is set on the exercise. */
-.stretch-photo {
-  flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
-  object-fit: cover;
-  border-radius: var(--r-0);
-}
+.stretch-photo { flex: 0 0 auto; width: 112px; height: 112px; object-fit: cover; border-radius: var(--r-md); }
 .stretch-photo--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed var(--line);
+  background: var(--paper);
+  border: 1px dashed var(--line);
   font-size: 20px;
 }
 
-/* The three tier cues stacked, each tinted to its safety colour. */
-.stretch-code {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 4px 0;
-  line-height: 1.35;
-}
+.stretch-code { display: flex; flex-direction: column; gap: 2px; margin: 4px 0; line-height: 1.35; }
 .stretch-code span:nth-child(1) { color: var(--tier-green); }
 .stretch-code span:nth-child(2) { color: var(--tier-amber); }
 .stretch-code span:nth-child(3) { color: var(--tier-red); }
 
 /* ---- Segmented tabs (week selector / testing-round selector) ---- */
-.seg-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-1);
-  margin: 0 0 var(--s-3);
-}
+.seg-tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: 0 0 var(--s-3); }
 .seg-tab {
   flex: 1 1 auto;
-  border: 2px solid var(--black);
+  border: none;
   background: var(--white);
   color: var(--text);
-  border-radius: var(--r-0);
-  padding: 8px 10px;
+  border-radius: var(--r-pill);
+  padding: 9px 12px;
   font-family: var(--font-ui);
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  transition: background 0.25s, color 0.25s, transform 0.25s var(--spring);
 }
-.seg-tab.active {
-  background: var(--olive);
-  color: var(--on-olive);
-  border-color: var(--olive);
-}
-.seg-tab--add {
-  flex: 0 0 auto;
-  border-style: dashed;
-  color: var(--olive);
-}
+.seg-tab:active { transform: scale(0.95); }
+.seg-tab.active { background: var(--olive); color: var(--on-olive); }
+.seg-tab--add { flex: 0 0 auto; background: var(--olive-tint); color: var(--olive-deep); box-shadow: none; }
 
-/* A completed training day gets an olive left edge and a "Done" badge. */
-.day-complete { border-left: 4px solid var(--olive); }
+/* A completed training day gets an olive tint and a "Done" badge. */
+.day-complete { background: var(--olive-tint); }
 .done-badge {
   background: var(--olive);
   color: var(--on-olive);
@@ -541,7 +739,6 @@ button.primary {
   white-space: nowrap;
 }
 
-/* Quiet text button to clear a day's ticks and re-run the session. */
 .reset-link {
   border: none;
   background: transparent;
@@ -556,101 +753,33 @@ button.primary {
 }
 .reset-link:hover { color: var(--stop); }
 
-/* Let a wide scorecard (many testing rounds) scroll sideways on small screens. */
 .table-scroll { overflow-x: auto; }
-
-/* ---- Home: how-to list + collapsible dropdowns ---- */
-.howto {
-  list-style: none;
-  margin: 0 0 var(--s-3);
-  padding: 0;
-}
-.howto li {
-  display: flex;
-  gap: var(--s-2);
-  font-size: 14px;
-  line-height: 1.45;
-  padding: var(--s-2) 0;
-  border-bottom: 1px solid var(--line);
-}
-.howto li:last-child { border-bottom: none; }
-.howto-icon { flex: 0 0 auto; font-size: 18px; }
-
-/* Native <details> disclosure, styled as a poster dropdown. */
-.dropdown {
-  border: 2px solid var(--black);
-  border-radius: var(--r-0);
-  box-shadow: var(--shadow-hard);
-  background: var(--surface);
-  margin-bottom: var(--s-4);
-}
-.dropdown > summary {
-  list-style: none;            /* hide the default triangle marker */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-2);
-  padding: var(--s-3) var(--s-4);
-  font-family: var(--font-ui);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--olive);
-}
-.dropdown > summary::-webkit-details-marker { display: none; }
-/* Custom chevron that rotates when the section is open. */
-.dropdown > summary::after {
-  content: "▸";
-  color: var(--olive);
-  transition: transform 0.15s ease;
-}
-.dropdown[open] > summary::after { transform: rotate(90deg); }
-.dropdown-body { padding: 0 var(--s-4) var(--s-3); }
-/* Cards inside a dropdown shouldn't double up borders/shadows. */
-.dropdown-body .card { box-shadow: none; }
-
-/* Nested FAQ items: lighter, no shadow, plain text question. */
-.dropdown--nested {
-  box-shadow: none;
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  margin-bottom: 0;
-}
-.dropdown--nested:last-child { border-bottom: none; }
-.dropdown--nested > summary {
-  padding: var(--s-3) 0;
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--text);
-}
-.dropdown--nested .dropdown-body { padding: 0 0 var(--s-3); }
 
 /* ---- Search ---- */
 .search-input {
   width: 100%;
   background: var(--white);
-  border: 2px solid var(--black);
+  border: 1px solid var(--line);
   color: var(--text);
-  border-radius: var(--r-0);
-  padding: 12px 14px;
+  border-radius: var(--r-pill);
+  padding: 12px 18px;
   font-family: var(--font-body);
   font-size: 15px;
+  box-shadow: var(--shadow-soft);
 }
-.search-input:focus { outline: none; border-color: var(--olive); }
+.search-input:focus { outline: none; border-color: var(--olive); box-shadow: 0 0 0 3px rgba(96, 108, 56, 0.15); }
 .result-item {
   display: block;
-  padding: var(--s-3);
-  border: 2px solid var(--border);
-  border-radius: var(--r-0);
-  box-shadow: var(--shadow-hard);
+  padding: var(--s-3) var(--s-4);
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
   margin-bottom: var(--s-3);
   text-decoration: none;
   color: var(--text);
+  transition: transform 0.3s var(--spring), box-shadow 0.3s;
 }
+.result-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-float); }
 .result-item .tag {
   font-family: var(--font-ui);
   font-size: 10px;
@@ -661,67 +790,51 @@ button.primary {
 }
 
 /* ---- Coach panel ---- */
-.coach-fab {
-  position: fixed;
-  right: var(--s-4);
-  bottom: 80px;
-  background: var(--olive);
-  color: var(--on-olive);
-  border: none;
-  border-radius: var(--r-pill);
-  padding: 12px 18px;
-  font-family: var(--font-ui);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: var(--shadow-hard);
-  cursor: pointer;
-  z-index: 20;
-}
 .coach-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(17, 17, 17, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  z-index: 30;
+  z-index: 70;
+  animation: fadein 0.25s ease both;
 }
+@keyframes fadein { from { opacity: 0; } }
+@keyframes sheetup { from { transform: translateY(40px); opacity: 0; } }
 .coach-sheet {
-  background: var(--white);
+  background: var(--paper);
   width: 100%;
   max-width: var(--maxw);
-  height: 70vh;
-  border-radius: var(--r-0);
-  border-top: 4px solid var(--olive);
+  height: 72vh;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  box-shadow: var(--shadow-float);
   display: flex;
   flex-direction: column;
+  animation: sheetup 0.4s var(--spring) both;
 }
 .coach-head {
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line);
 }
 .coach-head h3 { margin: 0; }
+.coach-head-actions { display: flex; gap: var(--s-2); }
 .coach-msgs { flex: 1; overflow-y: auto; padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
-.msg { padding: 10px 12px; border-radius: var(--r-md); max-width: 85%; font-size: 14px; }
-.msg.user { align-self: flex-end; background: var(--olive); color: var(--on-olive); }
-.msg.coach { align-self: flex-start; background: #f1f0e9; color: var(--text); }
+.msg { padding: 10px 14px; border-radius: var(--r-lg); max-width: 85%; font-size: 14px; box-shadow: var(--shadow-soft); animation: rise 0.35s var(--spring) both; }
+.msg.user { align-self: flex-end; background: var(--olive); color: var(--on-olive); border-bottom-right-radius: 6px; }
+.msg.coach { align-self: flex-start; background: var(--white); color: var(--text); border-bottom-left-radius: 6px; }
 .coach-input { display: flex; gap: var(--s-2); padding: var(--s-3); border-top: 1px solid var(--line); }
 .coach-input input { flex: 1; }
 .coach-input input:disabled, .coach-input button:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* Loading bubble while the coach thinks / searches */
 .msg.pending { font-style: italic; opacity: 0.85; }
 
-/* Source citations shown under a coach answer that used web search */
 .msg-citations { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 4px; }
 .msg-citations .citation { font-size: 13px; color: var(--olive); text-decoration: underline; word-break: break-word; }
 
-/* Header actions (Clear / Close) sit together on the right */
-.coach-head-actions { display: flex; gap: var(--s-2); }
-
-/* Rendered Markdown inside a coach bubble - tame the default browser margins so it
-   reads like a chat message, not a web page. */
+/* Rendered Markdown inside a coach bubble. */
 .md > :first-child { margin-top: 0; }
 .md > :last-child { margin-bottom: 0; }
 .md p { margin: 0 0 8px; }
@@ -734,7 +847,7 @@ button.primary {
 .md a { color: var(--olive); text-decoration: underline; word-break: break-word; }
 .md code { background: rgba(0,0,0,0.06); padding: 1px 4px; border-radius: 4px; font-size: 13px; }
 .md pre { background: rgba(0,0,0,0.06); padding: 8px; border-radius: var(--r-md); overflow-x: auto; }
-.md blockquote { margin: 0 0 8px; padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+.md blockquote { margin: 0 0 8px; padding-left: 10px; border-left: 3px solid var(--line); color: var(--text-dim); }
 .md table { border-collapse: collapse; font-size: 13px; }
 .md th, .md td { border: 1px solid var(--line); padding: 4px 8px; }
 
@@ -743,9 +856,25 @@ button.primary {
 .error-fallback h2 { margin: 0 0 8px; }
 
 /* ── Beta access gate ───────────────────────────────────────────────────── */
-.gate { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--black); }
-.gate-card { width: 100%; max-width: 360px; background: var(--surface); border: 2px solid var(--black); box-shadow: var(--shadow-hard); padding: 28px 24px; text-align: center; }
-.gate-logo { font-family: var(--font-ui); font-size: 40px; margin: 0 0 4px; }
+.gate {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(160deg, var(--olive) 0%, var(--olive-deep) 100%);
+}
+.gate-card {
+  width: 100%;
+  max-width: 360px;
+  background: var(--paper);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-float);
+  padding: 32px 26px;
+  text-align: center;
+  animation: rise 0.5s var(--spring) both;
+}
+.gate-logo { font-family: var(--font-display); text-transform: uppercase; font-size: 36px; margin: 0 0 4px; }
 .gate-tag { margin: 0 0 18px; }
 .gate-form { display: flex; flex-direction: column; gap: 10px; }
 .gate-error { color: #b3261e; margin: 12px 0 0; }
@@ -755,19 +884,20 @@ button.primary {
 .timer-card > summary { cursor: pointer; font-weight: 700; }
 .timer { margin-top: 12px; }
 .timer-presets { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
-.chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
+.chip { border: 1px solid var(--line); background: var(--white); border-radius: var(--r-pill); padding: 6px 14px; font-size: 14px; cursor: pointer; transition: background 0.25s, transform 0.25s var(--spring); }
+.chip:active { transform: scale(0.93); }
 .chip.active { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
 
-.timer-display { border-radius: var(--r-md); padding: 18px; text-align: center; background: #f1f0e9; transition: background 0.2s; }
+.timer-display { border-radius: var(--r-lg); padding: 18px; text-align: center; background: var(--paper); box-shadow: var(--shadow-soft); transition: background 0.2s; }
 .timer-display.tone-hold { background: #eceae0; }
-.timer-display.tone-pails { background: #f7ecd2; }   /* amber-ish: the "push" phase */
-.timer-display.tone-rails { background: #e2ecdd; }   /* green-ish: the "pull deeper" phase */
+.timer-display.tone-pails { background: #f7ecd2; }
+.timer-display.tone-rails { background: #e2ecdd; }
 .timer-display.finished { background: #e2ecdd; }
 .timer-phase { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
 .timer-count { font-size: 52px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .timer-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 6px; }
 .timer-steps .step-on { font-weight: 700; color: var(--text); }
-.timer-steps .step-off { color: var(--muted); }
+.timer-steps .step-off { color: var(--text-dim); }
 
 .timer-controls { display: flex; gap: 10px; margin-top: 12px; }
 .timer-controls .primary { flex: 1; }

@@ -1,96 +1,157 @@
-import { cheatsheet } from "../data/dummyContent";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { cheatsheet, STOP_SIGNS, CONTRAINDICATIONS } from "../data/dummyContent";
+import { daysDone, nextDue, TOTAL_DAYS } from "../data/schedule";
+import Accordion from "../components/Accordion";
 
-// The Home screen: a welcome + how-to-use intro, then the reference material
-// (principles, vocabulary, FAQ) tucked into collapsible dropdowns so the page
-// opens calm and you expand only what you want.
-//
-// The dropdowns use the native HTML <details>/<summary> element - the browser
-// handles open/close, keyboard, and screen-reader behaviour for free, so we
-// don't need any React state for it. We just style it to match the brand.
+// The Home screen, "Soft Studio" edition:
+//   1. An olive hero with a progress ring showing where you are in the 28 days.
+//      The ring reads REAL progress from the worksheet log (see data/schedule.ts),
+//      so ticking off a session moves the ring.
+//   2. "Your toolkit" - a tile per tab, doubling as navigation + how-to.
+//   3. "The details" - principles / vocabulary / FAQ / stop signs in animated
+//      accordions, collapsed by default so the page opens calm.
 
-// A quick map of the app's tabs, shown in "How to use".
-const TABS = [
-  { icon: "🗓", name: "Program", blurb: "Your daily sessions. Pick a week, pick a day, follow each movement. Every stretch has three options - 🟢 Recreational, 🟡 Intermediate, 🔴 Athlete. Start honest, not heroic." },
-  { icon: "✅", name: "Worksheet", blurb: "Tick off each stretch as you go, log effort and load, reflect each week. It remembers where you are - come back and pick up." },
-  { icon: "📐", name: "Assessment", blurb: "Measure yourself on Day 0, then re-test every 28 days. Numbers keep you honest when it doesn't feel like progress." },
-  { icon: "🔍", name: "Search", blurb: "Find any movement, term, or test in a second." },
-  { icon: "💬", name: "Coach", blurb: "Stuck on a cue or need a swap? Ask." },
-];
+const RING_R = 36;                       // ring radius in the 86x86 SVG
+const RING_C = 2 * Math.PI * RING_R;     // its circumference, for the dash trick
 
 export default function Home() {
+  // How many of the 28 days are done, per the worksheet's own rules.
+  const done = daysDone();
+  const today = Math.min(done + 1, TOTAL_DAYS);
+
+  // Ring draw-on-load: render it EMPTY first, then flip to the real value one
+  // frame later - the CSS transition animates the sweep.
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setDrawn(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const offset = drawn ? RING_C * (1 - done / TOTAL_DAYS) : RING_C;
+
   return (
     <div>
-      <h2 className="section-title">Home</h2>
-
-      {/* Welcome - always visible, sets the tone. */}
-      <div className="card">
-        <h3 style={{ marginTop: 0 }}>Welcome to UNSTUCK</h3>
-        <p className="small" style={{ marginBottom: 0 }}>
-          A 28-day mobility reset. No fluff, no 400 exercises you'll never do - five
-          short sessions a week, scaled to where you actually are. Two weeks to build
-          the foundation, two weeks to load it.
-        </p>
-      </div>
-
-      {/* How to use - a quick tour of the tabs. */}
-      <div className="card">
-        <h3 style={{ marginTop: 0 }}>How to use the app</h3>
-        <ul className="howto">
-          {TABS.map((t) => (
-            <li key={t.name}>
-              <span className="howto-icon" aria-hidden="true">{t.icon}</span>
-              <span><strong>{t.name}</strong> - {t.blurb}</span>
-            </li>
-          ))}
-        </ul>
-        <p className="small muted" style={{ marginBottom: 0 }}>
-          When in doubt, drop to 🟢, smaller range, no load. Pain that's sharp, or
-          tingling - stop, and see a physio. The detail below is the why behind all of it.
-        </p>
-      </div>
-
-      {/* Reference material - collapsed by default, expand what you want. */}
-      <details className="dropdown">
-        <summary>The 5 Principles</summary>
-        <div className="dropdown-body">
-          {cheatsheet.principles.map((p, i) => (
-            <div className="card" key={i}>
-              <h3>{i + 1}. {p.title}</h3>
-              <p className="small">{p.body}</p>
-              <p className="small"><strong>Practical:</strong> {p.practical}</p>
+      {/* ---- Hero ---- */}
+      <div className="hero">
+        <div className="blob b1" /><div className="blob b2" />
+        <div className="hero-row">
+          <div className="hero-text">
+            <h2>{done > 0 ? "Welcome back" : "Welcome to UNSTUCK"}</h2>
+          </div>
+          <div className="ring">
+            <svg width="86" height="86" viewBox="0 0 86 86" fill="none" aria-hidden="true">
+              <circle className="track" cx="43" cy="43" r={RING_R} strokeWidth="7" />
+              <circle
+                className="fill"
+                cx="43" cy="43" r={RING_R} strokeWidth="7"
+                strokeDasharray={RING_C}
+                strokeDashoffset={offset}
+              />
+            </svg>
+            <div className="label" aria-label={`Day ${today} of ${TOTAL_DAYS}`}>
+              <span className="day-num">{today}</span>
+              <small>OF {TOTAL_DAYS}</small>
             </div>
-          ))}
+          </div>
         </div>
-      </details>
+        <p>
+          A 28-day mobility reset.<br />
+          Five short sessions a week.<br />
+          Scaled to where you actually are.
+        </p>
+        {/* The CTA deep-links into the worksheet: ?week opens the right week
+            tab, ?day scrolls to that day's card (QuickCards reads both). */}
+        <Link className="cta" to={`/worksheet?week=${nextDue().week}&day=${nextDue().day}`}>
+          {done === 0 ? "Start Day 1" : `Continue Day ${today}`} →
+        </Link>
+      </div>
 
-      <details className="dropdown">
-        <summary>Vocabulary</summary>
-        <div className="dropdown-body">
-          <table className="grid">
-            <thead><tr><th>Term</th><th>What it means</th><th>Why you care</th></tr></thead>
-            <tbody>
-              {cheatsheet.vocabulary.map((v, i) => (
-                <tr key={i}><td><strong>{v.term}</strong></td><td>{v.meaning}</td><td className="muted">{v.why}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </details>
+      {/* ---- Toolkit: each tile is a how-to AND a link to that tab ---- */}
+      <h2 className="section-title">Your toolkit - How to use</h2>
+      <div className="tiles">
+        <Link to="/program" className="tile wide">
+          <span className="ico" aria-hidden="true">🗓</span>
+          <span>
+            <h4>Program</h4>
+            <p>Your daily sessions. Pick a week, pick a day, follow each movement. Start honest, not heroic.</p>
+            <p style={{ marginTop: 6 }}>Every stretch has three options - 🟢 Recreational, 🟡 Intermediate, 🔴 Athlete.</p>
+          </span>
+        </Link>
+        <Link to="/worksheet" className="tile alt">
+          <span className="ico" aria-hidden="true">✅</span>
+          <h4>Worksheet</h4>
+          <p>Tick off progress. Log effort. Reflect weekly.</p>
+        </Link>
+        <Link to="/testing" className="tile">
+          <span className="ico" aria-hidden="true">📐</span>
+          <h4>Assessment</h4>
+          <p>Measure Day 0. Re-test every 28 days.</p>
+        </Link>
+        <Link to="/search" className="tile">
+          <span className="ico" aria-hidden="true">🔍</span>
+          <h4>Search</h4>
+          <p>Any movement, term, or test in a second.</p>
+        </Link>
+        {/* Coach isn't a route - it opens the coach sheet. App listens for this event. */}
+        <button
+          type="button"
+          className="tile alt"
+          onClick={() => window.dispatchEvent(new Event("unstuck:coach"))}
+        >
+          <span className="ico" aria-hidden="true">💬</span>
+          <h4>Coach</h4>
+          <p>Stuck on a cue or need a swap? Ask anytime.</p>
+        </button>
+      </div>
 
-      <details className="dropdown">
-        <summary>FAQ</summary>
-        <div className="dropdown-body">
-          {/* Each question is its own nested dropdown - a true FAQ accordion. */}
-          {cheatsheet.faq.map((f, i) => (
-            <details className="dropdown dropdown--nested" key={i}>
-              <summary>{f.q}</summary>
-              <div className="dropdown-body">
-                <p className="small muted" style={{ margin: 0 }}>{f.a}</p>
-              </div>
-            </details>
-          ))}
+      {/* ---- Reference material, collapsed by default ---- */}
+      <h2 className="section-title">The details</h2>
+
+      <Accordion icon="🧠" title="The 5 Principles">
+        {cheatsheet.principles.map((p, i) => (
+          <div className="mini" key={i}>
+            <h5>{i + 1}. {p.title}</h5>
+            <p>{p.body}</p>
+            <span className="pill">{p.practical}</span>
+          </div>
+        ))}
+      </Accordion>
+
+      <Accordion icon="📖" title="Vocabulary">
+        {cheatsheet.vocabulary.map((v, i) => (
+          <div className="mini" key={i}>
+            <h5>{v.term}</h5>
+            <p>{v.meaning}</p>
+            <p className="muted" style={{ marginTop: 4 }}><strong>Why you care:</strong> {v.why}</p>
+          </div>
+        ))}
+        {/* Method attribution - required, don't remove. */}
+        <p className="small muted" style={{ margin: "4px 2px 0" }}>
+          CARs and PAILs/RAILs come from Dr Andreo Spina's Functional Range Conditioning (FRC).
+        </p>
+      </Accordion>
+
+      <Accordion icon="❓" title="FAQ">
+        {cheatsheet.faq.map((f, i) => (
+          <div className="mini" key={i}>
+            <h5>{f.q}</h5>
+            <p>{f.a}</p>
+          </div>
+        ))}
+      </Accordion>
+
+      <Accordion icon="🛑" title="Stop signs" tone="stop">
+        <div className="mini stop">
+          <h5>Stop the session if:</h5>
+          <ul>
+            {STOP_SIGNS.map((s, i) => <li key={i}>{s}</li>)}
+          </ul>
         </div>
-      </details>
+        <div className="mini stop">
+          <h5>Not for everyone</h5>
+          <p>{CONTRAINDICATIONS}</p>
+        </div>
+      </Accordion>
     </div>
   );
 }

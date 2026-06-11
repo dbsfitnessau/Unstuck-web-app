@@ -36,7 +36,7 @@ export const cheatsheet = {
   principles: [
     {
       title: "Tightness is often a nervous-system signal - not just a short muscle.",
-      body: "A lot of what you feel as 'tight' is a protective output from your CNS deciding a range is unsafe. Stretch tolerance changes faster than tissue length.",
+      body: "A lot of what you feel as 'tight' is a protective output from your Central Nervous System deciding a range is unsafe. Stretch tolerance changes faster than tissue length.",
       practical: "Long exhales. Time under tension. Don't force depth - earn it.",
     },
     {
@@ -81,6 +81,7 @@ export interface MobilityTest {
   setup: string;
   checks: string[];          // pass/fail items
   metric: { label: string; unit: string } | null; // numeric field, if any
+  image?: string;            // demo photo (lives in client/public/tests/)
 }
 
 export const tests: MobilityTest[] = [

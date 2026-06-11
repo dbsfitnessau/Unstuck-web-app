@@ -80,8 +80,10 @@ async function consumeSSE(
   }
 }
 
-export default function CoachPanel() {
-  const [open, setOpen] = useState(false);
+// open/onClose come from App: the nav's Coach tab (and Home's Coach tile, via
+// the "unstuck:coach" event) open the sheet; tapping the backdrop or Close
+// closes it. The panel itself only owns the chat state.
+export default function CoachPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState(""); // ephemeral, not persisted
@@ -161,17 +163,15 @@ export default function CoachPanel() {
 
   return (
     <>
-      <button className="coach-fab" onClick={() => setOpen(true)}>💬 Coach</button>
-
       {open && (
-        <div className="coach-overlay" onClick={() => setOpen(false)}>
+        <div className="coach-overlay" onClick={onClose}>
           {/* stopPropagation: clicking inside the sheet shouldn't close it */}
           <div className="coach-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="coach-head">
               <strong>UNSTUCK Coach</strong>
               <div className="coach-head-actions">
                 <button className="checkbtn" onClick={clearChat} disabled={streaming}>Clear</button>
-                <button className="checkbtn" onClick={() => setOpen(false)}>Close</button>
+                <button className="checkbtn" onClick={onClose}>Close</button>
               </div>
             </div>
             <div className="coach-msgs">
