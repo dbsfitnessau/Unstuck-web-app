@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { STOP_SIGNS, CONTRAINDICATIONS, TIERS, type Tier } from "../data/dummyContent";
 import { phaseForWeek, type Exercise } from "../data/program";
 import { WEEKS } from "../data/schedule";
-import { useLocalStorage } from "../state/useLocalStorage";
+import { useSyncedStorage } from "../state/useSyncedStorage";
 import Timer from "../components/Timer";
 
 // ---------------------------------------------------------------------------
@@ -69,7 +69,7 @@ export default function QuickCards() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const [log, setLog] = useLocalStorage<LogState>("unstuck:worksheet-log", {
+  const [log, setLog] = useSyncedStorage<LogState>("unstuck:worksheet-log", {
     entries: {},
     reflections: {},
   });

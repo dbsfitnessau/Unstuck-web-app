@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { tests } from "../data/dummyContent";
-import { useLocalStorage } from "../state/useLocalStorage";
+import { useSyncedStorage } from "../state/useSyncedStorage";
 
 // ---------------------------------------------------------------------------
 // The Testing area = the 7 field tests, re-tested on a rolling 28-day cadence.
@@ -29,8 +29,8 @@ function blankEntry(checkCount: number): Entry {
 const roundLabel = (day: number) => `Day ${day}`;
 
 export default function Testing() {
-  const [milestones, setMilestones] = useLocalStorage<number[]>("unstuck:test-milestones", DEFAULT_MILESTONES);
-  const [results, setResults] = useLocalStorage<Results>("unstuck:test-results", {});
+  const [milestones, setMilestones] = useSyncedStorage<number[]>("unstuck:test-milestones", DEFAULT_MILESTONES);
+  const [results, setResults] = useSyncedStorage<Results>("unstuck:test-results", {});
   const [activeDay, setActiveDay] = useState<number>(0);
 
   function entry(testId: string, day: number, checkCount: number): Entry {

@@ -9,6 +9,7 @@ import rateLimit from "express-rate-limit";
 import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
 import { signToken, verifyToken } from "./auth.js";
 import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js";
+import { verifySupabaseToken, supabaseConfigured } from "./supabaseAuth.js";
 
 const app = express();
 
@@ -82,16 +83,18 @@ const accessLimiter = rateLimit({
 });
 
 // Gate middleware for protected endpoints (the coach). When the gate is on, the request
-// must carry a valid code in the x-access-token header. This protects your API spend even
-// if someone bypasses the client UI.
-function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
+// must carry a valid credential in the x-access-token header. Three kinds are accepted,
+// oldest to newest: a raw beta code, a legacy signed token, or a Supabase session token
+// (a signed-in user). The first two stay during the accounts transition so nothing
+// breaks for existing testers; they retire in Phase 2.
+async function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (!gateEnabled) return next();
   const token = String(req.header("x-access-token") ?? "").trim();
-  // Accept a raw beta code (back-compat for existing testers) OR a valid signed token.
   if (ACCESS_CODES.includes(token) || verifyToken(token)) return next();
+  if (await verifySupabaseToken(token)) return next();
   return res.status(401).json({
     error: "Access required.",
-    reply: "This is locked. Enter your access code or license key to continue.",
+    reply: "This is locked. Sign in (or enter your access code) to continue.",
     citations: [],
     locked: true,
   });
@@ -260,5 +263,5 @@ app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
   console.log(`Limits: ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
-  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"}`);
+  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"}`);
 });

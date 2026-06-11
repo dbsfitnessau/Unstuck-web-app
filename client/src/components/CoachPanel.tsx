@@ -2,7 +2,8 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useLocalStorage } from "../state/useLocalStorage";
-import { getAccessToken, lockApp } from "./AccessGate";
+import { lockApp } from "./AccessGate";
+import { supabase, getCoachToken } from "../state/supabase";
 
 // The in-app coach. It STREAMS: it POSTs the chat history to /api/coach/stream and the
 // server sends back Server-Sent Events — text chunks as they're generated, a "searching"
@@ -115,15 +116,19 @@ export default function CoachPanel({ open, onClose }: { open: boolean; onClose: 
 
     let acc = ""; // accumulates the streamed answer (local, so 'done' has the full text)
     try {
+      // Signed-in users send their Supabase session token; legacy users send
+      // their access-code token. The server accepts either.
       const res = await fetch(`${API_URL}/api/coach/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-access-token": getAccessToken() },
+        headers: { "Content-Type": "application/json", "x-access-token": await getCoachToken() },
         body: JSON.stringify({ messages: apiMessages }),
       });
       if (res.status === 401) {
-        // Token expired or was revoked → re-lock the app; the gate reappears with the
-        // "UNSTUCK is locked" message so they can re-enter a valid code.
-        lockApp();
+        // Legacy-token users: re-lock the old gate so they re-enter a code.
+        // Supabase users shouldn't hit this; if they do, sign them out so the
+        // sign-in screen reappears cleanly.
+        if (supabase) await supabase.auth.signOut();
+        else lockApp();
         return;
       }
       if (!res.ok || !res.body) {

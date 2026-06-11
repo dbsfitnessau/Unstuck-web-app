@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
-import AccessGate from "./components/AccessGate";
+import SignInGate from "./components/SignInGate";
 import "./index.css";
 
 // This is the ignition switch. It finds the empty <div id="root"> in index.html
@@ -14,10 +14,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     {/* future flags: opt in early to React Router v7 behaviour. This just
         silences the upgrade-warning noise in the console - no behaviour change. */}
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      {/* The whole app sits behind the beta access gate. */}
-      <AccessGate>
+      {/* The whole app sits behind sign-in (magic-link accounts; falls back
+          to the legacy access-code gate in builds without Supabase config). */}
+      <SignInGate>
         <App />
-      </AccessGate>
+      </SignInGate>
     </BrowserRouter>
   </React.StrictMode>
 );
