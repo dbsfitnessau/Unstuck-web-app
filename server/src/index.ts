@@ -171,8 +171,17 @@ app.get("/", (_req, res) => {
 });
 
 // Simple health check — handy for "is the server up?" without calling Claude.
+// Also reports which commit is running (Render sets RENDER_GIT_COMMIT) and
+// whether the Supabase settings are visible — true/false only, never values —
+// so a misconfigured deploy can be diagnosed from the outside.
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, model: process.env.COACH_MODEL ?? "claude-sonnet-4-5" });
+  res.json({
+    ok: true,
+    model: process.env.COACH_MODEL ?? "claude-sonnet-4-5",
+    commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? "unknown",
+    supabaseUrlSet: !!process.env.SUPABASE_URL,
+    supabaseServiceKeySet: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+  });
 });
 
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.
