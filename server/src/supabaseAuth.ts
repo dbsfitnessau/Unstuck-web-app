@@ -12,7 +12,19 @@
 //
 // Needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in the environment; without
 // them this verifier simply says "no" and the legacy code paths still apply.
-const SUPABASE_URL = (process.env.SUPABASE_URL ?? "").replace(/\/+$/, "");
+// Normalise SUPABASE_URL down to its origin ("https://xxxx.supabase.co").
+// People copy this value with stray paths attached (".../rest/v1/") — keeping
+// only the origin makes both forms work.
+const SUPABASE_URL = (() => {
+  const raw = (process.env.SUPABASE_URL ?? "").trim();
+  if (!raw) return "";
+  try {
+    return new URL(raw).origin;
+  } catch {
+    console.warn("[supabaseAuth] SUPABASE_URL is not a valid URL:", raw);
+    return "";
+  }
+})();
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 export const supabaseConfigured = Boolean(SUPABASE_URL && SERVICE_KEY);
