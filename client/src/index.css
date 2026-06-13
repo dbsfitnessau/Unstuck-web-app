@@ -627,6 +627,10 @@ input[type="number"]:focus, input[type="text"]:focus {
 
 /* ---- Program: full per-exercise detail ---- */
 .ex-image { display: block; width: 100%; border-radius: var(--r-md); margin: var(--s-2) 0 var(--s-3); }
+/* Program page only: show the demo photo capped at 400px (centred), not the
+   full-bleed .ex-image the Assessment page still uses. The source files are
+   800px, so a 400px display is 2x retina density — crisp, never upscaled. */
+.program-photo { max-width: 400px; margin-left: auto; margin-right: auto; }
 .ex-image--placeholder {
   display: flex;
   align-items: center;
@@ -725,7 +729,7 @@ input[type="number"]:focus, input[type="text"]:focus {
 .stretch-body { flex: 1; min-width: 0; }
 .stretch-head { display: flex; justify-content: space-between; gap: var(--s-2); }
 
-.stretch-photo { flex: 0 0 auto; width: 112px; height: 112px; object-fit: cover; border-radius: var(--r-md); }
+.stretch-photo { flex: 0 0 auto; width: 88px; height: 88px; object-fit: cover; border-radius: var(--r-md); }
 .stretch-photo--placeholder {
   display: flex;
   align-items: center;

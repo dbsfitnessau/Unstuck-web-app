@@ -182,8 +182,9 @@ export const tests: MobilityTest[] = [
     setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips (target: 45°+).",
     sideHeadings: ["Left", "Right"],
     fields: [
-      { key: "hips", type: "check", label: "Hips lifted?" },
+      { key: "hipL", type: "check", label: "Left hip lifted?", side: "left" },
       { key: "rotL", type: "number", label: "Rotation", unit: "°", side: "left" },
+      { key: "hipR", type: "check", label: "Right hip lifted?", side: "right" },
       { key: "rotR", type: "number", label: "Rotation", unit: "°", side: "right" },
     ],
     score: { label: "Seated Thoracic Rotation", unit: "°", averageOf: ["rotL", "rotR"], averageLabel: "Rotation Average" },

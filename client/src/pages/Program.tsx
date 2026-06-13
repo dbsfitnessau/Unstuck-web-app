@@ -101,7 +101,7 @@ export default function Program() {
                 `ex.image` field also drives the worksheet's 112px thumbnails.
                 Falls back to the dashed placeholder if a movement has no photo. */}
             {ex.image ? (
-              <img className="ex-image" src={ex.image} alt={ex.name} loading="lazy" />
+              <img className="ex-image program-photo" src={ex.image} alt={ex.name} loading="lazy" />
             ) : (
               <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
             )}
