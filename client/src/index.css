@@ -626,11 +626,10 @@ input[type="number"]:focus, input[type="text"]:focus {
 }
 
 /* ---- Program: full per-exercise detail ---- */
-.ex-image { display: block; width: 100%; border-radius: var(--r-md); margin: var(--s-2) 0 var(--s-3); }
-/* Program page only: show the demo photo capped at 400px (centred), not the
-   full-bleed .ex-image the Assessment page still uses. The source files are
-   800px, so a 400px display is 2x retina density — crisp, never upscaled. */
-.program-photo { max-width: 400px; margin-left: auto; margin-right: auto; }
+/* Demo reference photos (Program + Assessment). Source files are 800px; we cap
+   the display at 400px and centre it, so they render at 2x retina density —
+   crisp, never upscaled. */
+.ex-image { display: block; width: 100%; max-width: 400px; border-radius: var(--r-md); margin: var(--s-2) auto var(--s-3); }
 .ex-image--placeholder {
   display: flex;
   align-items: center;
@@ -677,7 +676,7 @@ input[type="number"]:focus, input[type="text"]:focus {
   border: 1px dashed var(--line); background: var(--paper); color: var(--text-dim);
   border-radius: var(--r-md); font-family: var(--font-ui); font-weight: 700; cursor: pointer;
 }
-.photo-preview img { display: block; width: 100%; border-radius: var(--r-md); margin-top: 6px; }
+.photo-preview img { display: block; width: 100%; max-width: 400px; border-radius: var(--r-md); margin: 6px auto 0; }
 .photo-actions { display: flex; gap: 16px; margin-top: 6px; }
 
 .ex-field { font-size: 14px; line-height: 1.45; margin: var(--s-2) 0 0; }
