@@ -627,6 +627,10 @@ input[type="number"]:focus, input[type="text"]:focus {
 
 /* ---- Program: full per-exercise detail ---- */
 .ex-image { display: block; width: 100%; border-radius: var(--r-md); margin: var(--s-2) 0 var(--s-3); }
+/* Assessment demo photos are 300px square shots — cap the width and centre them
+   so they render at (near) native resolution and stay crisp, instead of being
+   upscaled to fill the full-bleed .ex-image slot. */
+.test-photo { max-width: 300px; margin-left: auto; margin-right: auto; }
 .ex-image--placeholder {
   display: flex;
   align-items: center;

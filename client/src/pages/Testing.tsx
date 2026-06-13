@@ -104,13 +104,13 @@ export default function Testing() {
           <div className="card" key={t.id}>
             <h3>{t.name}</h3>
 
-            {/* Illustration slot, same as the Program day pages: tests render
-                the dashed placeholder until bespoke illustrations are ready.
-                (Web-sized demo photos already exist in client/public/tests/ -
-                to use one, set the test's `image` field, e.g.
-                image: "/tests/deep-squat.jpg".) */}
+            {/* Demonstration photo for each test. These are the 300px square
+                branded photos (same set as the worksheet), so we add .test-photo
+                to cap the width and keep them crisp — the full-bleed .ex-image
+                slot was sized for larger 800px shots. Falls back to the dashed
+                placeholder for any test without a photo. */}
             {t.image ? (
-              <img className="ex-image" src={t.image} alt={`${t.name} demonstration`} loading="lazy" />
+              <img className="ex-image test-photo" src={t.image} alt={`${t.name} demonstration`} loading="lazy" />
             ) : (
               <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
             )}

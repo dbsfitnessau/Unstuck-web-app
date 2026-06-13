@@ -85,13 +85,13 @@ export interface MobilityTest {
 }
 
 export const tests: MobilityTest[] = [
-  { id: "deep-squat", name: "Deep Squat Hold", setup: "Feet shoulder-width, toes slightly out. Sink deep with clean form, hold until form breaks or 60s.", checks: ["Heels stay down", "Knees track over toes", "Spine stays long"], metric: { label: "Clean hold time", unit: "sec" } },
-  { id: "wall-ankle", name: "Wall Ankle (Knee-to-Wall)", setup: "Half-kneel facing wall, drive knee to wall with heel glued down. Measure toe-to-wall.", checks: ["Heel stayed down (left)", "Heel stayed down (right)"], metric: { label: "Toe-to-wall", unit: "cm" } },
-  { id: "sit-reach", name: "Sit and Reach (Modified)", setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.", checks: ["Stayed long-spined"], metric: { label: "Past/short of toes", unit: "cm (+/-)" } },
-  { id: "wall-shoulder", name: "Wall Shoulder Flexion", setup: "Back, head, bum and heels on wall. Arms overhead, try to touch the wall without arching.", checks: ["Hands touch the wall", "Low back stays in contact"], metric: { label: "Wrist-to-wall", unit: "cm" } },
-  { id: "thomas", name: "Thomas Test", setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.", checks: ["Left thigh at/below horizontal", "Right thigh at/below horizontal"], metric: null },
-  { id: "tspine-rot", name: "Seated Thoracic Rotation", setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips.", checks: ["Hips stayed planted"], metric: { label: "Rotation (avg)", unit: "°" } },
-  { id: "cossack", name: "Cossack Squat Depth", setup: "Wide stance, shift to one leg, sink down. Loaded heel down, hip below knee, straight leg flexed.", checks: ["Heel down (both sides)", "Hip below knee (both sides)", "Straight leg fully flexed"], metric: null },
+  { id: "deep-squat", name: "Deep Squat Hold", setup: "Feet shoulder-width, toes slightly out. Sink deep with clean form, hold until form breaks or 60s.", checks: ["Heels stay down", "Knees track over toes", "Spine stays long"], metric: { label: "Clean hold time", unit: "sec" }, image: "/exercises/deep-squat-hold.jpg" },
+  { id: "wall-ankle", name: "Wall Ankle (Knee-to-Wall)", setup: "Half-kneel facing wall, drive knee to wall with heel glued down. Measure toe-to-wall.", checks: ["Heel stayed down (left)", "Heel stayed down (right)"], metric: { label: "Toe-to-wall", unit: "cm" }, image: "/exercises/wall-ankle-test.jpg" },
+  { id: "sit-reach", name: "Sit and Reach (Modified)", setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.", checks: ["Stayed long-spined"], metric: { label: "Past/short of toes", unit: "cm (+/-)" }, image: "/exercises/sit-and-reach.jpg" },
+  { id: "wall-shoulder", name: "Wall Shoulder Flexion", setup: "Back, head, bum and heels on wall. Arms overhead, try to touch the wall without arching.", checks: ["Hands touch the wall", "Low back stays in contact"], metric: { label: "Wrist-to-wall", unit: "cm" }, image: "/exercises/wall-shoulder-flexion.jpg" },
+  { id: "thomas", name: "Thomas Test", setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.", checks: ["Left thigh at/below horizontal", "Right thigh at/below horizontal"], metric: null, image: "/exercises/thomas-test.jpg" },
+  { id: "tspine-rot", name: "Seated Thoracic Rotation", setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips.", checks: ["Hips stayed planted"], metric: { label: "Rotation (avg)", unit: "°" }, image: "/exercises/seated-thoracic-rotation.jpg" },
+  { id: "cossack", name: "Cossack Squat Depth", setup: "Wide stance, shift to one leg, sink down. Loaded heel down, hip below knee, straight leg flexed.", checks: ["Heel down (both sides)", "Hip below knee (both sides)", "Straight leg fully flexed"], metric: null, image: "/exercises/cossack-squat-depth.jpg" },
 ];
 
 // ---- Program ----

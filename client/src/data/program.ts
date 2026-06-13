@@ -71,7 +71,7 @@ export const phases: Phase[] = [
           { name: "Thread the Needle", setsReps: "8 each side", how: "On hands and knees. Reach the right arm under the body, threading it past the left arm. Lower the right shoulder and ear toward the floor. Return to start by reaching the right arm up to the ceiling, opening the chest.", keyFocus: "The reach up is as important as the reach under. Both directions train rotation.", why: "Thoracic rotation in a stable closed-chain position.", tier: { green: "Supporting elbow soft", amber: "+ 3 sec end-rotation hold", red: "Open-arm: hand behind head, drive elbow up" }, notes: "Reach up matters as much as reach under", contraindications: "Wrist pain - drop to forearms." },
           { name: "Thoracic Extension Over Roller", setsReps: "60 sec × 3 rounds", how: "Foam roller (or rolled towel) horizontally under the upper back at shoulder-blade level. Hands behind the head supporting the neck. Slowly arch back over the roller, breathe out, return. Move the roller up one segment and repeat.", keyFocus: "Extend through the upper back, not the low back. The hips stay grounded.", why: "Restores thoracic extension lost to desk and phone posture.", tier: { green: "Smaller range, head supported", amber: "As written", red: "+ 2.5–5kg plate held to chest" }, notes: "Arch the upper back, hips stay grounded", contraindications: "Osteoporosis, recent rib injury, history of fragility fractures. Use caution if a history of either." },
           { name: "Quadruped Thoracic Rotation", setsReps: "8 each side", how: "On hands and knees. Place one hand behind the head. Drive that elbow up toward the ceiling, rotating through the mid-back. Then drive it under and across the body.", keyFocus: "Hips stay square. The rotation is thoracic - if your hips swing, you've cheated.", why: "Isolates Thoracic Spine rotation away from the lumbar spine.", tier: { green: "Small range, slow", amber: "As written", red: "+ 3 sec top hold, breathe into side ribs" }, notes: "Hips square, no swing", contraindications: "Wrist pain - drop to forearms." },
-          { name: "Wall Slide / Banded Pass-Through", setsReps: "10 reps × 2 rounds", how: "Wall slide: Stand with back, head, bum against a wall. Arms in goalpost position, elbows and wrists touching the wall. Slide arms up overhead while keeping all four points on the wall, then slide back down. Band pass-through: Hold a band wide overhead. Pass the band over the head and behind the back without bending the elbows. Reverse.", keyFocus: "Don't compensate by arching the low back off the wall, or by flaring the ribs.", why: "Trains shoulder flexion and external rotation in a position your nervous system trusts.", tier: { green: "Wall slide, narrower range", amber: "Wall slide, full range", red: "Banded pass-through, tight grip" }, notes: "Don't flare ribs or arch low back", contraindications: "Recent shoulder impingement or anterior instability. Use caution if a history of either." },
+          { name: "Wall Slide", setsReps: "10 reps × 2 rounds", how: "Stand with back, head, bum against a wall. Arms in goalpost position, elbows and wrists touching the wall. Slide arms up overhead while keeping all four points on the wall, then slide back down.", keyFocus: "Don't compensate by arching the low back off the wall, or by flaring the ribs.", why: "Trains shoulder flexion and external rotation in a position your nervous system trusts.", tier: { green: "Narrower range", amber: "Full range", red: "Full range + 2 sec hold overhead" }, notes: "Don't flare ribs or arch low back", contraindications: "Recent shoulder impingement or anterior instability. Use caution if a history of either." },
           { name: "Doorway Pec Stretch", setsReps: "60 sec each side", how: "Stand in a doorway. Place one forearm against the frame, elbow at shoulder height (90°). Step the same-side foot through the door and rotate the chest away.", keyFocus: "Squeeze the shoulder blade back and down while you stretch. Stretching a slack pec doesn't change much.", why: "Opens the chest after a day of forward posture and balances the shoulder slide work.", tier: { green: "Lower elbow, smaller rotation", amber: "As written", red: "4 × (5s push into frame / 10s off)" }, notes: "Squeeze shoulder blade back and down", contraindications: "Recent anterior shoulder instability. Use caution if there is a history of dislocation." },
         ],
       },
@@ -188,6 +188,106 @@ export const phases: Phase[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Exercise photos.
+//
+// The demo photos live in client/public/exercises/ (Vite serves that folder at
+// the site root, so "/exercises/foo.jpg" is the URL). Rather than paste an
+// `image:` line into every one of the ~70 exercise objects above, we keep ONE
+// lookup table here — keyed by the exercise's exact `name` — and stamp the
+// matching photo onto each exercise in a single pass below.
+//
+// Why a table instead of inline fields: it's the single place to see and edit
+// every photo mapping, and variants that share a movement (e.g. all three
+// "World's Greatest Stretch" rows, or "Hip CARs" in both phases) reuse one file
+// instead of repeating it. To swap a photo, change the filename here once.
+//
+// Any exercise NOT listed here simply keeps the 📷 placeholder on the worksheet.
+// (Every movement currently has a photo.)
+// ---------------------------------------------------------------------------
+const exerciseImages: Record<string, string> = {
+  // Foundation — Day 1 (Hips & Hamstrings)
+  "Hip CARs": "hip-cars.jpg",
+  "Cat-Cow": "cat-cow.jpg",
+  "World's Greatest Stretch": "worlds-greatest-stretch.jpg",
+  "90/90 Hip Switch": "90-90-hip-switch.jpg",
+  "Half-Kneeling Hip Flexor": "half-kneeling-hip-flexor.jpg",
+  "Frog Stretch": "frog-stretch.jpg",
+  "Seated Figure-4": "seated-figure-4.jpg",
+  // Foundation — Day 2 (Thoracic Spine & Shoulders)
+  "Shoulder CARs": "shoulder-cars.jpg",
+  "Cat-Cow with Breath": "cat-cow.jpg",
+  "Thread the Needle": "thread-the-needle.jpg",
+  "Thoracic Extension Over Roller": "thoracic-extension-roller.jpg",
+  "Quadruped Thoracic Rotation": "quadruped-thoracic-rotation.jpg",
+  "Wall Slide": "wall-slide.jpg",
+  "Doorway Pec Stretch": "doorway-pec-stretch.jpg",
+  // Foundation — Day 3 (Full-Body Flow & Breath)
+  "Down Dog → Cobra Flow": "down-dog-cobra-flow.jpg",
+  "Inchworm to Squat Reach": "inchworm-squat-reach.jpg",
+  "Cossack Squat": "cossack-squat-depth.jpg",
+  "Standing Forward Fold (soft knees)": "standing-forward-fold.jpg",
+  "Diaphragmatic Breathing": "breathing.jpg",
+  // Foundation — Day 4 (Ankles & Deep Squat)
+  "Ankle CARs": "ankle-cars.jpg",
+  "Wall Ankle Mobilisation": "wall-ankle-test.jpg",
+  "Deep Squat Hold": "deep-squat-hold.jpg",
+  "Tempo Squat": "tempo-squat.jpg",
+  "Standing Calf Stretch": "standing-calf-stretch.jpg",
+  "Couch Stretch": "couch-stretch.jpg",
+  // Foundation — Day 5 (Posterior Chain & Wind-Down)
+  "Glute Bridge → March": "glute-bridge-march.jpg",
+  "Bird Dog": "bird-dog.jpg",
+  "Single-Leg RDL (bodyweight)": "single-leg-rdl.jpg",
+  "Standing Hamstring Stretch with Block": "standing-hamstring-stretch.jpg",
+  "Child's Pose with Side Reach": "childs-pose-side-reach.jpg",
+  "Box Breathing": "breathing.jpg",
+  // Progression — Day 1 (Hips & Hamstrings, Loaded)
+  "World's Greatest Stretch + Rotation Hold": "worlds-greatest-stretch.jpg",
+  "90/90 with Active Knee Lift": "90-90-hip-switch.jpg",
+  "Half-Kneeling Hip Flexor + PAILs/RAILs": "half-kneeling-hip-flexor.jpg",
+  "Frog with Hip Rocks": "frog-stretch.jpg",
+  "Cossack Squat - Loaded": "cossack-squat-loaded.jpg",
+  "Seated Figure-4 - Loaded (optional)": "seated-figure-4.jpg",
+  // Progression — Day 2 (Thoracic Spine & Shoulders, Loaded)
+  "Thread the Needle + Open-Arm": "thread-the-needle.jpg",
+  "Thoracic Extension Over Roller, Loaded": "thoracic-extension-roller.jpg",
+  "Quadruped Thoracic Rotation + Hold": "quadruped-thoracic-rotation.jpg",
+  "Banded Pass-Through, Tighter Grip": "banded-pass-through.jpg",
+  "Doorway Pec Stretch + PAILs/RAILs": "doorway-pec-stretch.jpg",
+  "Kettlebell Halo": "kettlebell-halo.jpg",
+  // Progression — Day 3 (Full-Body Flow, Athletic)
+  "Sun Salutation A Flow": "sun-salutation.jpg",
+  "Inchworm with Push-Up + Squat Reach": "inchworm-squat-reach.jpg",
+  "World's Greatest Stretch + Reach Hold": "worlds-greatest-stretch.jpg",
+  "Cossack with Overhead Reach": "cossack-overhead-reach.jpg",
+  "Standing Forward Fold, Alternating Legs": "standing-forward-fold-alternating.jpg",
+  // Progression — Day 4 (Ankles & Deep Squat, Loaded)
+  "Banded Wall Ankle Mobilisation": "wall-ankle-test.jpg",
+  "Deep Squat Hold - Loaded": "deep-squat-hold.jpg",
+  "ATG Split Squat (or Reverse Lunge)": "atg-split-squat.jpg",
+  "Standing Calf Stretches": "standing-calf-stretch.jpg",
+  "Couch Stretch + PAILs/RAILs": "couch-stretch.jpg",
+  // Progression — Day 5 (Posterior Chain, Loaded)
+  "Hip Hinge with Dowel": "hip-hinge-dowel.jpg",
+  "Single-Leg Glute Bridge": "single-leg-glute-bridge.jpg",
+  "Bird Dog with End-Range Pulse": "bird-dog.jpg",
+  "Single-Leg RDL - Loaded": "single-leg-rdl.jpg",
+  "Jefferson Curl (Light)": "jefferson-curl.jpg",
+  "Standing Hamstring Stretch with Nerve Glide": "standing-hamstring-stretch.jpg",
+};
+
+// Stamp each exercise's photo URL on, in place, from the table above. Done once
+// at module load. An unmatched name leaves `image` undefined → 📷 placeholder.
+for (const phase of phases) {
+  for (const day of phase.days) {
+    for (const ex of day.exercises) {
+      const file = exerciseImages[ex.name];
+      if (file) ex.image = `/exercises/${file}`;
+    }
+  }
+}
 
 // Map a week number (1-4) to its phase.
 export function phaseForWeek(week: number): Phase {

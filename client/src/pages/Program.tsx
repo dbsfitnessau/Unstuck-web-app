@@ -96,13 +96,12 @@ export default function Program() {
               <span className="small muted" style={{ whiteSpace: "nowrap" }}>{ex.setsReps}</span>
             </div>
 
-            {/* Image slot - a placeholder for now; drop a real illustration URL
-                into the exercise's `image` field later and it renders here. */}
-            {ex.image ? (
-              <img className="ex-image" src={ex.image} alt={ex.name} />
-            ) : (
-              <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
-            )}
+            {/* Image slot - intentionally does NOT reuse the worksheet photos.
+                Those are small square thumbnails (112px, see .stretch-photo); the
+                Program page uses the larger landscape `.ex-image` format, so we
+                hold the placeholder here until properly sized program artwork is
+                added. (The same `ex.image` field still drives the worksheet.) */}
+            <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
 
             <p className="ex-field"><span className="ex-label">How</span> {ex.how}</p>
             <p className="ex-field"><span className="ex-label">Key focus</span> {ex.keyFocus}</p>
