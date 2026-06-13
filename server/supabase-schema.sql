@@ -109,3 +109,34 @@ select
 from public.profiles pr;
 
 revoke all on public.user_overview from anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 5. STORAGE: user-uploaded test-result photos (Assessment page).
+--    One PRIVATE bucket. Files are stored at "<uid>/<testId>/<day>.jpg", and
+--    the policies below let each signed-in user read/write/delete only files
+--    under a folder named after their OWN user id - the same iron rule as the
+--    progress table. Safe to re-run.
+-- ---------------------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('test-photos', 'test-photos', false)
+on conflict (id) do nothing;
+
+drop policy if exists "read own test photos" on storage.objects;
+create policy "read own test photos" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "insert own test photos" on storage.objects;
+create policy "insert own test photos" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "update own test photos" on storage.objects;
+create policy "update own test photos" on storage.objects
+  for update to authenticated
+  using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+drop policy if exists "delete own test photos" on storage.objects;
+create policy "delete own test photos" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);

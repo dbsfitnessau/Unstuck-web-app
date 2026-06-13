@@ -75,23 +75,138 @@ export const cheatsheet = {
 };
 
 // ---- The 7 tests ----
+// Each test is a list of FIELDS. A field is a tick (pass/fail), a number (a
+// measurement), or a choice (one of a few options). A field tagged with a
+// `side` ("left"/"right") renders inside a two-column block, so a left/right
+// assessment reads differently from a single full-body test. `score` says how
+// the scorecard value is derived: either a single field, or the average of two
+// (e.g. left + right toe-to-wall). `sideHeadings` labels the two columns.
+export type TestFieldType = "check" | "number" | "choice";
+
+export interface TestField {
+  key: string;               // unique within the test; also the per-field storage key
+  type: TestFieldType;
+  label: string;
+  side?: "left" | "right";   // present → renders in the L/R two-column block
+  unit?: string;             // number fields (e.g. "cm", "°", "seconds")
+  options?: string[];        // choice fields
+}
+
+export interface TestScore {
+  label: string;             // scorecard row label
+  unit: string;              // scorecard unit
+  field?: string;            // scorecard value = this field's value
+  averageOf?: [string, string]; // scorecard value = mean of these two fields
+  averageLabel?: string;     // on-card label for the computed average row
+}
+
 export interface MobilityTest {
   id: string;
-  name: string;
+  name: string;                     // card heading
   setup: string;
-  checks: string[];          // pass/fail items
-  metric: { label: string; unit: string } | null; // numeric field, if any
-  image?: string;            // demo photo (lives in client/public/tests/)
+  fields: TestField[];
+  score: TestScore | null;          // null = not shown in the scorecard
+  sideHeadings?: [string, string];  // column headers for the L/R block
+  image?: string;                   // demo reference photo (lives in /exercises/)
 }
 
 export const tests: MobilityTest[] = [
-  { id: "deep-squat", name: "Deep Squat Hold", setup: "Feet shoulder-width, toes slightly out. Sink deep with clean form, hold until form breaks or 60s.", checks: ["Heels stay down", "Knees track over toes", "Spine stays long"], metric: { label: "Clean hold time", unit: "sec" }, image: "/exercises/deep-squat-hold.jpg" },
-  { id: "wall-ankle", name: "Wall Ankle (Knee-to-Wall)", setup: "Half-kneel facing wall, drive knee to wall with heel glued down. Measure toe-to-wall.", checks: ["Heel stayed down (left)", "Heel stayed down (right)"], metric: { label: "Toe-to-wall", unit: "cm" }, image: "/exercises/wall-ankle-test.jpg" },
-  { id: "sit-reach", name: "Sit and Reach (Modified)", setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.", checks: ["Stayed long-spined"], metric: { label: "Past/short of toes", unit: "cm (+/-)" }, image: "/exercises/sit-and-reach.jpg" },
-  { id: "wall-shoulder", name: "Wall Shoulder Flexion", setup: "Back, head, bum and heels on wall. Arms overhead, try to touch the wall without arching.", checks: ["Hands touch the wall", "Low back stays in contact"], metric: { label: "Wrist-to-wall", unit: "cm" }, image: "/exercises/wall-shoulder-flexion.jpg" },
-  { id: "thomas", name: "Thomas Test", setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.", checks: ["Left thigh at/below horizontal", "Right thigh at/below horizontal"], metric: null, image: "/exercises/thomas-test.jpg" },
-  { id: "tspine-rot", name: "Seated Thoracic Rotation", setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips.", checks: ["Hips stayed planted"], metric: { label: "Rotation (avg)", unit: "°" }, image: "/exercises/seated-thoracic-rotation.jpg" },
-  { id: "cossack", name: "Cossack Squat Depth", setup: "Wide stance, shift to one leg, sink down. Loaded heel down, hip below knee, straight leg flexed.", checks: ["Heel down (both sides)", "Hip below knee (both sides)", "Straight leg fully flexed"], metric: null, image: "/exercises/cossack-squat-depth.jpg" },
+  {
+    id: "deep-squat",
+    name: "Deep Squat Hold",
+    setup: "Feet shoulder-width, toes slightly out. Sink deep with clean form, hold until form breaks or 60 seconds.",
+    fields: [
+      { key: "heels", type: "check", label: "Heels stay down throughout?" },
+      { key: "knees", type: "check", label: "Knees track over toes throughout?" },
+      { key: "spine", type: "check", label: "Spine stays long throughout?" },
+      { key: "hold", type: "number", label: "Hold time before form breaks (or 60s+)", unit: "seconds" },
+    ],
+    score: { label: "Deep Squat Hold", unit: "sec", field: "hold" },
+    image: "/exercises/deep-squat-hold.jpg",
+  },
+  {
+    id: "wall-ankle",
+    name: "Wall Ankle Test",
+    setup: "Half-kneel facing wall, drive knee to wall with heel glued down. Measure toe-to-wall.",
+    sideHeadings: ["Left leg", "Right leg"],
+    fields: [
+      { key: "heelL", type: "check", label: "Heel stayed down", side: "left" },
+      { key: "toeL", type: "number", label: "Toe to wall", unit: "cm", side: "left" },
+      { key: "heelR", type: "check", label: "Heel stayed down", side: "right" },
+      { key: "toeR", type: "number", label: "Toe to wall", unit: "cm", side: "right" },
+    ],
+    score: { label: "Wall Ankle (Knee-to-Wall)", unit: "cm", averageOf: ["toeL", "toeR"], averageLabel: "Average (Toe to wall)" },
+    image: "/exercises/wall-ankle-test.jpg",
+  },
+  {
+    id: "sit-reach",
+    name: "Sit and Reach",
+    setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.",
+    fields: [
+      { key: "longspine", type: "check", label: "Did you stay long-spined?" },
+      { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)" },
+    ],
+    score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist" },
+    image: "/exercises/sit-and-reach.jpg",
+  },
+  {
+    id: "wall-shoulder",
+    name: "Wall Shoulder Flexion",
+    setup: "Back, head, glutes and heels on wall. Arms overhead, try to touch the wall without arching.",
+    fields: [
+      { key: "hands", type: "check", label: "Hands touch the wall?" },
+      { key: "lowback", type: "choice", label: "Low back stays in contact?", options: ["Yes", "Lifted slightly", "Lifted heavily"] },
+      { key: "wrist", type: "number", label: "Wrist to wall distance", unit: "cm" },
+    ],
+    score: { label: "Wall Shoulder Flexion", unit: "cm", field: "wrist" },
+    image: "/exercises/wall-shoulder-flexion.jpg",
+  },
+  {
+    id: "thomas",
+    name: "Thomas Test",
+    setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
+    sideHeadings: ["Left leg down", "Right leg down"],
+    fields: [
+      { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
+      { key: "kneeL", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "left" },
+      { key: "thighR", type: "check", label: "Thigh at or below horizontal?", side: "right" },
+      { key: "kneeR", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "right" },
+      { key: "asym", type: "number", label: "Asymmetry", unit: "°" },
+    ],
+    score: { label: "Thomas Test", unit: "°", field: "asym" },
+    image: "/exercises/thomas-test.jpg",
+  },
+  {
+    id: "tspine-rot",
+    name: "Seated Thoracic Rotation",
+    setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips (target: 45°+).",
+    sideHeadings: ["Left", "Right"],
+    fields: [
+      { key: "hips", type: "check", label: "Hips lifted?" },
+      { key: "rotL", type: "number", label: "Rotation", unit: "°", side: "left" },
+      { key: "rotR", type: "number", label: "Rotation", unit: "°", side: "right" },
+    ],
+    score: { label: "Seated Thoracic Rotation", unit: "°", averageOf: ["rotL", "rotR"], averageLabel: "Rotation Average" },
+    image: "/exercises/seated-thoracic-rotation.jpg",
+  },
+  {
+    id: "cossack",
+    name: "Cossack Squat Depth",
+    setup: "Wide stance, shift to one leg, sink down. Loaded heel down, hip below knee, straight leg flexed.",
+    sideHeadings: ["Left side", "Right side"],
+    fields: [
+      { key: "heelL", type: "check", label: "Heel down?", side: "left" },
+      { key: "hipkneeL", type: "check", label: "Hip below knee?", side: "left" },
+      { key: "legL", type: "check", label: "Straight leg fully flexed?", side: "left" },
+      { key: "hipfloorL", type: "number", label: "Hip off floor", unit: "cm", side: "left" },
+      { key: "heelR", type: "check", label: "Heel down?", side: "right" },
+      { key: "hipkneeR", type: "check", label: "Hip below knee?", side: "right" },
+      { key: "legR", type: "check", label: "Straight leg fully flexed?", side: "right" },
+      { key: "hipfloorR", type: "number", label: "Hip off floor", unit: "cm", side: "right" },
+    ],
+    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average" },
+    image: "/exercises/cossack-squat-depth.jpg",
+  },
 ];
 
 // ---- Program ----
@@ -135,6 +250,6 @@ export const searchIndex: SearchItem[] = [
   ...cheatsheet.principles.map((p) => ({ title: p.title, text: p.body + " " + p.practical, surface: "Home", path: "/home" })),
   ...cheatsheet.vocabulary.map((v) => ({ title: v.term, text: v.meaning + " " + v.why, surface: "Home", path: "/home" })),
   ...cheatsheet.faq.map((f) => ({ title: f.q, text: f.a, surface: "Home", path: "/home" })),
-  ...tests.map((t) => ({ title: t.name, text: t.setup + " " + t.checks.join(" "), surface: "Assessment", path: "/testing" })),
+  ...tests.map((t) => ({ title: t.name, text: t.setup + " " + t.fields.map((f) => f.label).join(" "), surface: "Assessment", path: "/testing" })),
   ...programSearch,
 ];

@@ -1,55 +1,86 @@
-import { useState } from "react";
-import { tests } from "../data/dummyContent";
+import { useEffect, useRef, useState } from "react";
+import { tests, type MobilityTest, type TestField } from "../data/dummyContent";
 import { useSyncedStorage } from "../state/useSyncedStorage";
+import { uploadTestPhoto, getTestPhotoUrl, deleteTestPhoto } from "../state/photos";
 
 // ---------------------------------------------------------------------------
-// The Testing area = the 7 field tests, re-tested on a rolling 28-day cadence.
-// Instead of a fixed "Day 0 vs Day 28", testing now runs in ROUNDS: Day 0, 28,
-// 56, 84, … - so someone repeating the program keeps logging progress over
-// months. You pick a round at the top, fill that round's tests, and add the
-// next round (+28 days) when you reach it. The scorecard compares every round
-// against your Day 0 baseline.
+// The Assessment area = the 7 field tests, re-tested on a rolling 28-day
+// cadence (Day 0, 28, 56, 84, …). You pick a round at the top, fill that
+// round's tests, and add the next round (+28 days) when you reach it. The
+// scorecard compares every round against your Day 0 baseline.
 //
-// Storage shapes:
-//   - milestones: the list of round day-numbers, e.g. [0, 28, 56, 84]. Persisted
-//     so any extra rounds you add stick around.
-//   - results: results[testId][dayNumber] = one Entry (pass/fail checks + metric).
-// Both live in localStorage so they survive refreshes (no server needed for M1).
+// Each test is data-driven (see data/dummyContent.ts): a list of FIELDS, each
+// a tick / number / choice, optionally tagged left or right. Left/right fields
+// render in a two-column block (left on the left, right on the right) so a
+// per-side assessment reads differently from a full-body test, with the
+// average shown underneath. Each test also takes a user-uploaded result photo,
+// stored in Supabase Storage (see state/photos.ts).
+//
+// Storage shapes (localStorage, mirrored to the cloud via useSyncedStorage):
+//   - milestones: the round day-numbers, e.g. [0, 28, 56, 84].
+//   - results: results[testId][day] = { values, photoPath }, where `values` is
+//     keyed by field key (boolean for ticks, string for numbers/choices) and
+//     `photoPath` is the Storage path of the uploaded photo, if any.
 // ---------------------------------------------------------------------------
 
-interface Entry { checks: boolean[]; metric: string; }
+interface Entry {
+  values: Record<string, string | boolean>;
+  photoPath?: string;
+}
 type Results = Record<string, Record<string, Entry>>; // testId -> dayNumber -> Entry
 
 const DEFAULT_MILESTONES = [0, 28, 56, 84];
+const roundLabel = (day: number) => `Day ${day}`;
 
-function blankEntry(checkCount: number): Entry {
-  return { checks: Array(checkCount).fill(false), metric: "" };
+// Average of two numeric field values; "" if either is missing/non-numeric.
+function avg(a: unknown, b: unknown): string {
+  const x = parseFloat(String(a));
+  const y = parseFloat(String(b));
+  if (isNaN(x) || isNaN(y)) return "";
+  return String(Math.round(((x + y) / 2) * 10) / 10);
 }
 
-const roundLabel = (day: number) => `Day ${day}`;
+// The scorecard value for a test from one round's entry (numeric string or "").
+function scoreValue(t: MobilityTest, e: Entry | undefined): string {
+  const vals = e?.values ?? {};
+  if (!t.score) return "";
+  if (t.score.averageOf) return avg(vals[t.score.averageOf[0]], vals[t.score.averageOf[1]]);
+  if (t.score.field) {
+    const v = vals[t.score.field];
+    return v == null ? "" : String(v);
+  }
+  return "";
+}
 
 export default function Testing() {
   const [milestones, setMilestones] = useSyncedStorage<number[]>("unstuck:test-milestones", DEFAULT_MILESTONES);
   const [results, setResults] = useSyncedStorage<Results>("unstuck:test-results", {});
   const [activeDay, setActiveDay] = useState<number>(0);
 
-  function entry(testId: string, day: number, checkCount: number): Entry {
-    return results[testId]?.[String(day)] ?? blankEntry(checkCount);
+  // Read one test's entry for the active round. Defensive: older saved data
+  // used a different shape ({ checks, metric }); we coerce to the new shape so
+  // a legacy entry shows blank fields rather than crashing the page.
+  function entry(testId: string): Entry {
+    const raw = results[testId]?.[String(activeDay)] as Partial<Entry> | undefined;
+    return { values: raw?.values ?? {}, photoPath: raw?.photoPath };
   }
 
-  function update(testId: string, day: number, checkCount: number, patch: Partial<Entry>) {
+  function setField(testId: string, key: string, value: string | boolean) {
     setResults((prev) => {
       const forTest = prev[testId] ?? {};
-      const current = forTest[String(day)] ?? blankEntry(checkCount);
-      return { ...prev, [testId]: { ...forTest, [String(day)]: { ...current, ...patch } } };
+      const cur = forTest[String(activeDay)] as Partial<Entry> | undefined;
+      const next: Entry = { values: { ...(cur?.values ?? {}), [key]: value }, photoPath: cur?.photoPath };
+      return { ...prev, [testId]: { ...forTest, [String(activeDay)]: next } };
     });
   }
 
-  function toggleCheck(testId: string, day: number, checkCount: number, idx: number) {
-    const cur = entry(testId, day, checkCount);
-    const checks = [...cur.checks];
-    checks[idx] = !checks[idx];
-    update(testId, day, checkCount, { checks });
+  function setPhotoPath(testId: string, path: string | undefined) {
+    setResults((prev) => {
+      const forTest = prev[testId] ?? {};
+      const cur = forTest[String(activeDay)] as Partial<Entry> | undefined;
+      const next: Entry = { values: cur?.values ?? {}, photoPath: path };
+      return { ...prev, [testId]: { ...forTest, [String(activeDay)]: next } };
+    });
   }
 
   // Add the next 28-day round (e.g. 84 -> 112) and jump to it.
@@ -61,15 +92,15 @@ export default function Testing() {
 
   return (
     <div>
-      {/* Intro note: informational, not a safety warning - so it gets the
-          olive "before you start" treatment, not the red stop-box. */}
+      {/* Intro note: informational, not a safety warning - olive treatment. */}
       <div className="warmup-box" style={{ marginBottom: 16 }}>
         <span className="ico" aria-hidden="true">📐</span>
         <div>
           <h3>Progress Assessment</h3>
           <p className="small">
             Measure on Day 0 (Baseline). Re-test every 28 days.<br />
-            Treat changes under ~1cm or ~5° as noise.
+            Treat changes under ~1cm or ~5° as noise.<br />
+            <strong>Tools required:</strong> tape measure, a stable bench or bed, an unobstructed wall.
           </p>
         </div>
       </div>
@@ -97,78 +128,284 @@ export default function Testing() {
         {activeDay === 0 ? " - your baseline." : ` - compared against Day 0 in the scorecard below.`}
       </p>
 
-      {tests.map((t) => {
-        const n = t.checks.length;
-        const e = entry(t.id, activeDay, n);
-        return (
-          <div className="card" key={t.id}>
-            <h3>{t.name}</h3>
-
-            {/* Demonstration photo for each test. These are the 300px square
-                branded photos (same set as the worksheet), so we add .test-photo
-                to cap the width and keep them crisp — the full-bleed .ex-image
-                slot was sized for larger 800px shots. Falls back to the dashed
-                placeholder for any test without a photo. */}
-            {t.image ? (
-              <img className="ex-image test-photo" src={t.image} alt={`${t.name} demonstration`} loading="lazy" />
-            ) : (
-              <div className="ex-image ex-image--placeholder">Illustration coming soon</div>
-            )}
-
-            <p className="small muted">{t.setup}</p>
-
-            <div style={{ marginTop: 12 }}>
-              {t.checks.map((c, i) => (
-                <button
-                  key={i}
-                  className={`checkbtn ${e.checks[i] ? "on" : ""}`}
-                  style={{ display: "block", width: "100%", textAlign: "left", marginBottom: 6, fontSize: 12 }}
-                  onClick={() => toggleCheck(t.id, activeDay, n, i)}
-                  aria-pressed={e.checks[i]}
-                >
-                  {e.checks[i] ? "✓" : "○"} {c}
-                </button>
-              ))}
-              {t.metric && (
-                <input
-                  type="number"
-                  style={{ width: "100%", marginTop: 6 }}
-                  placeholder={`${t.metric.label} (${t.metric.unit})`}
-                  value={e.metric}
-                  onChange={(ev) => update(t.id, activeDay, n, { metric: ev.target.value })}
-                />
-              )}
-            </div>
-          </div>
-        );
-      })}
+      {tests.map((t) => (
+        <TestCard
+          key={t.id}
+          test={t}
+          day={activeDay}
+          entry={entry(t.id)}
+          onField={(k, v) => setField(t.id, k, v)}
+          onPhoto={(p) => setPhotoPath(t.id, p)}
+        />
+      ))}
 
       <Scorecard results={results} milestones={milestones} />
     </div>
   );
 }
 
-// Scorecard: for each test with a numeric metric, show every round's value and
-// the change from the Day 0 baseline to the latest round that has a value.
+// One test card: demo photo, setup, the fields (full-width + an L/R block),
+// the computed average (if any), and the user's photo upload.
+function TestCard({
+  test,
+  day,
+  entry,
+  onField,
+  onPhoto,
+}: {
+  test: MobilityTest;
+  day: number;
+  entry: Entry;
+  onField: (key: string, value: string | boolean) => void;
+  onPhoto: (path: string | undefined) => void;
+}) {
+  const sideFields = test.fields.filter((f) => f.side);
+
+  // Build the render sequence: full-width fields stay in place; the whole run
+  // of side fields collapses into ONE two-column block at its first position.
+  const blocks: Array<"sideblock" | TestField> = [];
+  let sideInserted = false;
+  for (const f of test.fields) {
+    if (f.side) {
+      if (!sideInserted) {
+        blocks.push("sideblock");
+        sideInserted = true;
+      }
+    } else {
+      blocks.push(f);
+    }
+  }
+
+  return (
+    <div className="card">
+      <h3>{test.name}</h3>
+      {test.image && (
+        <img className="ex-image" src={test.image} alt={`${test.name} demonstration`} loading="lazy" />
+      )}
+      <p className="small muted">{test.setup}</p>
+
+      <div className="test-fields">
+        {blocks.map((b, i) =>
+          b === "sideblock" ? (
+            <div className="lr-grid" key={`side-${i}`}>
+              {(["left", "right"] as const).map((side, ci) => (
+                <div className="lr-col" key={side}>
+                  <div className="lr-head small">
+                    {test.sideHeadings ? test.sideHeadings[ci] : side === "left" ? "Left" : "Right"}
+                  </div>
+                  {sideFields
+                    .filter((f) => f.side === side)
+                    .map((f) => (
+                      <FieldInput
+                        key={f.key}
+                        field={f}
+                        value={entry.values[f.key]}
+                        onChange={(v) => onField(f.key, v)}
+                      />
+                    ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <FieldInput
+              key={b.key}
+              field={b}
+              value={entry.values[b.key]}
+              onChange={(v) => onField(b.key, v)}
+            />
+          ),
+        )}
+
+        {/* Computed average for left/right numeric tests (feeds the scorecard). */}
+        {(() => {
+          const s = test.score;
+          if (!s?.averageOf) return null;
+          const m = avg(entry.values[s.averageOf[0]], entry.values[s.averageOf[1]]);
+          return (
+            <div className="test-average">
+              <span className="ex-label">{s.averageLabel ?? "Average"}</span>
+              <strong>{m === "" ? "—" : `${m} ${s.unit}`}</strong>
+            </div>
+          );
+        })()}
+      </div>
+
+      <PhotoUpload testId={test.id} day={day} path={entry.photoPath} onChange={onPhoto} />
+    </div>
+  );
+}
+
+// A single field: a tick, a number input, or a single-select choice.
+function FieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: TestField;
+  value: string | boolean | undefined;
+  onChange: (v: string | boolean) => void;
+}) {
+  if (field.type === "check") {
+    const on = value === true;
+    return (
+      <button className={`checkbtn test-check ${on ? "on" : ""}`} aria-pressed={on} onClick={() => onChange(!on)}>
+        <span aria-hidden="true">{on ? "✓" : "○"}</span> {field.label}
+      </button>
+    );
+  }
+
+  if (field.type === "choice") {
+    return (
+      <div className="test-choice">
+        <span className="small muted test-field-label">{field.label}</span>
+        <div className="choice-row">
+          {(field.options ?? []).map((opt) => (
+            <button
+              key={opt}
+              className={`choice-btn ${value === opt ? "on" : ""}`}
+              aria-pressed={value === opt}
+              onClick={() => onChange(value === opt ? "" : opt)}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // number
+  return (
+    <label className="test-number">
+      <span className="small muted test-field-label">
+        {field.label}
+        {field.unit ? ` (${field.unit})` : ""}
+      </span>
+      <input
+        type="number"
+        inputMode="decimal"
+        value={typeof value === "string" ? value : ""}
+        placeholder={field.unit ?? ""}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+// Upload / view the user's own result photo for this test + round. The image
+// lives in Supabase Storage; we keep only its path in the synced results.
+function PhotoUpload({
+  testId,
+  day,
+  path,
+  onChange,
+}: {
+  testId: string;
+  day: number;
+  path?: string;
+  onChange: (path: string | undefined) => void;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Fetch a fresh signed URL whenever the stored path changes.
+  useEffect(() => {
+    let cancelled = false;
+    if (!path) {
+      setUrl(null);
+      return;
+    }
+    getTestPhotoUrl(path).then((u) => {
+      if (!cancelled) setUrl(u);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [path]);
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // let the user re-pick the same file later
+    if (!file) return;
+    setBusy(true);
+    setErr("");
+    setUrl(URL.createObjectURL(file)); // instant local preview
+    try {
+      const newPath = await uploadTestPhoto(testId, day, file);
+      onChange(newPath);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed. Check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onRemove() {
+    if (path) {
+      try {
+        await deleteTestPhoto(path);
+      } catch {
+        /* best-effort */
+      }
+    }
+    onChange(undefined);
+    setUrl(null);
+  }
+
+  return (
+    <div className="photo-upload">
+      <span className="ex-label">Your photo</span>
+      {url ? (
+        <div className="photo-preview">
+          <img src={url} alt="Your test result" />
+          <div className="photo-actions">
+            <button className="reset-link" onClick={() => fileRef.current?.click()} disabled={busy}>
+              {busy ? "Uploading…" : "Replace"}
+            </button>
+            <button className="reset-link" onClick={onRemove} disabled={busy}>
+              Remove
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button className="photo-add" onClick={() => fileRef.current?.click()} disabled={busy}>
+          {busy ? "Uploading…" : "＋ Upload a photo of your result"}
+        </button>
+      )}
+      {err && <p className="gate-error small">{err}</p>}
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
+    </div>
+  );
+}
+
+// Scorecard: for each test, show every round's value and the change from the
+// Day 0 baseline to the latest round that has a value. Rows follow the test
+// order; L/R tests contribute their average.
 function Scorecard({ results, milestones }: { results: Results; milestones: number[] }) {
   const rows = tests
-    .filter((t) => t.metric)
+    .filter((t) => t.score)
     .map((t) => {
       const byDay = results[t.id] ?? {};
-      const values = milestones.map((day) => byDay[String(day)]?.metric ?? "");
-      const baseline = byDay["0"]?.metric;
+      const valueAt = (day: number) => scoreValue(t, byDay[String(day)] as Entry | undefined);
+      const values = milestones.map(valueAt);
+      const baseline = valueAt(0);
       // Latest round (other than baseline) that actually has a value.
-      let latest: string | undefined;
+      let latest = "";
       for (let i = milestones.length - 1; i >= 0; i--) {
         if (milestones[i] === 0) continue;
-        const v = byDay[String(milestones[i])]?.metric;
-        if (v) { latest = v; break; }
+        const v = valueAt(milestones[i]);
+        if (v) {
+          latest = v;
+          break;
+        }
       }
       const change =
         baseline && latest && !isNaN(+baseline) && !isNaN(+latest)
           ? (+latest - +baseline).toFixed(1)
           : "-";
-      return { name: t.name, unit: t.metric!.unit, values, change };
+      return { name: t.score!.label, unit: t.score!.unit, values, change };
     });
 
   return (
@@ -179,16 +416,24 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
           <thead>
             <tr>
               <th>Test</th>
-              {milestones.map((day) => <th key={day}>{roundLabel(day)}</th>)}
+              {milestones.map((day) => (
+                <th key={day}>{roundLabel(day)}</th>
+              ))}
               <th>Change</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
               <tr key={i}>
-                <td>{r.name} <span className="muted small">({r.unit})</span></td>
-                {r.values.map((v, j) => <td key={j}>{v || "-"}</td>)}
-                <td style={{ color: r.change !== "-" ? "var(--olive)" : "var(--text-dim)", fontWeight: 700 }}>{r.change}</td>
+                <td>
+                  {r.name} <span className="muted small">({r.unit})</span>
+                </td>
+                {r.values.map((v, j) => (
+                  <td key={j}>{v || "-"}</td>
+                ))}
+                <td style={{ color: r.change !== "-" ? "var(--olive)" : "var(--text-dim)", fontWeight: 700 }}>
+                  {r.change}
+                </td>
               </tr>
             ))}
           </tbody>

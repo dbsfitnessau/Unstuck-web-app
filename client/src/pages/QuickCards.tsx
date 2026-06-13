@@ -363,7 +363,7 @@ function StretchChecklist({
             {/* Photo slot - placeholder until a real image URL is added to the
                 exercise's `image` field, then it shows here. */}
             {ex.image ? (
-              <img className="stretch-photo" src={ex.image} alt={ex.name} />
+              <img className="stretch-photo" src={ex.image} alt={ex.name} loading="lazy" />
             ) : (
               <div className="stretch-photo stretch-photo--placeholder" aria-hidden="true">📷</div>
             )}

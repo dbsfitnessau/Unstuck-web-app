@@ -627,10 +627,6 @@ input[type="number"]:focus, input[type="text"]:focus {
 
 /* ---- Program: full per-exercise detail ---- */
 .ex-image { display: block; width: 100%; border-radius: var(--r-md); margin: var(--s-2) 0 var(--s-3); }
-/* Assessment demo photos are 300px square shots — cap the width and centre them
-   so they render at (near) native resolution and stay crisp, instead of being
-   upscaled to fill the full-bleed .ex-image slot. */
-.test-photo { max-width: 300px; margin-left: auto; margin-right: auto; }
 .ex-image--placeholder {
   display: flex;
   align-items: center;
@@ -644,6 +640,41 @@ input[type="number"]:focus, input[type="text"]:focus {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* ---- Assessment test fields (data-driven: tick / number / choice) ---- */
+.test-fields { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 4px; }
+.test-check { display: block; width: 100%; text-align: left; font-size: 13px; }
+.test-field-label { display: block; margin-bottom: 4px; }
+.test-number { display: block; }
+.test-number input { width: 100%; }
+.test-choice .choice-row { display: flex; gap: 6px; }
+.choice-btn {
+  flex: 1; min-width: 0; padding: 8px 6px;
+  border: 1px solid var(--line); background: var(--white); color: var(--text);
+  border-radius: var(--r-md); font-family: var(--font-ui); font-weight: 700; font-size: 12px;
+  cursor: pointer; transition: background 0.2s, border-color 0.2s;
+}
+.choice-btn.on { background: var(--olive); color: var(--on-olive); border-color: var(--olive); }
+
+/* Left/right split: two columns so a per-side test reads differently from a
+   full-body one, with the average shown full-width underneath. */
+.lr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lr-col { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: var(--paper); border-radius: var(--r-md); }
+.lr-head { font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-dim); }
+.test-average {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--olive-tint); border-radius: var(--r-md);
+}
+
+/* User result-photo upload */
+.photo-upload { margin-top: 12px; }
+.photo-add {
+  display: block; width: 100%; margin-top: 6px; padding: 14px;
+  border: 1px dashed var(--line); background: var(--paper); color: var(--text-dim);
+  border-radius: var(--r-md); font-family: var(--font-ui); font-weight: 700; cursor: pointer;
+}
+.photo-preview img { display: block; width: 100%; border-radius: var(--r-md); margin-top: 6px; }
+.photo-actions { display: flex; gap: 16px; margin-top: 6px; }
 
 .ex-field { font-size: 14px; line-height: 1.45; margin: var(--s-2) 0 0; }
 .ex-label {
