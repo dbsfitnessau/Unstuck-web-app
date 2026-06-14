@@ -68,6 +68,7 @@ export const cheatsheet = {
     { term: "Joint capsule", meaning: "The connective sleeve around a joint.", why: "The deepest layer of 'tightness'. Slowest to adapt." },
   ] as Vocab[],
   faq: [
+    { q: "What you'll need", a: "Phone for photos/video · tape measure · dowel or broomstick · stable bench or bed · low block or stair · clear wall space." },
     { q: "What if I miss a session?", a: "One missed session in 28 days is noise - pick up where you left off. Two+ in a week, restart the week." },
     { q: "Should I train through DOMS?", a: "Mobility, yes - often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp." },
     { q: "What if I'm travelling with no equipment?", a: "Run the 🟢 tier of every session. The bodyweight version is a complete program." },
@@ -119,7 +120,7 @@ export const tests: MobilityTest[] = [
       { key: "heels", type: "check", label: "Heels stay down throughout?" },
       { key: "knees", type: "check", label: "Knees track over toes throughout?" },
       { key: "spine", type: "check", label: "Spine stays long throughout?" },
-      { key: "hold", type: "number", label: "Hold time before form breaks (or 60s+)", unit: "seconds" },
+      { key: "hold", type: "number", label: "Hold time before form breaks (or 60 seconds+)", unit: "seconds" },
     ],
     score: { label: "Deep Squat Hold", unit: "sec", field: "hold" },
     image: "/exercises/deep-squat-hold.jpg",
@@ -240,7 +241,11 @@ const programSearch: SearchItem[] = (() => {
       for (const e of day.exercises) {
         if (seen.has(e.name)) continue;
         seen.add(e.name);
-        items.push({ title: e.name, text: `${e.setsReps} ${e.notes} ${Object.values(e.tier).join(" ")}`, surface: "Program", path: "/program" });
+        // Deep-link straight to this movement's session (first occurrence), so a
+        // search result opens the exercise instead of the Program week-picker.
+        // phase.weeks[0] = 1 (Foundation) or 3 (Progression) → Program maps it back.
+        const path = `/program?week=${phase.weeks[0]}&day=${day.day}&ex=${encodeURIComponent(e.name)}`;
+        items.push({ title: e.name, text: `${e.setsReps} ${e.notes} ${Object.values(e.tier).join(" ")}`, surface: "Program", path });
       }
     }
   }

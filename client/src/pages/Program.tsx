@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { phases, phaseForWeek } from "../data/program";
 import { TIERS } from "../data/dummyContent";
 
@@ -8,9 +9,26 @@ import { TIERS } from "../data/dummyContent";
 //   3. See the full SESSION (every exercise, full detail, tier-aware)
 // We track where the user is with two pieces of state (week + day). "null"
 // means "not chosen yet", which decides which step we render.
+//
+// Search deep-links land here with ?week=W&day=D&ex=<name>: we open straight
+// to that session and scroll the searched movement into view.
 export default function Program() {
-  const [week, setWeek] = useState<number | null>(null);
-  const [day, setDay] = useState<number | null>(null);
+  const [params] = useSearchParams();
+  const initWeek = Number(params.get("week"));
+  const initDay = Number(params.get("day"));
+  const [week, setWeek] = useState<number | null>(initWeek >= 1 && initWeek <= 4 ? initWeek : null);
+  const [day, setDay] = useState<number | null>(initDay >= 1 && initDay <= 5 ? initDay : null);
+
+  // After the session renders, scroll the deep-linked exercise into view.
+  useEffect(() => {
+    const ex = params.get("ex");
+    if (!ex || week === null || day === null) return;
+    const t = setTimeout(() => {
+      document.querySelector(`[data-ex="${CSS.escape(ex)}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---- STEP 1: choose a week ----
   if (week === null) {
@@ -90,7 +108,7 @@ export default function Program() {
         // "Skip overhead reach".
         const isSkip = ex.tier.green.startsWith("SKIP");
         return (
-          <div className={`card ${isSkip ? "warn-card" : ""}`} key={i}>
+          <div className={`card ${isSkip ? "warn-card" : ""}`} key={i} data-ex={ex.name}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
               <h3 style={{ margin: 0 }}>{i + 1}. {ex.name}</h3>
               <span className="small muted" style={{ whiteSpace: "nowrap" }}>{ex.setsReps}</span>

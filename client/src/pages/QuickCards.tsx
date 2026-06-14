@@ -335,6 +335,16 @@ export default function QuickCards() {
 // photo slot, a tick button, the name + sets/reps, and the cue. Before a colour
 // is picked we show all three tiers; once a colour is picked we show only that
 // one (the other two hide), per the day's selected tier.
+// A compact one-liner of an exercise's How, for the worksheet's no-scaling
+// movements (where the tier cue would just say "As written"). Trims to a word
+// boundary so the checklist stays tight.
+function compactHow(how: string, max = 130): string {
+  if (how.length <= max) return how;
+  const cut = how.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return cut.slice(0, lastSpace > 60 ? lastSpace : max).trimEnd() + "…";
+}
+
 function StretchChecklist({
   exercises, tier, stretchDone, onToggle,
 }: {
@@ -363,7 +373,10 @@ function StretchChecklist({
             {/* Photo slot - placeholder until a real image URL is added to the
                 exercise's `image` field, then it shows here. */}
             {ex.image ? (
-              <img className="stretch-photo" src={ex.image} alt={ex.name} loading="lazy" />
+              // Worksheet uses the lightweight 300px thumbnail set (public/thumbs)
+              // for these small 88px squares; the Program/Assessment pages use the
+              // full 800px /exercises set. Same filename, different folder.
+              <img className="stretch-photo" src={ex.image.replace("/exercises/", "/thumbs/")} alt={ex.name} loading="lazy" />
             ) : (
               <div className="stretch-photo stretch-photo--placeholder" aria-hidden="true">📷</div>
             )}
@@ -373,7 +386,14 @@ function StretchChecklist({
                 <strong className="small">{ex.name}</strong>
                 <span className="small muted">{ex.setsReps}</span>
               </div>
-              {selected ? (
+              {ex.tier.green === "As written" && ex.tier.amber === "As written" && ex.tier.red === "As written" ? (
+                // No colour scaling — all three tiers are literally "As written"
+                // (e.g. breathing, calf stretch, child's pose). Show a compact
+                // version of the How instead of the unhelpful "As written" cue.
+                // (Movements with a real shared cue, like Ankle CARs' "Make
+                // circles big and slow", are left untouched.)
+                <div className="small">{compactHow(ex.how)}</div>
+              ) : selected ? (
                 <div className="small">
                   <span className={`tier-${selected.id}`}>{selected.emoji} {ex.tier[selected.id]}</span>
                 </div>
