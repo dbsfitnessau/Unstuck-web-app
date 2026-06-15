@@ -727,8 +727,13 @@ input[type="number"]:focus, input[type="text"]:focus {
 .stretch-row .checkbtn { flex: 0 0 auto; border-radius: 50%; width: 36px; height: 36px; padding: 0; }
 .stretch-body { flex: 1; min-width: 0; }
 .stretch-head { display: flex; justify-content: space-between; gap: var(--s-2); }
+/* On phones the 150px worksheet photo leaves a narrow text column, so stack the
+   stretch name above its sets/reps instead of squeezing them side-by-side. */
+@media (max-width: 520px) {
+  .stretch-head { flex-direction: column; justify-content: flex-start; gap: 2px; }
+}
 
-.stretch-photo { flex: 0 0 auto; width: 88px; height: 88px; object-fit: cover; border-radius: var(--r-md); }
+.stretch-photo { flex: 0 0 auto; width: 150px; height: 150px; object-fit: cover; border-radius: var(--r-md); }
 .stretch-photo--placeholder {
   display: flex;
   align-items: center;
