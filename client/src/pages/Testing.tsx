@@ -180,7 +180,7 @@ function TestCard({
     <div className="card">
       <h3>{test.name}</h3>
       {test.image && (
-        <img className="ex-image" src={test.image} alt={`${test.name} demonstration`} loading="lazy" />
+        <img className="ex-image assessment-photo" src={test.image} alt={`${test.name} demonstration`} loading="lazy" />
       )}
       <p className="small muted">{test.setup}</p>
 

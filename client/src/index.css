@@ -630,6 +630,9 @@ input[type="number"]:focus, input[type="text"]:focus {
    the display at 400px and centre it, so they render at 2x retina density —
    crisp, never upscaled. */
 .ex-image { display: block; width: 100%; max-width: 400px; border-radius: var(--r-md); margin: var(--s-2) auto var(--s-3); }
+/* Assessment demo photos sit 3/4 the Program size (300px), still from the 800px
+   source so they stay crisp. */
+.ex-image.assessment-photo { max-width: 300px; }
 .ex-image--placeholder {
   display: flex;
   align-items: center;
@@ -726,11 +729,16 @@ input[type="number"]:focus, input[type="text"]:focus {
 .stretch-row.ticked .stretch-body { opacity: 0.55; transition: opacity 0.3s; }
 .stretch-row .checkbtn { flex: 0 0 auto; border-radius: 50%; width: 36px; height: 36px; padding: 0; }
 .stretch-body { flex: 1; min-width: 0; }
-.stretch-head { display: flex; justify-content: space-between; gap: var(--s-2); }
+.stretch-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-2); }
+/* Desktop: heading keeps the line (takes the room it needs), sets/reps sit
+   right-aligned and capped at half the width. */
+.stretch-head strong { flex: 1 1 auto; min-width: 0; }
+.stretch-head span { flex: 0 1 auto; max-width: 50%; text-align: right; }
 /* On phones the 150px worksheet photo leaves a narrow text column, so stack the
-   stretch name above its sets/reps instead of squeezing them side-by-side. */
+   stretch name above its sets/reps (full width, left-aligned) instead. */
 @media (max-width: 520px) {
-  .stretch-head { flex-direction: column; justify-content: flex-start; gap: 2px; }
+  .stretch-head { flex-direction: column; justify-content: flex-start; align-items: stretch; gap: 2px; }
+  .stretch-head span { max-width: none; text-align: left; }
 }
 
 .stretch-photo { flex: 0 0 auto; width: 150px; height: 150px; object-fit: cover; border-radius: var(--r-md); }
