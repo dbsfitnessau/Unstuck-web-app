@@ -335,16 +335,6 @@ export default function QuickCards() {
 // photo slot, a tick button, the name + sets/reps, and the cue. Before a colour
 // is picked we show all three tiers; once a colour is picked we show only that
 // one (the other two hide), per the day's selected tier.
-// A compact one-liner of an exercise's How, for the worksheet's no-scaling
-// movements (where the tier cue would just say "As written"). Trims to a word
-// boundary so the checklist stays tight.
-function compactHow(how: string, max = 130): string {
-  if (how.length <= max) return how;
-  const cut = how.slice(0, max);
-  const lastSpace = cut.lastIndexOf(" ");
-  return cut.slice(0, lastSpace > 60 ? lastSpace : max).trimEnd() + "…";
-}
-
 function StretchChecklist({
   exercises, tier, stretchDone, onToggle,
 }: {
@@ -353,6 +343,8 @@ function StretchChecklist({
   stretchDone: Record<number, boolean>;
   onToggle: (idx: number) => void;
 }) {
+  // Which stretch's full-detail pop-up is open (null = none).
+  const [detail, setDetail] = useState<Exercise | null>(null);
   if (exercises.length === 0) return null;
   const selected = TIERS.find((t) => t.id === tier);
   return (
@@ -370,45 +362,80 @@ function StretchChecklist({
               {done ? "✓" : "○"}
             </button>
 
-            {/* Photo slot - placeholder until a real image URL is added to the
-                exercise's `image` field, then it shows here. */}
-            {ex.image ? (
-              // Worksheet uses the lightweight 300px thumbnail set (public/thumbs)
-              // for these small 88px squares; the Program/Assessment pages use the
-              // full 800px /exercises set. Same filename, different folder.
-              <img className="stretch-photo" src={ex.image.replace("/exercises/", "/thumbs/")} alt={ex.name} loading="lazy" />
-            ) : (
-              <div className="stretch-photo stretch-photo--placeholder" aria-hidden="true">📷</div>
-            )}
-
-            <div className="stretch-body">
-              <div className="stretch-head">
-                <strong className="small">{ex.name}</strong>
-                <span className="small muted">{ex.setsReps}</span>
-              </div>
-              {ex.tier.green === "As written" && ex.tier.amber === "As written" && ex.tier.red === "As written" ? (
-                // No colour scaling — all three tiers are literally "As written"
-                // (e.g. breathing, calf stretch, child's pose). Show a compact
-                // version of the How instead of the unhelpful "As written" cue.
-                // (Movements with a real shared cue, like Ankle CARs' "Make
-                // circles big and slow", are left untouched.)
-                <div className="small">{compactHow(ex.how)}</div>
-              ) : selected ? (
-                <div className="small">
-                  <span className={`tier-${selected.id}`}>{selected.emoji} {ex.tier[selected.id]}</span>
-                </div>
+            {/* Tap the photo or text to open the full stretch details (straight
+                from the program) in a pop-up. The tick button stays separate so
+                ticking doesn't also open the pop-up. */}
+            <button className="stretch-tap" onClick={() => setDetail(ex)} aria-label={`View ${ex.name} details`}>
+              {ex.image ? (
+                // Worksheet uses the lightweight 300px thumbnail set (public/thumbs)
+                // for these small 88px squares; Program/Assessment use the full 800px set.
+                <img className="stretch-photo" src={ex.image.replace("/exercises/", "/thumbs/")} alt={ex.name} loading="lazy" />
               ) : (
-                <div className="stretch-code small">
-                  <span>🟢 {ex.tier.green}</span>
-                  <span>🟡 {ex.tier.amber}</span>
-                  <span>🔴 {ex.tier.red}</span>
-                </div>
+                <div className="stretch-photo stretch-photo--placeholder" aria-hidden="true">📷</div>
               )}
-              <div className="small muted">{ex.notes}</div>
-            </div>
+
+              <div className="stretch-body">
+                <div className="stretch-head">
+                  <strong className="small">{ex.name}</strong>
+                  <span className="small muted">{ex.setsReps}</span>
+                </div>
+                {/* All three tier cues by default; once a day-colour is picked,
+                    just that one (the other two hide). */}
+                {selected ? (
+                  <div className="small">
+                    <span className={`tier-${selected.id}`}>{selected.emoji} {ex.tier[selected.id]}</span>
+                  </div>
+                ) : (
+                  <div className="stretch-code small">
+                    <span>🟢 {ex.tier.green}</span>
+                    <span>🟡 {ex.tier.amber}</span>
+                    <span>🔴 {ex.tier.red}</span>
+                  </div>
+                )}
+                <div className="small muted">{ex.notes}</div>
+                <span className="stretch-more">Tap for full details ›</span>
+              </div>
+            </button>
           </div>
         );
       })}
+
+      {detail && <StretchDetailModal ex={detail} onClose={() => setDetail(null)} />}
+    </div>
+  );
+}
+
+// Full stretch details (the same fields the Program page shows) in a pop-up,
+// opened by tapping a worksheet row. Closes on the ✕, the backdrop, or Escape.
+function StretchDetailModal({ ex, onClose }: { ex: Exercise; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label={`${ex.name} details`}>
+      <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose} aria-label="Close details">✕</button>
+        <h3 style={{ margin: "0 34px 2px 0" }}>{ex.name}</h3>
+        <div className="small muted" style={{ marginBottom: 4 }}>{ex.setsReps}</div>
+        {ex.image && <img className="ex-image" src={ex.image} alt={ex.name} loading="lazy" />}
+        <p className="ex-field"><span className="ex-label">How</span> {ex.how}</p>
+        <p className="ex-field"><span className="ex-label">Key focus</span> {ex.keyFocus}</p>
+        <p className="ex-field"><span className="ex-label">Why</span> {ex.why}</p>
+        <div className="tier-options">
+          {TIERS.map((t) => (
+            <div key={t.id} className="tier-option">
+              <span className="tier-option__head">{t.emoji} {t.label}</span>
+              <span className="tier-option__body">{ex.tier[t.id]}</span>
+            </div>
+          ))}
+        </div>
+        {ex.contraindications && (
+          <p className="contra"><span className="ex-label">Contraindications</span> {ex.contraindications}</p>
+        )}
+        {ex.notes && <p className="small muted" style={{ margin: "8px 0 0" }}>{ex.notes}</p>}
+      </div>
     </div>
   );
 }

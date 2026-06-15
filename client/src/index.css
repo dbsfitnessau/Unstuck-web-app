@@ -743,6 +743,39 @@ input[type="number"]:focus, input[type="text"]:focus {
 .stretch-code span:nth-child(2) { color: var(--tier-amber); }
 .stretch-code span:nth-child(3) { color: var(--tier-red); }
 
+/* Tappable worksheet row → opens the stretch-detail pop-up. Looks identical to
+   the old photo+text layout, just wrapped in a borderless full-width button. */
+.stretch-tap {
+  display: flex; align-items: flex-start; gap: var(--s-3);
+  flex: 1; min-width: 0;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.stretch-more { display: inline-block; margin-top: 4px; color: var(--olive); font-weight: 700; font-size: 11px; }
+
+/* Stretch-detail pop-up: full program details for a tapped worksheet stretch. */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(31, 33, 27, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: fadein 0.18s ease both;
+}
+.modal-card {
+  position: relative;
+  width: 100%; max-width: 520px; max-height: 88vh; overflow-y: auto;
+  background: var(--white); border-radius: var(--r-lg);
+  padding: 20px 16px;
+  box-shadow: var(--shadow-soft);
+  animation: rise 0.28s var(--spring) both;
+}
+.modal-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--paper);
+  font-size: 13px; line-height: 1; cursor: pointer;
+}
+
 /* ---- Segmented tabs (week selector / testing-round selector) ---- */
 .seg-tabs { display: flex; flex-wrap: wrap; gap: var(--s-2); margin: 0 0 var(--s-3); }
 .seg-tab {
