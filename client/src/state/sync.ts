@@ -25,6 +25,7 @@ export const SYNC_KEYS = [
   "unstuck:worksheet-log",
   "unstuck:test-results",
   "unstuck:test-milestones",
+  "unstuck:profile",
 ] as const;
 
 // Fired after a pull so any mounted screens re-read localStorage.

@@ -499,6 +499,30 @@ input[type="number"]:focus, input[type="text"]:focus {
   border-color: var(--olive);
   box-shadow: 0 0 0 3px rgba(96, 108, 56, 0.15);
 }
+
+/* ---- Profile (opened by tapping the 💪 icon; UNSTUCK logo returns home) ---- */
+.avatar { text-decoration: none; cursor: pointer; }
+.profile-page .card { margin-bottom: var(--s-3); }
+.field { display: block; margin-bottom: 12px; }
+.field-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+.field input {
+  width: 100%;
+  background: var(--white); border: 1px solid var(--line); color: var(--text);
+  border-radius: var(--r-md); padding: 9px 12px;
+  font-family: var(--font-body); font-size: 14px;
+  box-shadow: inset 0 1px 2px rgba(17,17,17,0.04);
+}
+.field input:focus { outline: none; border-color: var(--olive); box-shadow: 0 0 0 3px rgba(96,108,56,0.15); }
+.field input:disabled { opacity: 0.65; }
+.field-hint { display: block; margin-top: 4px; }
+.goals-input {
+  width: 100%; font-family: var(--font-body); font-size: 14px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: inset 0 1px 2px rgba(17,17,17,0.04); resize: vertical;
+}
+.goals-input:focus { outline: none; border-color: var(--olive); box-shadow: 0 0 0 3px rgba(96,108,56,0.15); }
+.contact-email { display: inline-block; font-weight: 700; color: var(--text); text-decoration: underline; }
+.profile-foot { text-align: center; margin-top: var(--s-2); }
 .checkbtn {
   border: 1px solid var(--line);
   background: var(--white);

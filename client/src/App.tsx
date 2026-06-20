@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Link } from "react-router-dom";
 import { TierProvider } from "./state/TierContext";
 import BottomNav from "./components/BottomNav";
 import CoachPanel from "./components/CoachPanel";
@@ -11,6 +11,7 @@ import Testing from "./pages/Testing";
 import Search from "./pages/Search";
 import Legal from "./pages/Legal";
 import YourData from "./pages/YourData";
+import Profile from "./pages/Profile";
 import Footer from "./components/Footer";
 import CookieConsent from "./components/CookieConsent";
 
@@ -37,8 +38,10 @@ export default function App() {
     <TierProvider>
       <div className="app-shell">
         <header className="topbar">
-          <h1>UNSTUCK<span className="accent-dot">.</span></h1>
-          <span className="avatar" aria-hidden="true">💪</span>
+          <Link to="/home" className="topbar-home" aria-label="Home">
+            <h1>UNSTUCK<span className="accent-dot">.</span></h1>
+          </Link>
+          <Link to="/profile" className="avatar" aria-label="Open profile">💪</Link>
         </header>
         <div className="app-content">
           {/* If a page throws while rendering, the boundary shows a recovery
@@ -56,6 +59,7 @@ export default function App() {
               <Route path="/legal" element={<Legal />} />
               <Route path="/legal/:slug" element={<Legal />} />
               <Route path="/your-data" element={<YourData />} />
+              <Route path="/profile" element={<Profile />} />
               {/* Anything unknown falls back to Home */}
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
