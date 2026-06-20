@@ -1,10 +1,10 @@
-// account.ts — self-service account deletion (the "right to erasure").
+// account.ts - self-service account deletion (the "right to erasure").
 //
 // When a signed-in user taps "Delete my account", the browser sends their
 // Supabase session token. Here we:
 //   1. Verify the token with Supabase and learn WHICH user it is.
 //   2. Delete that user's private photos from storage (best-effort).
-//   3. Delete the auth user with the admin key — which CASCADES in the database
+//   3. Delete the auth user with the admin key - which CASCADES in the database
 //      (profiles + progress rows are removed automatically, see supabase-schema.sql).
 //
 // Needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (the same ones the auth verifier
@@ -66,7 +66,7 @@ async function deleteUserPhotos(uid: string): Promise<void> {
     const testFolders = await list(`${uid}/`);
     for (const folder of testFolders) {
       if (folder.id === null) {
-        // It's a sub-folder (a testId) — list the files inside it.
+        // It's a sub-folder (a testId) - list the files inside it.
         const files = await list(`${uid}/${folder.name}/`);
         for (const f of files) paths.push(`${uid}/${folder.name}/${f.name}`);
       } else {

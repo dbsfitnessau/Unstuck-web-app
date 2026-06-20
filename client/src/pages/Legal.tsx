@@ -8,7 +8,7 @@ import {
   EFFECTIVE_DATE,
 } from "../data/legal";
 
-// Legal.tsx — two jobs in one file:
+// Legal.tsx - two jobs in one file:
 //   • /legal           → the index ("hub"): a tidy list of every policy.
 //   • /legal/:slug      → one policy, rendered from the structured blocks in
 //                         data/legal.ts. Edit the words there, not here.

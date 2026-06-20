@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ReactNode } from "react";
 
-// PublicShell — a minimal frame for pages that must be readable WITHOUT signing
+// PublicShell - a minimal frame for pages that must be readable WITHOUT signing
 // in (the legal/policy pages). It reuses the app's topbar + content styling but
 // has no bottom nav or coach. A clear link sends visitors back to sign-in.
 //

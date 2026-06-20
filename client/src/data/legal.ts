@@ -1,10 +1,10 @@
-// legal.ts — the source of truth for every legal / policy page in the app.
+// legal.ts - the source of truth for every legal / policy page in the app.
 //
 // HOW TO EDIT (for Lea): everything is plain text. To change wording, edit the
 // strings below. To change the business name, contact email, or dates, edit the
-// constants right here at the top — they flow into every document automatically.
+// constants right here at the top - they flow into every document automatically.
 //
-// IMPORTANT — these documents are a solid, well-researched STARTING TEMPLATE,
+// IMPORTANT - these documents are a solid, well-researched STARTING TEMPLATE,
 // not legal advice. Before you rely on them for paid, worldwide sales, have an
 // Australian lawyer (ideally one who knows consumer + privacy law) read them.
 // Anything you still need to decide is marked with the word REVIEW.
@@ -14,7 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 export const ENTITY = "DBS Fitness Australia";
 export const ENTITY_LONG = "DBS Fitness Australia"; // REVIEW: if you register a Pty Ltd, put the full legal name + ACN here.
-export const ABN = "[ABN — add your ABN here]"; // REVIEW: add your ABN/ACN once registered.
+export const ABN = "[ABN - add your ABN here]"; // REVIEW: add your ABN/ACN once registered.
 export const PROPRIETOR = "Lea Hamley"; // the person behind UNSTUCK / DBS Fitness Australia
 export const CONTACT_EMAIL = "dbsfitnessaustralia@gmail.com";
 export const SITE_URL = "https://unstuck-app.onrender.com";
@@ -24,7 +24,7 @@ export const GOVERNING_COUNTRY = "Australia";
 export const EFFECTIVE_DATE = "20 June 2026";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types — a document is a list of simple blocks so the renderer stays dumb.
+// Types - a document is a list of simple blocks so the renderer stays dumb.
 // ─────────────────────────────────────────────────────────────────────────────
 export type Block =
   | { t: "p"; text: string }
@@ -55,16 +55,16 @@ const privacy: LegalDoc = {
     { t: "h", text: "The information we collect" },
     { t: "p", text: "We collect only what we need to run the program:" },
     { t: "ul", items: [
-      "Account details — your email address (used for passwordless “magic link” sign-in).",
-      "Program progress — your worksheet log, session ticks, chosen tier (🟢/🟡/🔴), and the results you enter in the Assessment area (for example mobility test scores and pass/fail checks).",
-      "Photos you choose to upload — optional before/after photos you add to the Assessment area. These are stored privately and only you can see them.",
-      "Coach messages — the questions you type to the in-app Coach and the conversation history needed to answer them.",
-      "Purchase / access information — the beta code or purchase (Gumroad) licence key you redeem to unlock the program, and the fact that it was redeemed.",
-      "Technical information — basic data your browser sends automatically (such as IP address and device/browser type) and security logs, used to keep the App running and to prevent abuse.",
+      "Account details - your email address (used for passwordless “magic link” sign-in).",
+      "Program progress - your worksheet log, session ticks, chosen tier (🟢/🟡/🔴), and the results you enter in the Assessment area (for example mobility test scores and pass/fail checks).",
+      "Photos you choose to upload - optional before/after photos you add to the Assessment area. These are stored privately and only you can see them.",
+      "Coach messages - the questions you type to the in-app Coach and the conversation history needed to answer them.",
+      "Purchase / access information - the beta code or purchase (Gumroad) licence key you redeem to unlock the program, and the fact that it was redeemed.",
+      "Technical information - basic data your browser sends automatically (such as IP address and device/browser type) and security logs, used to keep the App running and to prevent abuse.",
     ]},
 
     { t: "h", text: "Sensitive and health information" },
-    { t: "p", text: "Mobility scores, body photos, and what you tell the Coach can reveal health-related information. Under Australian law this is “sensitive information” and gets extra protection. We collect it only with your consent — by entering it into the App you consent to us handling it to deliver the program. You don’t have to enter it; the App still works without photos or assessment data, you’ll just get less out of it." },
+    { t: "p", text: "Mobility scores, body photos, and what you tell the Coach can reveal health-related information. Under Australian law this is “sensitive information” and gets extra protection. We collect it only with your consent - by entering it into the App you consent to us handling it to deliver the program. You don’t have to enter it; the App still works without photos or assessment data, you’ll just get less out of it." },
 
     { t: "h", text: "How we use your information" },
     { t: "ul", items: [
@@ -77,15 +77,15 @@ const privacy: LegalDoc = {
     { t: "p", text: "We do not sell your personal information. We do not use it for third-party advertising." },
 
     { t: "h", text: "Automated processing and AI" },
-    { t: "p", text: "The in-app Coach is powered by an artificial-intelligence service (Anthropic’s Claude API). When you message the Coach, your message and the program context are sent to Anthropic to generate a reply, and the Coach may run a web search to answer questions about current information. The Coach gives general guidance only — it does not make any decision that has a legal or similarly significant effect on you, and it is not a substitute for professional or medical advice. We do not use your data to train AI models." },
+    { t: "p", text: "The in-app Coach is powered by an artificial-intelligence service (Anthropic’s Claude API). When you message the Coach, your message and the program context are sent to Anthropic to generate a reply, and the Coach may run a web search to answer questions about current information. The Coach gives general guidance only - it does not make any decision that has a legal or similarly significant effect on you, and it is not a substitute for professional or medical advice. We do not use your data to train AI models." },
 
     { t: "h", text: "Who we share it with (our service providers)" },
     { t: "p", text: "We use a small number of trusted providers to run the App. They only process your data on our instructions, to provide their service:" },
     { t: "ul", items: [
-      "Supabase — accounts, database, and private photo storage. Hosted in Sydney, Australia (ap-southeast-2).",
-      "Render — hosts the App and the Coach server.",
-      "Anthropic (Claude API) — powers the Coach; receives your Coach messages and program context. Anthropic may process this in the United States.",
-      "Gumroad — processes purchases. Gumroad is the “merchant of record” for sales and handles payment and tax; we never see your full card details.",
+      "Supabase - accounts, database, and private photo storage. Hosted in Sydney, Australia (ap-southeast-2).",
+      "Render - hosts the App and the Coach server.",
+      "Anthropic (Claude API) - powers the Coach; receives your Coach messages and program context. Anthropic may process this in the United States.",
+      "Gumroad - processes purchases. Gumroad is the “merchant of record” for sales and handles payment and tax; we never see your full card details.",
     ]},
     { t: "p", text: "We may also disclose information if the law requires it, to protect our rights or someone’s safety, or as part of a business transfer (with notice)." },
 
@@ -103,11 +103,11 @@ const privacy: LegalDoc = {
     { t: "ul", items: [
       "Access the personal information we hold about you.",
       "Ask us to correct it if it’s wrong.",
-      "Delete your account and data — directly in the App under “Your data”, or by emailing us.",
+      "Delete your account and data - directly in the App under “Your data”, or by emailing us.",
       "Withdraw consent for optional data (for example by deleting your photos).",
       "Complain if you think we’ve mishandled your information.",
     ]},
-    { t: "p", text: `If you are in the EU/EEA or UK, you also have GDPR rights including data portability, restriction, objection, and the right to lodge a complaint with your local data protection authority. Our lawful bases are: performing our contract with you (delivering the program), your consent (for sensitive data and the Coach), and our legitimate interests (security and improving the App). If you are in California, you have the right to know, delete, and correct your information, and not to be discriminated against for exercising those rights — we do not sell or “share” personal information as those terms are defined under California law.` },
+    { t: "p", text: `If you are in the EU/EEA or UK, you also have GDPR rights including data portability, restriction, objection, and the right to lodge a complaint with your local data protection authority. Our lawful bases are: performing our contract with you (delivering the program), your consent (for sensitive data and the Coach), and our legitimate interests (security and improving the App). If you are in California, you have the right to know, delete, and correct your information, and not to be discriminated against for exercising those rights - we do not sell or “share” personal information as those terms are defined under California law.` },
 
     { t: "h", text: "Children" },
     { t: "p", text: "The App is not intended for anyone under 16. We do not knowingly collect information from children under 16. If you believe a child has provided us information, contact us and we’ll delete it." },
@@ -130,13 +130,13 @@ const terms: LegalDoc = {
   icon: "📄",
   blocks: [
     { t: "p", text: `These Terms & Conditions (“Terms”) are an agreement between you and ${ENTITY} (“we”, “us”). They apply when you access or use ${PRODUCT} and the app at ${SITE_URL} (the “App”). By creating an account or using the App, you agree to these Terms. If you don’t agree, don’t use the App.` },
-    { t: "note", text: "Important: read these Terms together with our Health & Fitness Disclaimer and our Privacy Policy — they all form part of your agreement with us." },
+    { t: "note", text: "Important: read these Terms together with our Health & Fitness Disclaimer and our Privacy Policy - they all form part of your agreement with us." },
 
     { t: "h", text: "Eligibility" },
     { t: "p", text: "You must be at least 16 years old to use the App, and at least 18 to make a purchase. By using the App you confirm you meet these requirements and that any information you give us is accurate." },
 
     { t: "h", text: "Your account" },
-    { t: "p", text: "You sign in with a passwordless email link. Keep access to your email secure — anyone who can open your sign-in link can access your account. Tell us promptly if you think your account has been accessed without permission. You’re responsible for activity under your account." },
+    { t: "p", text: "You sign in with a passwordless email link. Keep access to your email secure - anyone who can open your sign-in link can access your account. Tell us promptly if you think your account has been accessed without permission. You’re responsible for activity under your account." },
 
     { t: "h", text: "Your licence to use the program" },
     { t: "p", text: "When you unlock the program (via a beta code or a purchase), we grant you a personal, non-exclusive, non-transferable, revocable licence to access and use the program content for your own personal, non-commercial use. You may not copy, share, resell, sublicense, publish, or redistribute the content, or use it to train any product or to run classes/services for others, without our written permission." },
@@ -148,7 +148,7 @@ const terms: LegalDoc = {
     { t: "p", text: "Our Refund & Cancellation Policy forms part of these Terms. In short: your rights under the Australian Consumer Law (and any equivalent consumer law where you live) always apply and can’t be excluded, and on top of that we offer a goodwill refund window. See the Refund & Cancellation Policy for details." },
 
     { t: "h", text: "The in-app Coach (AI)" },
-    { t: "p", text: "The Coach is an AI assistant that gives general information about the program. It can be wrong, incomplete, or out of date, and it may use web search. It is not professional, medical, physiotherapy, or health advice, and it is not a person. Don’t rely on it for decisions about your health — see the Health & Fitness Disclaimer." },
+    { t: "p", text: "The Coach is an AI assistant that gives general information about the program. It can be wrong, incomplete, or out of date, and it may use web search. It is not professional, medical, physiotherapy, or health advice, and it is not a person. Don’t rely on it for decisions about your health - see the Health & Fitness Disclaimer." },
 
     { t: "h", text: "Acceptable use" },
     { t: "p", text: "When using the App you agree not to:" },
@@ -174,7 +174,7 @@ const terms: LegalDoc = {
     { t: "p", text: "We may suspend or end your access if you breach these Terms or misuse the App. You can stop using the App and delete your account at any time. Sections that by their nature should survive (such as intellectual property, disclaimers, and liability) continue after termination." },
 
     { t: "h", text: "Disclaimers" },
-    { t: "p", text: "Except for guarantees that can’t be excluded by law, the App and program are provided “as is” and “as available”, without warranties of any kind. We don’t warrant that the program will achieve any particular result — outcomes depend on you." },
+    { t: "p", text: "Except for guarantees that can’t be excluded by law, the App and program are provided “as is” and “as available”, without warranties of any kind. We don’t warrant that the program will achieve any particular result - outcomes depend on you." },
 
     { t: "h", text: "Limitation of liability" },
     { t: "p", text: `Nothing in these Terms excludes, restricts, or modifies any consumer guarantee, right, or remedy you have under the Australian Consumer Law or any other law that cannot lawfully be excluded. Where our liability for failing to comply with a consumer guarantee can be limited, we limit it (at our option) to re-supplying the program or paying the cost of re-supply. Subject to that, and to the maximum extent permitted by law, we are not liable for indirect, incidental, or consequential loss, and our total liability to you is limited to the amount you paid us for the program in the 12 months before the claim.` },
@@ -208,9 +208,9 @@ const health: LegalDoc = {
     { t: "p", text: `${PRODUCT} and the in-app Coach provide general mobility and movement education only. They do not diagnose, treat, or cure anything, and they are not a substitute for professional medical or physiotherapy advice, diagnosis, or treatment. Never ignore or delay professional advice because of something in the App.` },
 
     { t: "h", text: "Consult a professional first" },
-    { t: "p", text: "Before starting, talk to your doctor or a qualified health professional — particularly if you are new to exercise, are pregnant or recently gave birth, have had recent surgery, have a history of disc or spinal problems, have any injury or chronic condition, or take medication that affects exercise. If a movement has been off-limits for you in the past, it still is until a professional clears you." },
+    { t: "p", text: "Before starting, talk to your doctor or a qualified health professional - particularly if you are new to exercise, are pregnant or recently gave birth, have had recent surgery, have a history of disc or spinal problems, have any injury or chronic condition, or take medication that affects exercise. If a movement has been off-limits for you in the past, it still is until a professional clears you." },
 
-    { t: "h", text: "Stop signs — stop the session if you feel:" },
+    { t: "h", text: "Stop signs - stop the session if you feel:" },
     { t: "ul", items: [
       "Sharp pain.",
       "Radiating pain, pins-and-needles, or numbness.",
@@ -224,7 +224,7 @@ const health: LegalDoc = {
     { t: "p", text: "This version of the program is not suitable during pregnancy or the early postpartum period, after recent surgery, or for anyone with a history of disc symptoms performing loaded spinal flexion (for example Cat-Cow, Forward Fold, Inchworm, Jefferson Curl, or Child’s Pose with Side Reach). If that’s you, do not attempt those movements without clearance from a qualified professional." },
 
     { t: "h", text: "Train within your limits" },
-    { t: "p", text: "Use the tier system (🟢 Recreational / 🟡 Intermediate / 🔴 Athlete) honestly and drop a tier when you’re tired, stressed, unwell, or under heavy training load. Earn depth — don’t force it. You are responsible for choosing movements and intensities that are right for your body on the day." },
+    { t: "p", text: "Use the tier system (🟢 Recreational / 🟡 Intermediate / 🔴 Athlete) honestly and drop a tier when you’re tired, stressed, unwell, or under heavy training load. Earn depth - don’t force it. You are responsible for choosing movements and intensities that are right for your body on the day." },
 
     { t: "h", text: "Assumption of risk" },
     { t: "p", text: "Exercise carries an inherent risk of injury. By using the program you acknowledge those risks and accept responsibility for your own participation and choices. To the maximum extent permitted by law, and without excluding any rights you have under the Australian Consumer Law or other non-excludable laws, you take part voluntarily and at your own risk." },
@@ -246,16 +246,16 @@ const refunds: LegalDoc = {
   short: "Your consumer rights, plus our goodwill refund window.",
   icon: "💸",
   blocks: [
-    { t: "p", text: `${PRODUCT} is a digital product. This policy explains when you can get a refund. It works alongside — and never reduces — your rights under the Australian Consumer Law and any equivalent consumer law where you live.` },
+    { t: "p", text: `${PRODUCT} is a digital product. This policy explains when you can get a refund. It works alongside - and never reduces - your rights under the Australian Consumer Law and any equivalent consumer law where you live.` },
 
     { t: "h", text: "Your consumer guarantees (can’t be excluded)" },
-    { t: "p", text: "Under the Australian Consumer Law, our program comes with guarantees that can’t be excluded. If the program has a major problem — for example it’s significantly different from what was described, or it isn’t fit for its stated purpose — you’re entitled to a remedy, which may include a refund. These rights apply regardless of anything else in this policy, and they apply to consumers in Australia even though we sell worldwide." },
+    { t: "p", text: "Under the Australian Consumer Law, our program comes with guarantees that can’t be excluded. If the program has a major problem - for example it’s significantly different from what was described, or it isn’t fit for its stated purpose - you’re entitled to a remedy, which may include a refund. These rights apply regardless of anything else in this policy, and they apply to consumers in Australia even though we sell worldwide." },
 
     { t: "h", text: "Our goodwill window" },
-    { t: "p", text: "On top of your legal rights, we offer a goodwill refund: if the program isn’t for you, email us within 14 days of purchase and we’ll refund you. We’d love to hear why so we can improve, but you don’t have to justify it within this window." },
+    { t: "p", text: "On top of your legal rights, we offer a goodwill refund: if the program isn’t for you, email us within 7 days of purchase and we’ll refund you. We’d love to hear why so we can improve, but you don’t have to justify it within this window." },
 
-    { t: "h", text: "Change of mind after 14 days" },
-    { t: "p", text: "Because this is a digital product you get immediate access to, we don’t generally offer change-of-mind refunds after the 14-day window — but your non-excludable consumer guarantees still apply at any time if something is genuinely wrong with the product." },
+    { t: "h", text: "Change of mind after 7 days" },
+    { t: "p", text: "Because this is a digital product you get immediate access to, we don’t generally offer change-of-mind refunds after the 7-day window - but your non-excludable consumer guarantees still apply at any time if something is genuinely wrong with the product." },
 
     { t: "h", text: "How refunds are processed" },
     { t: "p", text: "Purchases are handled by Gumroad as merchant of record, so refunds are issued back through Gumroad to your original payment method. Any tax collected at purchase is refunded by Gumroad as part of that process. Refunds can take a few business days to appear depending on your bank." },
@@ -278,11 +278,11 @@ const compliance: LegalDoc = {
 
     { t: "h", text: "Laws we work to" },
     { t: "ul", items: [
-      "Privacy Act 1988 (Cth) and the Australian Privacy Principles — our baseline. Because we handle health-related information, we follow the APPs in full.",
-      "GDPR (EU/EEA) and UK GDPR — for users in those regions, including lawful-basis, transparency, and data-subject rights.",
-      "California Consumer Privacy Act / CPRA — for California residents’ rights to know, delete, and correct.",
-      "Australian Consumer Law — for consumer guarantees, refunds, and fair-trading.",
-      "Spam Act 2003 (Cth) — any marketing email is consent-based with an unsubscribe option.",
+      "Privacy Act 1988 (Cth) and the Australian Privacy Principles - our baseline. Because we handle health-related information, we follow the APPs in full.",
+      "GDPR (EU/EEA) and UK GDPR - for users in those regions, including lawful-basis, transparency, and data-subject rights.",
+      "California Consumer Privacy Act / CPRA - for California residents’ rights to know, delete, and correct.",
+      "Australian Consumer Law - for consumer guarantees, refunds, and fair-trading.",
+      "Spam Act 2003 (Cth) - any marketing email is consent-based with an unsubscribe option.",
     ]},
 
     { t: "h", text: "Where your data lives" },
@@ -290,10 +290,10 @@ const compliance: LegalDoc = {
 
     { t: "h", text: "Our sub-processors" },
     { t: "ul", items: [
-      "Supabase — accounts, database, private photo storage (Sydney, AU).",
-      "Render — application and server hosting.",
-      "Anthropic — AI Coach (Claude API).",
-      "Gumroad — payments and merchant-of-record tax handling.",
+      "Supabase - accounts, database, private photo storage (Sydney, AU).",
+      "Render - application and server hosting.",
+      "Anthropic - AI Coach (Claude API).",
+      "Gumroad - payments and merchant-of-record tax handling.",
     ]},
 
     { t: "h", text: "Security measures" },
@@ -328,7 +328,7 @@ const ip: LegalDoc = {
     { t: "p", text: `© ${new Date().getFullYear()} ${ENTITY}. All rights reserved (except where stated). ${PRODUCT}, including its text, structure, illustrations, photography, design, branding, and software code, is owned by ${ENTITY} or its licensors and is protected by Australian and international copyright and intellectual-property laws.` },
 
     { t: "h", text: "Your licence" },
-    { t: "p", text: "Your purchase or beta access gives you a personal, non-exclusive, non-transferable, revocable licence to use the program for your own personal, non-commercial use. Ownership stays with us — you’re buying access, not the rights." },
+    { t: "p", text: "Your purchase or beta access gives you a personal, non-exclusive, non-transferable, revocable licence to use the program for your own personal, non-commercial use. Ownership stays with us - you’re buying access, not the rights." },
 
     { t: "h", text: "What you may not do" },
     { t: "ul", items: [
@@ -359,7 +359,7 @@ const ip: LegalDoc = {
 const infringement: LegalDoc = {
   slug: "ip-infringement",
   title: "IP Infringement & Copyright Complaints",
-  short: "How to report content you believe infringes your rights — and how to respond.",
+  short: "How to report content you believe infringes your rights - and how to respond.",
   icon: "⚠️",
   blocks: [
     { t: "p", text: `We respect intellectual-property rights and expect users to do the same. If you believe content in the App, or content a user has uploaded, infringes your copyright or other IP rights, tell us and we’ll act on valid reports. This procedure aligns with the U.S. Digital Millennium Copyright Act (DMCA) notice-and-takedown approach and with Australian law.` },
@@ -395,14 +395,14 @@ const cookies: LegalDoc = {
   short: "What we store on your device, and why.",
   icon: "🍪",
   blocks: [
-    { t: "p", text: `This policy explains the small pieces of data the App stores on your device — “cookies” and the similar “local storage” the App uses. We keep this minimal.` },
+    { t: "p", text: `This policy explains the small pieces of data the App stores on your device - “cookies” and the similar “local storage” the App uses. We keep this minimal.` },
 
     { t: "h", text: "What we use" },
     { t: "p", text: "We currently use only essential storage needed for the App to work:" },
     { t: "ul", items: [
-      "Sign-in session — stored by our accounts provider (Supabase) so you stay signed in. Without it you’d have to sign in on every screen.",
-      "Your preferences and progress cache — for example your chosen tier and a local copy of your progress, so the App is fast and works smoothly.",
-      "Cookie-notice acknowledgement — a flag that remembers you’ve seen the cookie banner so we don’t keep showing it.",
+      "Sign-in session - stored by our accounts provider (Supabase) so you stay signed in. Without it you’d have to sign in on every screen.",
+      "Your preferences and progress cache - for example your chosen tier and a local copy of your progress, so the App is fast and works smoothly.",
+      "Cookie-notice acknowledgement - a flag that remembers you’ve seen the cookie banner so we don’t keep showing it.",
     ]},
 
     { t: "h", text: "What we don’t use" },
@@ -430,7 +430,7 @@ const accessibility: LegalDoc = {
     { t: "h", text: "What we do" },
     { t: "ul", items: [
       "High-contrast colours and large, legible text that’s meant to be read on a phone, mid-session.",
-      "Meaning is never carried by colour alone — tiers always pair a colour with an emoji and a label (🟢 Recreational / 🟡 Intermediate / 🔴 Athlete).",
+      "Meaning is never carried by colour alone - tiers always pair a colour with an emoji and a label (🟢 Recreational / 🟡 Intermediate / 🔴 Athlete).",
       "Labels on interactive controls and images so screen readers can describe them.",
       "A mobile-first layout that adapts to your screen and zoom level.",
       "Motion kept simple, with respect for reduced-motion preferences where supported.",
@@ -453,10 +453,10 @@ const ugc: LegalDoc = {
   short: "The rules for content you upload, and who’s responsible for it.",
   icon: "📤",
   blocks: [
-    { t: "p", text: `The App lets you add your own content — for example assessment photos and the questions you type to the Coach (“User Content”). This policy covers that content. It forms part of our Terms & Conditions.` },
+    { t: "p", text: `The App lets you add your own content - for example assessment photos and the questions you type to the Coach (“User Content”). This policy covers that content. It forms part of our Terms & Conditions.` },
 
     { t: "h", text: "You own your content" },
-    { t: "p", text: "You keep ownership of your User Content. Your photos are stored privately and are visible only to you — we don’t publish them or share them with other users." },
+    { t: "p", text: "You keep ownership of your User Content. Your photos are stored privately and are visible only to you - we don’t publish them or share them with other users." },
 
     { t: "h", text: "The licence you give us" },
     { t: "p", text: "You grant us a limited licence to store, process, and display your User Content back to you only as needed to operate the App (for example saving your photos so they sync across your devices, and processing your Coach messages to answer them). This licence ends when you delete the content or your account, except for backups that age out and anything we must keep by law." },
@@ -487,7 +487,7 @@ const ugc: LegalDoc = {
 const disputes: LegalDoc = {
   slug: "disputes",
   title: "Dispute Resolution",
-  short: "How we sort out problems — and your rights as a consumer.",
+  short: "How we sort out problems - and your rights as a consumer.",
   icon: "⚖️",
   blocks: [
     { t: "p", text: `We’d much rather fix a problem than fight about it. This policy sets out how disputes are handled. It forms part of our Terms & Conditions.` },
@@ -496,7 +496,7 @@ const disputes: LegalDoc = {
     { t: "p", text: `Before taking any formal action, please contact us at ${CONTACT_EMAIL} with the details of your concern. Most issues are resolved quickly this way. We’ll work with you in good faith to find a fair solution.` },
 
     { t: "h", text: "If we can’t resolve it" },
-    { t: "p", text: "If we can’t resolve a dispute within a reasonable time (around 30 days), both of us agree to genuinely try to resolve it through negotiation or, if helpful, mediation before starting court proceedings — except where urgent relief is needed (for example to protect intellectual property)." },
+    { t: "p", text: "If we can’t resolve a dispute within a reasonable time (around 30 days), both of us agree to genuinely try to resolve it through negotiation or, if helpful, mediation before starting court proceedings - except where urgent relief is needed (for example to protect intellectual property)." },
 
     { t: "h", text: "Governing law and courts" },
     { t: "p", text: `These Terms and any dispute are governed by the laws of ${GOVERNING_STATE}, ${GOVERNING_COUNTRY}, and the courts of ${GOVERNING_STATE} have non-exclusive jurisdiction. “Non-exclusive” means you can still go to a court elsewhere if the law where you live gives you that right.` },

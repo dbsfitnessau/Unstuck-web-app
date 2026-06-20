@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { supabase, getCoachToken } from "../state/supabase";
 import { CONTACT_EMAIL } from "../data/legal";
 
-// YourData.tsx — the user-facing privacy controls. This is what makes our
+// YourData.tsx - the user-facing privacy controls. This is what makes our
 // privacy promises real and gives people the access/erasure rights the law
 // requires (Privacy Act, GDPR, CCPA).
 //
 //   • See what we store.
-//   • Request a copy of your data (email — we fulfil it manually).
+//   • Request a copy of your data (email - we fulfil it manually).
 //   • Sign out.
 //   • Delete your account: calls the server's /api/account/delete, which uses
 //     the admin key to remove the user and (because the database cascades on
@@ -94,7 +94,7 @@ export default function YourData() {
       <h3 className="legal-h">What we store</h3>
       <ul className="legal-ul">
         <li>Your email address (for sign-in).</li>
-        <li>Your program progress — worksheet log, session ticks, tier, assessment scores.</li>
+        <li>Your program progress - worksheet log, session ticks, tier, assessment scores.</li>
         <li>Any photos you uploaded to the Assessment area (private to you).</li>
         <li>Your Coach conversation, to answer your questions.</li>
         <li>Your access/purchase record (that you unlocked the program).</li>
@@ -125,7 +125,7 @@ export default function YourData() {
       {status === "error" && (
         <div className="legal-note">
           We couldn’t delete your account automatically right now. You can still have
-          it deleted — send us a request and we’ll action it:
+          it deleted - send us a request and we’ll action it:
           <br />
           <a href={`mailto:${CONTACT_EMAIL}?subject=${eraseSubject}&body=${eraseBody}`}>
             Email a deletion request
