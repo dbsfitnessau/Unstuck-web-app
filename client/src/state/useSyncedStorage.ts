@@ -6,7 +6,7 @@
 //   - every change additionally schedules a debounced push to Supabase
 //   - when sync.ts pulls cloud data down (on sign-in), the SYNC_EVENT makes
 //     this hook re-read localStorage so the screen updates in place
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { schedulePush, SYNC_EVENT } from "./sync";
 
 function read<T>(key: string, initial: T): T {
@@ -20,10 +20,18 @@ function read<T>(key: string, initial: T): T {
 
 export function useSyncedStorage<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => read(key, initial));
+  const mounted = useRef(false);
 
   // Local save + cloud push on every change.
   useEffect(() => {
     localStorage.setItem(key, JSON.stringify(value));
+    // Skip the FIRST run: this value was just read from storage (or pulled from
+    // the cloud), so there's nothing new to push — only real changes should
+    // sync. This also stops a default/empty initial value from being pushed up.
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     schedulePush(key, value);
   }, [key, value]);
 

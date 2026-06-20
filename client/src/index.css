@@ -131,6 +131,12 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   padding: var(--s-5) var(--s-4) 130px; /* bottom padding clears the floating nav */
 }
 
+/* Holds the layout open for the split-second a lazily-loaded page chunk loads,
+   so the screen doesn't visibly collapse and jump. */
+.route-loading {
+  min-height: 60vh;
+}
+
 /* ---- Top bar: frosted glass, sticky ---- */
 .topbar {
   position: sticky;

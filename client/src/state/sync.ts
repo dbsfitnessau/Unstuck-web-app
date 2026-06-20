@@ -31,6 +31,11 @@ export const SYNC_KEYS = [
 // Fired after a pull so any mounted screens re-read localStorage.
 export const SYNC_EVENT = "unstuck:synced";
 
+// Cloud writes are gated until a pull has SUCCEEDED this session. Without this, a
+// transient pull failure on sign-in (e.g. a network blip) would let the app's
+// empty/default local state get pushed up and overwrite real cloud progress.
+let pullSucceeded = false;
+
 export async function pullAll(): Promise<void> {
   if (!supabase) return;
   const { data: sess } = await supabase.auth.getSession();
@@ -66,6 +71,7 @@ export async function pullAll(): Promise<void> {
     }
   }
 
+  pullSucceeded = true; // cloud state is now in hand — safe to push changes from here on
   window.dispatchEvent(new Event(SYNC_EVENT));
 }
 
@@ -73,6 +79,7 @@ const timers = new Map<string, ReturnType<typeof setTimeout>>();
 
 export function schedulePush(key: string, value: unknown): void {
   if (!supabase) return;
+  if (!pullSucceeded) return; // never push until a pull has succeeded — protects cloud data
   const existing = timers.get(key);
   if (existing) clearTimeout(existing);
   timers.set(
