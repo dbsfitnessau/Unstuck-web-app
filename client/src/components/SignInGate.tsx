@@ -124,6 +124,10 @@ export default function SignInGate({ children }: { children: ReactNode }) {
             {error && <p className="gate-error small">{error}</p>}
           </>
         )}
+        <p className="gate-legal small muted">
+          <a href="/legal/privacy">Privacy</a> · <a href="/legal/terms">Terms</a> ·{" "}
+          <a href="/legal/health-disclaimer">Health disclaimer</a>
+        </p>
       </div>
     </div>
   );

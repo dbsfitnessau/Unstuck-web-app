@@ -10,6 +10,7 @@ import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
 import { signToken, verifyToken } from "./auth.js";
 import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js";
 import { verifySupabaseToken, supabaseConfigured } from "./supabaseAuth.js";
+import { deleteAccountByToken, accountDeletionConfigured } from "./account.js";
 
 const app = express();
 
@@ -182,6 +183,23 @@ app.get("/api/health", (_req, res) => {
     supabaseUrlSet: !!process.env.SUPABASE_URL,
     supabaseServiceKeySet: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
+});
+
+// ── Account deletion (right to erasure) ───────────────────────────────────────────────
+// A signed-in user sends their Supabase session token in x-access-token; we verify it,
+// then delete their photos + auth user (which cascades to profiles + progress). Rate-
+// limited like the access gate. If Supabase admin isn't configured, return 503 so the
+// client falls back to an email deletion request — the user's right still works.
+app.post("/api/account/delete", accessLimiter, async (req, res) => {
+  if (!accountDeletionConfigured) {
+    return res.status(503).json({ ok: false, reason: "not_configured" });
+  }
+  const token = String(req.header("x-access-token") ?? "").trim();
+  if (!token) return res.status(401).json({ ok: false });
+  const result = await deleteAccountByToken(token);
+  if (result === "ok") return res.json({ ok: true });
+  if (result === "unauthorized") return res.status(401).json({ ok: false });
+  return res.status(500).json({ ok: false });
 });
 
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.
