@@ -434,8 +434,7 @@ button.primary:active, a.cta:active, button.cta:active { transform: scale(0.95);
 .tier-toggle button:active { transform: scale(0.92); }
 .tier-toggle button.active { background: var(--olive); color: var(--on-olive); }
 
-/* tier dots - the safety colour system */
-.tier-dot { font-size: 12px; }
+/* tier colours - the safety colour system */
 .tier-green { color: var(--tier-green); }
 .tier-amber { color: var(--tier-amber); }
 .tier-red { color: var(--tier-red); }
@@ -470,15 +469,6 @@ table.grid th {
 }
 
 /* ---- Forms ---- */
-.field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s-3);
-  padding: var(--s-2) 0;
-  border-bottom: 1px solid var(--line);
-}
-.field-row:last-child { border-bottom: none; }
 /* Note: input[type="search"] is deliberately NOT in this width rule — the
    search bar uses .search-input (full width) and a more specific selector
    here would override it. */
@@ -631,17 +621,6 @@ input[type="number"]:focus, input[type="text"]:focus {
   cursor: pointer;
 }
 
-.tier-pill {
-  display: inline-block;
-  background: var(--olive);
-  color: var(--on-olive);
-  border-radius: var(--r-pill);
-  padding: 2px 10px;
-  font-family: var(--font-ui);
-  font-weight: 700;
-  font-size: 12px;
-  margin-right: var(--s-1);
-}
 
 /* A card that needs a safety callout (e.g. a "SKIP" tier substitution). */
 .warn-card {

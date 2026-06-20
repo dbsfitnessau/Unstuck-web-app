@@ -211,17 +211,6 @@ export const tests: MobilityTest[] = [
   },
 ];
 
-// ---- Program ----
-export const schedule = [
-  { day: "Day 1 (Mon)", focus: "Hips & Hamstrings", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Day 2 (Tue)", focus: "Thoracic Spine & Shoulders", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Day 3 (Wed)", focus: "Full-Body Flow & Breath", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Day 4 (Thu)", focus: "Ankles & Deep Squat", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Day 5 (Fri)", focus: "Posterior Chain & Wind-Down", wk12: "20 min", wk34: "25–30 min" },
-  { day: "Sat", focus: "Active recovery - walk, cycle, or swim", wk12: "-", wk34: "-" },
-  { day: "Sun", focus: "Full rest or easy walk", wk12: "-", wk34: "-" },
-];
-
 // Full program data (all days, both phases) lives in ./program.ts.
 // We import `phases` above to build the search index.
 
