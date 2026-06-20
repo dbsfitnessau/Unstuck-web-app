@@ -9,6 +9,10 @@ import Program from "./pages/Program";
 import QuickCards from "./pages/QuickCards";
 import Testing from "./pages/Testing";
 import Search from "./pages/Search";
+import Legal from "./pages/Legal";
+import YourData from "./pages/YourData";
+import Footer from "./components/Footer";
+import CookieConsent from "./components/CookieConsent";
 
 // App is the top-level shell:
 //  - <TierProvider> shares the 🟢/🟡/🔴 choice with every screen.
@@ -48,11 +52,20 @@ export default function App() {
               <Route path="/worksheet" element={<QuickCards />} />
               <Route path="/testing" element={<Testing />} />
               <Route path="/search" element={<Search />} />
+              {/* Legal / policy pages: hub + individual docs + data controls. */}
+              <Route path="/legal" element={<Legal />} />
+              <Route path="/legal/:slug" element={<Legal />} />
+              <Route path="/your-data" element={<YourData />} />
               {/* Anything unknown falls back to Home */}
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
           </ErrorBoundary>
+          {/* Footer scrolls at the bottom of every page, under the content. */}
+          <Footer />
         </div>
+
+        {/* One-time, honest cookie/storage notice. */}
+        <CookieConsent />
 
         <CoachPanel open={coachOpen} onClose={() => setCoachOpen(false)} />
         <BottomNav coachOpen={coachOpen} onCoach={() => setCoachOpen(true)} />
