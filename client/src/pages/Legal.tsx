@@ -21,18 +21,17 @@ function linkify(text: string) {
   // Split the text around the contact email and make that part a link.
   const parts = text.split(CONTACT_EMAIL);
   if (parts.length === 1) return text;
-  const out: React.ReactNode[] = [];
-  parts.forEach((part, i) => {
-    out.push(part);
-    if (i < parts.length - 1) {
-      out.push(
-        <a key={i} href={`mailto:${CONTACT_EMAIL}`}>
-          {CONTACT_EMAIL}
-        </a>,
-      );
-    }
-  });
-  return out;
+  // Rebuild the text with a clickable email between each pair of parts.
+  return parts.flatMap((part, i) =>
+    i === parts.length - 1
+      ? [part]
+      : [
+          part,
+          <a key={i} href={`mailto:${CONTACT_EMAIL}`}>
+            {CONTACT_EMAIL}
+          </a>,
+        ],
+  );
 }
 
 function BlockView({ block }: { block: Block }) {

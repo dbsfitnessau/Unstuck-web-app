@@ -26,7 +26,8 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   handleReset = () => {
     try {
-      // Clear only this app's keys, then reload to a clean slate.
+      // Wipe localStorage, then reload to a clean slate — this removes the
+      // stale saved data that most often causes a render crash.
       localStorage.clear();
     } catch {
       /* ignore */

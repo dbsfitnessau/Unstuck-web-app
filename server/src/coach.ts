@@ -113,20 +113,48 @@ export interface CoachResult {
 
 const MAX_PAUSE_RESUMES = 5; // safety cap so a stuck search flow can't loop forever
 
-export async function runCoach(history: ChatMessage[]): Promise<CoachResult> {
-  // Start from the caller's chat history. We mutate a local copy as the turn unfolds.
-  let messages: Anthropic.MessageParam[] = history.map((m) => ({
+// Build the Messages API request body from a chat history. Both the one-shot and the
+// streaming path send the exact same body, so we assemble it in one place.
+function buildRequest(history: ChatMessage[]) {
+  const messages: Anthropic.MessageParam[] = history.map((m) => ({
     role: m.role,
     content: m.content,
   }));
-
-  const request = {
+  return {
     model: MODEL,
     max_tokens: 1024,
     system: SYSTEM_BLOCKS,
     tools: [WEB_SEARCH_TOOL as unknown as Anthropic.Tool],
     messages,
   };
+}
+
+// Scan one turn's content blocks for web-search citations and add any new ones to
+// `citations`. `seen` carries the URLs we've already kept so the same source isn't listed
+// twice — it's shared across resume rounds so de-duping spans the whole turn.
+function collectCitations(
+  content: Anthropic.Message["content"],
+  seen: Set<string>,
+  citations: Citation[],
+): void {
+  for (const block of content) {
+    if (block.type !== "text") continue;
+    // Each text block can carry citations pointing at the web results it used.
+    const blockCitations = (block as { citations?: unknown[] }).citations ?? [];
+    for (const c of blockCitations) {
+      const cit = c as { type?: string; url?: string; title?: string };
+      if (cit.type === "web_search_result_location" && cit.url && !seen.has(cit.url)) {
+        seen.add(cit.url);
+        citations.push({ url: cit.url, title: cit.title || cit.url });
+      }
+    }
+  }
+}
+
+export async function runCoach(history: ChatMessage[]): Promise<CoachResult> {
+  // Start from the caller's chat history. We mutate a local copy as the turn unfolds.
+  const request = buildRequest(history);
+  let messages = request.messages;
 
   let response = await client.messages.create(request, REQUEST_OPTS);
 
@@ -156,14 +184,8 @@ export interface StreamHandlers {
 // web search starts, handles the pause_turn resume loop, and returns the de-duped
 // citations once the whole turn is finished.
 export async function runCoachStream(history: ChatMessage[], handlers: StreamHandlers): Promise<{ citations: Citation[] }> {
-  let messages: Anthropic.MessageParam[] = history.map((m) => ({ role: m.role, content: m.content }));
-  const request = {
-    model: MODEL,
-    max_tokens: 1024,
-    system: SYSTEM_BLOCKS,
-    tools: [WEB_SEARCH_TOOL as unknown as Anthropic.Tool],
-    messages,
-  };
+  const request = buildRequest(history);
+  let messages = request.messages;
 
   const seen = new Set<string>();
   const citations: Citation[] = [];
@@ -186,18 +208,7 @@ export async function runCoachStream(history: ChatMessage[], handlers: StreamHan
     const final = await stream.finalMessage();
 
     // Collect citations from this turn's text blocks.
-    for (const block of final.content) {
-      if (block.type === "text") {
-        const blockCitations = (block as { citations?: unknown[] }).citations ?? [];
-        for (const c of blockCitations) {
-          const cit = c as { type?: string; url?: string; title?: string };
-          if (cit.type === "web_search_result_location" && cit.url && !seen.has(cit.url)) {
-            seen.add(cit.url);
-            citations.push({ url: cit.url, title: cit.title || cit.url });
-          }
-        }
-      }
-    }
+    collectCitations(final.content, seen, citations);
 
     // pause_turn: append what we have and resume; otherwise the turn is done.
     if ((final.stop_reason as string) === "pause_turn" && resumes < MAX_PAUSE_RESUMES) {
@@ -217,22 +228,11 @@ function extractResult(response: Anthropic.Message): CoachResult {
   const seen = new Set<string>();
   const citations: Citation[] = [];
 
+  // Stitch the answer text together, then pull the web citations off the same blocks.
   for (const block of response.content) {
-    if (block.type === "text") {
-      reply += block.text;
-      // Each text block can carry citations pointing at the web results it used.
-      const blockCitations = (block as { citations?: unknown[] }).citations ?? [];
-      for (const c of blockCitations) {
-        const cit = c as { type?: string; url?: string; title?: string };
-        if (cit.type === "web_search_result_location" && cit.url) {
-          if (!seen.has(cit.url)) {
-            seen.add(cit.url);
-            citations.push({ url: cit.url, title: cit.title || cit.url });
-          }
-        }
-      }
-    }
+    if (block.type === "text") reply += block.text;
   }
+  collectCitations(response.content, seen, citations);
 
   if (!reply.trim()) {
     reply =

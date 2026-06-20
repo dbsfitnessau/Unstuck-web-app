@@ -133,18 +133,22 @@ export default function Timer() {
     return () => clearInterval(id);
   }, [state.running]);
 
+  // Build the phase sequence for a set of settings. Used by both Reset and the
+  // "Restart from the top" path, so the mode→phases choice lives in one place.
+  const buildPhases = (m: typeof mode, hold: number, rds: number): Phase[] =>
+    m === "hold" ? holdPhases(hold) : pailsRailsPhases(rds);
+
   // Load a fresh sequence for the current settings (also used by Reset).
   function reset(nextMode = mode, nextHold = holdSeconds, nextRounds = rounds) {
-    const phases = nextMode === "hold" ? holdPhases(nextHold) : pailsRailsPhases(nextRounds);
     prevPhase.current = 0;
-    setState(makeState(phases));
+    setState(makeState(buildPhases(nextMode, nextHold, nextRounds)));
   }
 
   function toggleRun() {
     setState((s) => {
       if (s.finished) {
         // Restart from the top.
-        const phases = mode === "hold" ? holdPhases(holdSeconds) : pailsRailsPhases(rounds);
+        const phases = buildPhases(mode, holdSeconds, rounds);
         prevPhase.current = 0;
         return { ...makeState(phases), running: true, endAt: Date.now() + phases[0].seconds * 1000 };
       }

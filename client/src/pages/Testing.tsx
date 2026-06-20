@@ -65,22 +65,23 @@ export default function Testing() {
     return { values: raw?.values ?? {}, photoPath: raw?.photoPath };
   }
 
-  function setField(testId: string, key: string, value: string | boolean) {
+  // Both writers below patch the active round's entry for one test, leaving
+  // every other test/round untouched. This shared helper does the drill-in and
+  // write-back so the two only have to say *how* to change the current entry.
+  function updateEntry(testId: string, change: (cur: Partial<Entry>) => Entry) {
     setResults((prev) => {
       const forTest = prev[testId] ?? {};
-      const cur = forTest[String(activeDay)] as Partial<Entry> | undefined;
-      const next: Entry = { values: { ...(cur?.values ?? {}), [key]: value }, photoPath: cur?.photoPath };
-      return { ...prev, [testId]: { ...forTest, [String(activeDay)]: next } };
+      const cur = (forTest[String(activeDay)] as Partial<Entry> | undefined) ?? {};
+      return { ...prev, [testId]: { ...forTest, [String(activeDay)]: change(cur) } };
     });
   }
 
+  function setField(testId: string, key: string, value: string | boolean) {
+    updateEntry(testId, (cur) => ({ values: { ...(cur.values ?? {}), [key]: value }, photoPath: cur.photoPath }));
+  }
+
   function setPhotoPath(testId: string, path: string | undefined) {
-    setResults((prev) => {
-      const forTest = prev[testId] ?? {};
-      const cur = forTest[String(activeDay)] as Partial<Entry> | undefined;
-      const next: Entry = { values: cur?.values ?? {}, photoPath: path };
-      return { ...prev, [testId]: { ...forTest, [String(activeDay)]: next } };
-    });
+    updateEntry(testId, (cur) => ({ values: cur.values ?? {}, photoPath: path }));
   }
 
   // Add the next 28-day round (e.g. 84 -> 112) and jump to it.

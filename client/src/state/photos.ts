@@ -19,6 +19,9 @@ import { supabase } from "./supabase";
 const BUCKET = "test-photos";
 const MAX_DIM = 1200; // longest edge after resize, px
 const QUALITY = 0.8;  // JPEG quality
+// Shown if the browser can't decode/re-encode the image (defined once so both
+// failure points in compress() report the same message).
+const COMPRESS_ERROR = "Could not process the image.";
 
 function photoPath(userId: string, testId: string, day: number): string {
   return `${userId}/${testId}/${day}.jpg`;
@@ -42,13 +45,13 @@ async function compress(file: File): Promise<Blob> {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     bitmap.close?.();
-    throw new Error("Could not process the image.");
+    throw new Error(COMPRESS_ERROR);
   }
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close?.();
   return await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Could not process the image."))),
+      (b) => (b ? resolve(b) : reject(new Error(COMPRESS_ERROR))),
       "image/jpeg",
       QUALITY,
     ),

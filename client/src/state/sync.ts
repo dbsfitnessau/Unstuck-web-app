@@ -90,17 +90,14 @@ async function pushNow(key: string, value: unknown): Promise<void> {
   const userId = sess.session?.user.id;
   if (!userId) return; // not signed in — local-only mode, nothing to do
 
+  // One timestamp for the whole batch so both rows agree on "when".
+  const updated_at = new Date().toISOString();
   const rows: { user_id: string; key: string; data: unknown; updated_at: string }[] = [
-    { user_id: userId, key, data: value, updated_at: new Date().toISOString() },
+    { user_id: userId, key, data: value, updated_at },
   ];
   // Keep the days-done summary fresh whenever the worksheet changes.
   if (key === "unstuck:worksheet-log") {
-    rows.push({
-      user_id: userId,
-      key: "summary",
-      data: { daysDone: daysDone() },
-      updated_at: new Date().toISOString(),
-    });
+    rows.push({ user_id: userId, key: "summary", data: { daysDone: daysDone() }, updated_at });
   }
 
   const { error } = await supabase.from("progress").upsert(rows);

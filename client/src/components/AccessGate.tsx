@@ -44,20 +44,19 @@ export default function AccessGate({ children }: { children: ReactNode }) {
   // (lockApp() fires "unstuck:locked"), or the token was cleared in another tab (the
   // browser's native "storage" event).
   useEffect(() => {
-    function onLocked() {
+    // Both triggers do the same thing: drop back to the locked screen with the
+    // "locked again" message.
+    function relock() {
       setUnlocked(false);
       setReLocked(true);
     }
     function onStorage(e: StorageEvent) {
-      if (e.key === STORAGE_KEY && !e.newValue) {
-        setUnlocked(false);
-        setReLocked(true);
-      }
+      if (e.key === STORAGE_KEY && !e.newValue) relock();
     }
-    window.addEventListener("unstuck:locked", onLocked);
+    window.addEventListener("unstuck:locked", relock);
     window.addEventListener("storage", onStorage);
     return () => {
-      window.removeEventListener("unstuck:locked", onLocked);
+      window.removeEventListener("unstuck:locked", relock);
       window.removeEventListener("storage", onStorage);
     };
   }, []);

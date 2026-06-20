@@ -54,12 +54,13 @@ export async function verifyLicense(licenseKey: string): Promise<LicenseResult> 
 
   if (!data.success) return { valid: false, uses: 0, reason: "invalid_key" };
 
+  // Past this point Gumroad confirmed the key, so trust its uses (activations) counter.
   const p = data.purchase ?? {};
+  const uses = data.uses ?? 0;
   if (p.refunded || p.chargebacked || p.disputed) {
-    return { valid: false, uses: data.uses ?? 0, email: p.email, reason: "refunded_or_disputed" };
+    return { valid: false, uses, email: p.email, reason: "refunded_or_disputed" };
   }
 
-  const uses = data.uses ?? 0;
   if (uses > MAX_ACTIVATIONS) {
     return { valid: true, uses, overLimit: true, email: p.email, reason: "device_limit" };
   }

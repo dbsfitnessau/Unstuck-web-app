@@ -137,6 +137,20 @@ app.post("/api/access", accessLimiter, async (req, res) => {
   return res.status(401).json({ ok: false });
 });
 
+// Pull the chat history off the request and validate it BEFORE spending a single token on
+// Claude. On a bad payload this sends the 400 itself and returns null, so each handler can
+// just bail out; on success it returns the messages ready to pass to the coach. Both coach
+// endpoints share this exact entry step, so it lives in one place.
+function getValidMessages(req: express.Request, res: express.Response): ChatMessage[] | null {
+  const messages = req.body?.messages as ChatMessage[] | undefined;
+  const validationError = validateMessages(messages);
+  if (validationError) {
+    res.status(400).json({ error: validationError });
+    return null;
+  }
+  return messages!;
+}
+
 // Validate the body BEFORE spending a single token on Claude. Returns an error string if
 // the payload is malformed or oversized, otherwise null.
 function validateMessages(messages: unknown): string | null {
@@ -205,15 +219,11 @@ app.post("/api/account/delete", accessLimiter, async (req, res) => {
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.
 // coachLimiter runs first (rate limit), then we validate the body, then we call Claude.
 app.post("/api/coach", requireAccess, coachLimiter, async (req, res) => {
-  const messages = req.body?.messages as ChatMessage[] | undefined;
-
-  const validationError = validateMessages(messages);
-  if (validationError) {
-    return res.status(400).json({ error: validationError });
-  }
+  const messages = getValidMessages(req, res);
+  if (!messages) return;
 
   try {
-    const result = await runCoach(messages!);
+    const result = await runCoach(messages);
     res.json(result);
   } catch (err) {
     // Never leak internals (or the key) to the client. Log server-side, return a safe,
@@ -249,12 +259,8 @@ app.post("/api/coach", requireAccess, coachLimiter, async (req, res) => {
 // search began), `done` (with citations), or `error`. The browser shows the answer as it
 // types. Same friendly fallbacks as /api/coach.
 app.post("/api/coach/stream", requireAccess, coachLimiter, async (req, res) => {
-  const messages = req.body?.messages as ChatMessage[] | undefined;
-
-  const validationError = validateMessages(messages);
-  if (validationError) {
-    return res.status(400).json({ error: validationError });
-  }
+  const messages = getValidMessages(req, res);
+  if (!messages) return;
 
   // SSE headers. no-transform stops proxies from buffering the stream.
   res.setHeader("Content-Type", "text/event-stream");
@@ -267,7 +273,7 @@ app.post("/api/coach/stream", requireAccess, coachLimiter, async (req, res) => {
   };
 
   try {
-    const { citations } = await runCoachStream(messages!, {
+    const { citations } = await runCoachStream(messages, {
       onText: (delta) => send("delta", { text: delta }),
       onSearch: () => send("searching", {}),
     });

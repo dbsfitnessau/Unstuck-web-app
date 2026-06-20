@@ -19,6 +19,8 @@ export default function Home() {
   // How many of the 28 days are done, per the worksheet's own rules.
   const done = daysDone();
   const today = Math.min(done + 1, TOTAL_DAYS);
+  // Where the CTA should land you - read once (each call re-scans the log).
+  const due = nextDue();
 
   // Ring draw-on-load: render it EMPTY first, then flip to the real value one
   // frame later - the CSS transition animates the sweep.
@@ -61,7 +63,7 @@ export default function Home() {
         </p>
         {/* The CTA deep-links into the worksheet: ?week opens the right week
             tab, ?day scrolls to that day's card (QuickCards reads both). */}
-        <Link className="cta" to={`/worksheet?week=${nextDue().week}&day=${nextDue().day}`}>
+        <Link className="cta" to={`/worksheet?week=${due.week}&day=${due.day}`}>
           {done === 0 ? "Start Day 1" : `Continue Day ${today}`} →
         </Link>
       </div>
