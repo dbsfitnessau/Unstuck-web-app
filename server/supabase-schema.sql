@@ -190,6 +190,12 @@ create table if not exists public.coach_messages (
 create index if not exists coach_messages_user_time
   on public.coach_messages (user_id, created_at);
 
+-- Cap message length at the DATABASE (the client's maxlength is bypassable - a user
+-- could POST a huge body straight to the REST API). 1..4000 chars. Idempotent.
+alter table public.coach_messages drop constraint if exists coach_messages_body_len;
+alter table public.coach_messages add constraint coach_messages_body_len
+  check (char_length(body) between 1 and 4000);
+
 alter table public.coach_messages enable row level security;
 
 -- A user reads only their own thread...

@@ -12,6 +12,7 @@ import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js"
 import { verifySupabaseToken, supabaseConfigured } from "./supabaseAuth.js";
 import { deleteAccountByToken, accountDeletionConfigured } from "./account.js";
 import { notifyNewMessage, notifyConfigured } from "./notify.js";
+import { accessBodySchema, coachBodySchema, notifyBodySchema } from "./validation.js";
 import { timingSafeEqual } from "node:crypto";
 
 const app = express();
@@ -133,7 +134,9 @@ async function requireAccess(req: express.Request, res: express.Response, next: 
 // success returns a SIGNED session token to store (see auth.ts). Rate-limited to slow
 // guessing/brute-forcing.
 app.post("/api/access", accessLimiter, async (req, res) => {
-  const input = String(req.body?.code ?? "").trim();
+  const parsed = accessBodySchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ ok: false, error: "Invalid request." });
+  const input = parsed.data.code.trim();
 
   if (!gateEnabled) return res.json({ ok: true, token: signToken({ kind: "open" }) });
 
@@ -165,43 +168,17 @@ app.post("/api/access", accessLimiter, async (req, res) => {
   return res.status(401).json({ ok: false });
 });
 
-// Pull the chat history off the request and validate it BEFORE spending a single token on
-// Claude. On a bad payload this sends the 400 itself and returns null, so each handler can
-// just bail out; on success it returns the messages ready to pass to the coach. Both coach
+// Pull the chat history off the request and validate it (Zod) BEFORE spending a single
+// token on Claude. On a bad payload this sends the 400 itself and returns null, so each
+// handler can just bail out; on success it returns the parsed messages. Both coach
 // endpoints share this exact entry step, so it lives in one place.
 function getValidMessages(req: express.Request, res: express.Response): ChatMessage[] | null {
-  const messages = req.body?.messages as ChatMessage[] | undefined;
-  const validationError = validateMessages(messages);
-  if (validationError) {
-    res.status(400).json({ error: validationError });
+  const parsed = coachBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Invalid request body." });
     return null;
   }
-  return messages!;
-}
-
-// Validate the body BEFORE spending a single token on Claude. Returns an error string if
-// the payload is malformed or oversized, otherwise null.
-function validateMessages(messages: unknown): string | null {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return "Request body must include a non-empty 'messages' array.";
-  }
-  if (messages.length > MAX_MESSAGES) {
-    return `Too many messages (max ${MAX_MESSAGES}). Clear the chat and start fresh.`;
-  }
-  for (const m of messages) {
-    if (!m || typeof m !== "object") return "Each message must be an object.";
-    const { role, content } = m as { role?: unknown; content?: unknown };
-    if (role !== "user" && role !== "assistant") {
-      return "Each message 'role' must be 'user' or 'assistant'.";
-    }
-    if (typeof content !== "string" || content.trim().length === 0) {
-      return "Each message 'content' must be a non-empty string.";
-    }
-    if (content.length > MAX_CONTENT_CHARS) {
-      return `A message is too long (max ${MAX_CONTENT_CHARS} characters).`;
-    }
-  }
-  return null;
+  return parsed.data.messages;
 }
 
 // Friendly root message. This server is an API only (no web pages), so visiting "/" in a
@@ -264,8 +241,10 @@ function webhookAuthorized(req: express.Request): boolean {
 
 app.post("/api/coach/notify", async (req, res) => {
   if (!webhookAuthorized(req)) return res.status(401).json({ ok: false });
-  // Supabase webhook payload: { type, table, record, old_record, schema }.
-  const record = (req.body?.record ?? {}) as { sender?: string; body?: string };
+  // Supabase webhook payload: { type, table, record, old_record, schema }. Validate it.
+  const parsed = notifyBodySchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ ok: false });
+  const record = parsed.data.record;
   if (record.sender !== "user") return res.json({ ok: true, skipped: true }); // don't email on our own replies
   // Await the send so the response (and the Supabase webhook delivery log) reports
   // whether the email actually went out. Always 200 so a failed send can't make

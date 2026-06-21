@@ -87,7 +87,7 @@ async function deleteUserPhotos(uid: string): Promise<void> {
 // Delete the auth user. Cascades to profiles + progress via ON DELETE CASCADE.
 async function deleteAuthUser(uid: string): Promise<boolean> {
   try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${uid}`, {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(uid)}`, {
       method: "DELETE",
       headers: adminHeaders,
     });
