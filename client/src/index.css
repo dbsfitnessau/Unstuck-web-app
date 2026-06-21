@@ -958,6 +958,12 @@ input[type="number"]:focus, input[type="text"]:focus {
 .msg-citations { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 4px; }
 .msg-citations .citation { font-size: 13px; color: var(--olive); text-decoration: underline; word-break: break-word; }
 
+/* Timestamp inside a message bubble. Was using .muted (dark/dim) which is almost
+   invisible on the olive USER bubble - give it a light colour there instead. */
+.msg-time { display: block; margin-top: 4px; font-size: 11px; }
+.msg.user .msg-time { color: var(--on-olive); opacity: 0.75; }
+.msg.coach .msg-time { color: var(--text-dim); }
+
 /* Rendered Markdown inside a coach bubble. */
 .md > :first-child { margin-top: 0; }
 .md > :last-child { margin-bottom: 0; }

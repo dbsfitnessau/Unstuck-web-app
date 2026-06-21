@@ -82,7 +82,7 @@ export default function AdminInbox() {
           {thread.map((m) => (
             <div key={m.id} className={`msg ${m.sender}`}>
               <div style={{ whiteSpace: "pre-wrap" }}>{m.body}</div>
-              <span className="muted small">{fmtTime(m.created_at)}</span>
+              <span className="msg-time">{fmtTime(m.created_at)}</span>
             </div>
           ))}
         </div>
