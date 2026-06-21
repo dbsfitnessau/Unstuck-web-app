@@ -83,7 +83,7 @@ export default function Profile() {
         <p className="small muted" style={{ marginTop: 0 }}>
           Questions, feedback, or need a hand? We'd love to hear from you.
         </p>
-        <a className="contact-email" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("UNSTUCK enquiry")}`}>
+        <a className="cta" href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("UNSTUCK enquiry")}`}>
           Email DBS Fitness Australia
         </a>
       </section>
@@ -94,7 +94,7 @@ export default function Profile() {
           <p className="small muted" style={{ marginTop: 0 }}>
             Read and reply to messages from your users.
           </p>
-          <Link to="/inbox" className="contact-email">Open the message inbox</Link>
+          <Link to="/inbox" className="cta">Coach Inbox</Link>
         </section>
       )}
 
