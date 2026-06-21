@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../state/supabase";
 import { useSyncedStorage } from "../state/useSyncedStorage";
+import { getIsAdmin } from "../state/coachMessages";
 import { CONTACT_EMAIL } from "../data/legal";
 
 // Profile — opened by tapping the 💪 icon in the top bar (top-right); the
@@ -21,10 +22,12 @@ const EMPTY: ProfileData = { name: "", phone: "", dob: "", goals: "" };
 export default function Profile() {
   const [profile, setProfile] = useSyncedStorage<ProfileData>("unstuck:profile", EMPTY);
   const [email, setEmail] = useState("");
+  const [admin, setAdmin] = useState(false); // shows the coach inbox link
 
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user?.email ?? ""));
+    getIsAdmin().then(setAdmin);
   }, []);
 
   // Merge over EMPTY so every field exists even for older saved data.
@@ -84,6 +87,16 @@ export default function Profile() {
           Email DBS Fitness Australia
         </a>
       </section>
+
+      {admin && (
+        <section className="card">
+          <h3 style={{ marginTop: 0 }}>Coach</h3>
+          <p className="small muted" style={{ marginTop: 0 }}>
+            Read and reply to messages from your users.
+          </p>
+          <Link to="/inbox" className="contact-email">Open the message inbox</Link>
+        </section>
+      )}
 
       <section className="card">
         <button className="legal-btn-outline" onClick={signOut}>Sign out</button>

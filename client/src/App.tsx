@@ -18,7 +18,10 @@ const Search = lazy(() => import("./pages/Search"));
 const Legal = lazy(() => import("./pages/Legal"));
 const YourData = lazy(() => import("./pages/YourData"));
 const Profile = lazy(() => import("./pages/Profile"));
-const CoachPanel = lazy(() => import("./components/CoachPanel"));
+const AdminInbox = lazy(() => import("./pages/AdminInbox")); // coach-only message inbox
+// The message coach (human-answered, no AI/API cost). To switch back to the AI
+// coach, point this import at "./components/CoachPanel" instead — same props.
+const CoachPanel = lazy(() => import("./components/MessageCoachPanel"));
 
 // App is the top-level shell:
 //  - <TierProvider> shares the 🟢/🟡/🔴 choice with every screen.
@@ -77,6 +80,8 @@ export default function App() {
                 <Route path="/legal/:slug" element={<Legal />} />
                 <Route path="/your-data" element={<YourData />} />
                 <Route path="/profile" element={<Profile />} />
+                {/* Coach-only message inbox (access enforced server-side by RLS). */}
+                <Route path="/inbox" element={<AdminInbox />} />
                 {/* Anything unknown falls back to Home */}
                 <Route path="*" element={<Navigate to="/home" replace />} />
               </Routes>

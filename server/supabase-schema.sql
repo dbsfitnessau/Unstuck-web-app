@@ -146,3 +146,68 @@ drop policy if exists "delete own test photos" on storage.objects;
 create policy "delete own test photos" on storage.objects
   for delete to authenticated
   using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- ---------------------------------------------------------------------------
+-- 6. COACH MESSAGES: a human-answered message thread (NO AI, NO API tokens).
+--    Each signed-in user has one thread. They send messages tagged 'user';
+--    the coach (an admin) replies with rows tagged 'coach'. Same iron rule as
+--    everything else - a user only ever reads/writes their OWN messages.
+-- ---------------------------------------------------------------------------
+
+-- Flag for who the coach/admin is. After running this file once, set your own
+-- account to admin: Table Editor -> profiles -> your row -> is_admin = true.
+alter table public.profiles
+  add column if not exists is_admin boolean not null default false;
+
+-- Helper: "is the caller an admin?" Runs as SECURITY DEFINER so its read of
+-- profiles BYPASSES row-level security - which is what lets us reference it
+-- inside a profiles policy below WITHOUT causing infinite policy recursion.
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce((select p.is_admin from public.profiles p where p.id = auth.uid()), false);
+$$;
+
+-- The coach/admin can read EVERY user's profile, so the in-app inbox can show
+-- who each thread is from. Uses the helper above so it can't recurse.
+drop policy if exists "admin reads all profiles" on public.profiles;
+create policy "admin reads all profiles" on public.profiles
+  for select using (public.is_admin());
+
+create table if not exists public.coach_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  sender text not null check (sender in ('user', 'coach')),
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+-- Fast lookup of one user's thread, in order.
+create index if not exists coach_messages_user_time
+  on public.coach_messages (user_id, created_at);
+
+alter table public.coach_messages enable row level security;
+
+-- A user reads only their own thread...
+drop policy if exists "read own messages" on public.coach_messages;
+create policy "read own messages" on public.coach_messages
+  for select using (auth.uid() = user_id);
+
+-- ...and can only send messages as themselves, tagged 'user' (never 'coach').
+drop policy if exists "send own messages" on public.coach_messages;
+create policy "send own messages" on public.coach_messages
+  for insert with check (auth.uid() = user_id and sender = 'user');
+
+-- The coach/admin can read EVERY thread (to answer them)...
+drop policy if exists "admin reads all messages" on public.coach_messages;
+create policy "admin reads all messages" on public.coach_messages
+  for select using (public.is_admin());
+
+-- ...and can post replies tagged 'coach' to anyone's thread.
+drop policy if exists "admin sends replies" on public.coach_messages;
+create policy "admin sends replies" on public.coach_messages
+  for insert with check (sender = 'coach' and public.is_admin());
