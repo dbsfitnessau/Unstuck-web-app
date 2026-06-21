@@ -262,15 +262,16 @@ function webhookAuthorized(req: express.Request): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-app.post("/api/coach/notify", (req, res) => {
+app.post("/api/coach/notify", async (req, res) => {
   if (!webhookAuthorized(req)) return res.status(401).json({ ok: false });
   // Supabase webhook payload: { type, table, record, old_record, schema }.
   const record = (req.body?.record ?? {}) as { sender?: string; body?: string };
   if (record.sender !== "user") return res.json({ ok: true, skipped: true }); // don't email on our own replies
-  // Fire-and-forget the email and always 200, so a slow/failed send can't make
-  // Supabase retry-storm. notifyNewMessage no-ops safely if email isn't configured.
-  void notifyNewMessage(String(record.body ?? ""));
-  res.json({ ok: true });
+  // Await the send so the response (and the Supabase webhook delivery log) reports
+  // whether the email actually went out. Always 200 so a failed send can't make
+  // Supabase retry-storm; the body carries the real result for diagnostics.
+  const result = await notifyNewMessage(String(record.body ?? ""));
+  res.json({ ok: true, emailed: result.sent, configured: result.configured, ...(result.error ? { error: result.error } : {}) });
 });
 
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.

@@ -31,8 +31,14 @@ function getTransporter(): nodemailer.Transporter {
   return transporter;
 }
 
-export async function notifyNewMessage(body: string): Promise<boolean> {
-  if (!notifyConfigured) return false;
+export interface NotifyResult {
+  sent: boolean;
+  configured: boolean;
+  error?: string; // the SMTP error message, if the send failed (for diagnostics)
+}
+
+export async function notifyNewMessage(body: string): Promise<NotifyResult> {
+  if (!notifyConfigured) return { sent: false, configured: false };
   const preview = body.length > 600 ? body.slice(0, 600) + "…" : body;
   try {
     await getTransporter().sendMail({
@@ -41,9 +47,10 @@ export async function notifyNewMessage(body: string): Promise<boolean> {
       subject: "New UNSTUCK message",
       text: `A user sent you a message:\n\n"${preview}"\n\nRead and reply in your inbox:\n${APP_URL}/inbox`,
     });
-    return true;
+    return { sent: true, configured: true };
   } catch (err) {
-    console.error("[notify] email error:", err);
-    return false;
+    const error = err instanceof Error ? err.message : String(err);
+    console.error("[notify] email error:", error);
+    return { sent: false, configured: true, error };
   }
 }
