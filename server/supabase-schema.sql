@@ -202,6 +202,12 @@ drop policy if exists "send own messages" on public.coach_messages;
 create policy "send own messages" on public.coach_messages
   for insert with check (auth.uid() = user_id and sender = 'user');
 
+-- ...and may delete (unsend) their OWN messages. No update policy on purpose:
+-- messages stay immutable once sent, so a user can't edit a message you've replied to.
+drop policy if exists "delete own messages" on public.coach_messages;
+create policy "delete own messages" on public.coach_messages
+  for delete using (auth.uid() = user_id);
+
 -- The coach/admin can read EVERY thread (to answer them)...
 drop policy if exists "admin reads all messages" on public.coach_messages;
 create policy "admin reads all messages" on public.coach_messages
