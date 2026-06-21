@@ -34,6 +34,32 @@ if (process.env.TRUST_PROXY) {
   app.set("trust proxy", Number(process.env.TRUST_PROXY) || 1);
 }
 
+// ── Global rate limit: a baseline cap on EVERY route ────────────────────────────────────
+// No endpoint is ever unlimited (health check, root, and any future route included). The
+// stricter per-route limiters further down (coach = paid Anthropic API; access/delete =
+// sensitive) run ON TOP of this and trip first, so this is just the backstop.
+//   IMPORTANT: behind a proxy (Render, etc.) set TRUST_PROXY so this keys off the REAL
+//   client IP. Without it every request looks like it comes from the proxy's single IP,
+//   and this limiter would throttle all your users together. Tunable via env.
+const API_RATE_WINDOW_MS = Number(process.env.API_RATE_WINDOW_MS) || 60_000; // 1 minute
+const API_RATE_MAX = Number(process.env.API_RATE_MAX) || 60; // requests per IP per window
+
+const defaultLimiter = rateLimit({
+  windowMs: API_RATE_WINDOW_MS,
+  limit: API_RATE_MAX,
+  standardHeaders: "draft-7", // adds standard RateLimit-* headers (incl. Retry-After)
+  legacyHeaders: false,
+  handler: (_req, res) => {
+    res.status(429).json({
+      error: "Too many requests. Please slow down and try again in a minute.",
+      retryAfter: Math.ceil(API_RATE_WINDOW_MS / 1000),
+    });
+  },
+});
+
+// Register it before any route so it covers all of them.
+app.use(defaultLimiter);
+
 // ── Abuse guards ──────────────────────────────────────────────────────────────────────
 // /api/coach is unauthenticated (no logins — see spec). Two cheap protections stop a
 // stranger or a runaway script from burning your API credits:
@@ -295,6 +321,6 @@ const port = Number(process.env.PORT ?? 8787);
 app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
-  console.log(`Limits: ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
+  console.log(`Limits: global ${API_RATE_MAX} req/IP per ${API_RATE_WINDOW_MS / 1000}s · coach ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
   console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"}`);
 });
