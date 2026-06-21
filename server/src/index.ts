@@ -11,6 +11,8 @@ import { signToken, verifyToken } from "./auth.js";
 import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js";
 import { verifySupabaseToken, supabaseConfigured } from "./supabaseAuth.js";
 import { deleteAccountByToken, accountDeletionConfigured } from "./account.js";
+import { notifyNewMessage, notifyConfigured } from "./notify.js";
+import { timingSafeEqual } from "node:crypto";
 
 const app = express();
 
@@ -242,6 +244,31 @@ app.post("/api/account/delete", accessLimiter, async (req, res) => {
   return res.status(500).json({ ok: false });
 });
 
+// ── New-message notification (Supabase Database Webhook → email the coach) ─────────────
+// Supabase calls this when a row is inserted into coach_messages. We email the coach when
+// a USER sends a message. This isn't a user-facing route, so it isn't behind requireAccess;
+// instead it's locked with a shared secret (NOTIFY_WEBHOOK_SECRET) that the webhook sends
+// in an x-webhook-secret header, compared in constant time so only Supabase can trigger it.
+function webhookAuthorized(req: express.Request): boolean {
+  const secret = process.env.NOTIFY_WEBHOOK_SECRET ?? "";
+  const given = String(req.header("x-webhook-secret") ?? "");
+  if (!secret || !given) return false;
+  const a = Buffer.from(secret);
+  const b = Buffer.from(given);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+app.post("/api/coach/notify", (req, res) => {
+  if (!webhookAuthorized(req)) return res.status(401).json({ ok: false });
+  // Supabase webhook payload: { type, table, record, old_record, schema }.
+  const record = (req.body?.record ?? {}) as { sender?: string; body?: string };
+  if (record.sender !== "user") return res.json({ ok: true, skipped: true }); // don't email on our own replies
+  // Fire-and-forget the email and always 200, so a slow/failed send can't make
+  // Supabase retry-storm. notifyNewMessage no-ops safely if email isn't configured.
+  void notifyNewMessage(String(record.body ?? ""));
+  res.json({ ok: true });
+});
+
 // The one real endpoint. Body shape: { messages: [{ role, content }, ...] }.
 // coachLimiter runs first (rate limit), then we validate the body, then we call Claude.
 app.post("/api/coach", requireAccess, coachLimiter, async (req, res) => {
@@ -322,5 +349,5 @@ app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
   console.log(`Limits: global ${API_RATE_MAX} req/IP per ${API_RATE_WINDOW_MS / 1000}s · coach ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
-  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"}`);
+  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"} · Email notify: ${notifyConfigured ? "configured" : "off"}`);
 });
