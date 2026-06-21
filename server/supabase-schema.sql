@@ -84,7 +84,12 @@ create policy "insert own progress" on public.progress
 
 drop policy if exists "update own progress" on public.progress;
 create policy "update own progress" on public.progress
-  for update using (auth.uid() = user_id);
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- with check stops a user from re-assigning a row to someone else's user_id.
+
+drop policy if exists "delete own progress" on public.progress;
+create policy "delete own progress" on public.progress
+  for delete using (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
 -- 4. USER OVERVIEW: your queryable user record. Open Supabase -> Table Editor
@@ -134,7 +139,8 @@ create policy "insert own test photos" on storage.objects
 drop policy if exists "update own test photos" on storage.objects;
 create policy "update own test photos" on storage.objects
   for update to authenticated
-  using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+  using (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'test-photos' and (storage.foldername(name))[1] = auth.uid()::text);
 
 drop policy if exists "delete own test photos" on storage.objects;
 create policy "delete own test photos" on storage.objects
