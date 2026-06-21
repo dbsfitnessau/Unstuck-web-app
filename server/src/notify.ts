@@ -26,6 +26,11 @@ function getTransporter(): nodemailer.Transporter {
     transporter = nodemailer.createTransport({
       service: "gmail", // shortcut for smtp.gmail.com over TLS
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+      // Fail fast with a clear error instead of hanging if the host blocks the
+      // outbound SMTP port (some PaaS do) or the connection stalls.
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return transporter;
