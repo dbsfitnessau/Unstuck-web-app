@@ -224,6 +224,10 @@ app.get("/api/health", (_req, res) => {
     commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? "unknown",
     supabaseUrlSet: !!process.env.SUPABASE_URL,
     supabaseServiceKeySet: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    // Email-notification config visibility (booleans only — never the values),
+    // so a misconfigured notification setup can be diagnosed from the outside.
+    notifyConfigured, // GMAIL_USER + GMAIL_APP_PASSWORD both present
+    notifyWebhookSecretSet: !!process.env.NOTIFY_WEBHOOK_SECRET,
   });
 });
 
