@@ -1,39 +1,46 @@
 // notify.ts — emails the coach when a user sends a new message.
 //
-// Kept tiny and dependency-free: it POSTs to Resend's HTTP API (free tier is
-// plenty for this). It's best-effort — if email isn't configured or the send
-// fails, we just log it; the message is still safe in the inbox either way.
+// Sends through your OWN Gmail over SMTP, using an "App Password" (a 16-char
+// password Google generates just for this server — not your real password).
+// So alerts arrive FROM your own address, with no third-party email service.
+// It's best-effort: if email isn't configured or a send fails, we just log it;
+// the message is always safe in the inbox regardless.
 import "./env.js";
+import nodemailer from "nodemailer";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
-const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL ?? ""; // where alerts are sent (your DBS inbox)
-const NOTIFY_FROM = process.env.NOTIFY_FROM ?? "UNSTUCK <onboarding@resend.dev>";
+const GMAIL_USER = process.env.GMAIL_USER ?? ""; // e.g. dbsfitnessaustralia@gmail.com
+// Google shows the App Password as 4 groups of 4 with spaces ("abcd efgh ..."),
+// but SMTP wants it with no spaces — strip them so a copy-paste just works.
+const GMAIL_APP_PASSWORD = (process.env.GMAIL_APP_PASSWORD ?? "").replace(/\s+/g, "");
+const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || GMAIL_USER; // default: email yourself
+const NOTIFY_FROM = process.env.NOTIFY_FROM || `UNSTUCK <${GMAIL_USER}>`;
 const APP_URL = process.env.APP_URL ?? "https://unstuck-app.onrender.com";
 
-// True only when both the API key and a destination address are set.
-export const notifyConfigured = Boolean(RESEND_API_KEY && NOTIFY_EMAIL);
+// True only when both Gmail credentials are present.
+export const notifyConfigured = Boolean(GMAIL_USER && GMAIL_APP_PASSWORD);
+
+// Build the SMTP connection once, lazily, and reuse it.
+let transporter: nodemailer.Transporter | null = null;
+function getTransporter(): nodemailer.Transporter {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: "gmail", // shortcut for smtp.gmail.com over TLS
+      auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
+    });
+  }
+  return transporter;
+}
 
 export async function notifyNewMessage(body: string): Promise<boolean> {
   if (!notifyConfigured) return false;
   const preview = body.length > 600 ? body.slice(0, 600) + "…" : body;
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: NOTIFY_FROM,
-        to: NOTIFY_EMAIL,
-        subject: "New UNSTUCK message",
-        text: `A user sent you a message:\n\n"${preview}"\n\nRead and reply in your inbox:\n${APP_URL}/inbox`,
-      }),
+    await getTransporter().sendMail({
+      from: NOTIFY_FROM,
+      to: NOTIFY_EMAIL,
+      subject: "New UNSTUCK message",
+      text: `A user sent you a message:\n\n"${preview}"\n\nRead and reply in your inbox:\n${APP_URL}/inbox`,
     });
-    if (!res.ok) {
-      console.warn("[notify] email send failed:", res.status, await res.text().catch(() => ""));
-      return false;
-    }
     return true;
   } catch (err) {
     console.error("[notify] email error:", err);
