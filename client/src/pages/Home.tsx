@@ -125,7 +125,8 @@ export default function Home() {
       <Accordion icon="📖" title="Vocabulary">
         {cheatsheet.vocabulary.map((v, i) => (
           <div className="mini" key={i}>
-            <h5>{v.term}</h5>
+            <h5 style={{ marginBottom: v.sub ? 0 : undefined }}>{v.term}</h5>
+            {v.sub && <p className="small muted" style={{ margin: "0 0 4px" }}>{v.sub}</p>}
             <p>{v.meaning}</p>
             <p className="muted" style={{ marginTop: 4 }}><strong>Why you care:</strong> {v.why}</p>
           </div>
@@ -139,8 +140,8 @@ export default function Home() {
       <Accordion icon="❓" title="FAQ">
         {cheatsheet.faq.map((f, i) => (
           <div className="mini" key={i}>
-            <h5>{f.q}</h5>
-            <p>{f.a}</p>
+            <h5><span className="faq-q">Q.</span> {f.q}</h5>
+            <p style={{ whiteSpace: "pre-line" }}>{f.a}</p>
           </div>
         ))}
       </Accordion>

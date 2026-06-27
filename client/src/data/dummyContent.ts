@@ -29,7 +29,7 @@ export const CONTRAINDICATIONS =
 
 // ---- Cheatsheet ----
 export interface Principle { title: string; body: string; practical: string; }
-export interface Vocab { term: string; meaning: string; why: string; }
+export interface Vocab { term: string; sub: string; meaning: string; why: string; }
 export interface Faq { q: string; a: string; }
 
 export const cheatsheet = {
@@ -61,17 +61,25 @@ export const cheatsheet = {
     },
   ] as Principle[],
   vocabulary: [
-    { term: "CARs", meaning: "Controlled Articular Rotations - slow, full-range circles of one joint.", why: "Trains the joint to own its full range under your own control." },
-    { term: "PAILs", meaning: "At end range, push the stretched tissue into the floor/wall ~20s.", why: "Builds force production at end range." },
-    { term: "RAILs", meaning: "At end range, pull yourself deeper using the opposite muscles ~20s.", why: "Trains active control of new range." },
-    { term: "End range", meaning: "The deepest position you can get into.", why: "Where adaptation lives - and where injuries live if untrained." },
-    { term: "Joint capsule", meaning: "The connective sleeve around a joint.", why: "The deepest layer of 'tightness'. Slowest to adapt." },
+    { term: "CARs", sub: "Controlled Articular Rotations", meaning: "Active, full-range circles of one joint, slow and deliberate. Daily input from Week 1.", why: "Trains the joint to own its full range - under your own control." },
+    { term: "PAILs", sub: "Progressive Angular Isometric Loading", meaning: "At end range, isometrically push the stretched tissue into the floor or wall for 20 seconds at moderate effort.", why: "Builds force production at end range." },
+    { term: "RAILs", sub: "Regressive Angular Isometric Loading", meaning: "At end range, actively pull yourself deeper using the opposite muscles for 20 seconds.", why: "Trains active control of new range." },
+    { term: "End range", sub: "", meaning: "The deepest position you can get into.", why: "Where adaptation lives - and injuries too, if untrained." },
+    { term: "Closed-chain", sub: "", meaning: "Hand or foot is fixed (e.g. squat, push-up).", why: "More stable, more carryover to athletic positions." },
+    { term: "Open-chain", sub: "", meaning: "Limb moves freely (e.g. seated leg raise).", why: "Useful for isolation, less carryover." },
+    { term: "Capsule", sub: "", meaning: "The connective sleeve around a joint.", why: "The deepest layer of \"tightness.\" Slowest to adapt." },
+    { term: "Fascia", sub: "", meaning: "Connective tissue that wraps around everything.", why: "Real and important - but probably not what you think it is." },
+    { term: "Active control", sub: "", meaning: "Force production you generate at a given range.", why: "The whole point of this programme." },
   ] as Vocab[],
   faq: [
-    { q: "What you'll need", a: "Phone for photos/video · tape measure · dowel or broomstick · stable bench or bed · low block or stair · clear wall space." },
-    { q: "What if I miss a session?", a: "One missed session in 28 days is noise - pick up where you left off. Two+ in a week, restart the week." },
-    { q: "Should I train through DOMS?", a: "Mobility, yes - often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp." },
-    { q: "What if I'm travelling with no equipment?", a: "Run the 🟢 tier of every session. The bodyweight version is a complete program." },
+    { q: "What if I miss a session?", a: "One missed session in 28 days is noise - pick up where you left off, don't double up. Two or more in a week - restart the week. Consistent stimulus beats heroics." },
+    { q: "Should I train through DOMS?", a: "Mobility, yes. It's often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp or limits clean form. Drop a tier and keep moving." },
+    { q: "What if I'm sick?", a: "Above the neck (head cold, mild sore throat) - keep moving on the easy tier, skip breath holds. Below the neck (chest, fever, body aches) - rest fully, then resume where you stopped." },
+    { q: "Can I split a session in two?", a: "Yes. 10 minutes in the morning + 10 minutes in the evening works. Keep the order: CARs first, breath last." },
+    { q: "When to slot mobility around your other training?", a: "If you train in the morning, do mobility in the evening (or before bed) - keeps you fresh for the lift.\nIf you train in the afternoon or evening, do mobility in the morning - primes the joints for later loading.\nAvoid stacking a long deep-squat hold immediately before heavy squats. End-range mobility temporarily reduces stiffness, which you actually want for max strength." },
+    { q: "Travelling, no equipment?", a: "Run the Recreational tier (green) of every session. The bodyweight version of this program is a complete program." },
+    { q: "Pregnant or postpartum?", a: "See the disclaimer. Don't run this version. Work with a women's health physio on a custom adaptation." },
+    { q: "Keep the maintenance dose forever?", a: "Yes, that's the design. Re-run the full 28 days when a quarterly retest slips, after an injury or layoff, or before a big training block." },
   ] as Faq[],
 };
 
@@ -243,7 +251,7 @@ const programSearch: SearchItem[] = (() => {
 
 export const searchIndex: SearchItem[] = [
   ...cheatsheet.principles.map((p) => ({ title: p.title, text: p.body + " " + p.practical, surface: "Home", path: "/home" })),
-  ...cheatsheet.vocabulary.map((v) => ({ title: v.term, text: v.meaning + " " + v.why, surface: "Home", path: "/home" })),
+  ...cheatsheet.vocabulary.map((v) => ({ title: v.term, text: v.sub + " " + v.meaning + " " + v.why, surface: "Home", path: "/home" })),
   ...cheatsheet.faq.map((f) => ({ title: f.q, text: f.a, surface: "Home", path: "/home" })),
   ...tests.map((t) => ({ title: t.name, text: t.setup + " " + t.fields.map((f) => f.label).join(" "), surface: "Assessment", path: "/testing" })),
   ...programSearch,
