@@ -22,6 +22,11 @@ const INTRO =
   "Hi! Send me a message about your training - a swap, a niggle, a question - and " +
   "I'll reply right here. I'm a real person, so it might take a little while.";
 
+// Auto-acknowledgement shown (UI-only, not stored) whenever the user's latest
+// message hasn't been answered yet - reassurance that it landed, since the human
+// reply comes later. It disappears once a real coach reply arrives.
+const ACK = "Thanks for your message. We will respond to you soon.";
+
 export default function MessageCoachPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [input, setInput] = useState("");
   const [msgs, setMsgs] = useState<CoachMessage[]>([]);
@@ -127,11 +132,18 @@ export default function MessageCoachPanel({ open, onClose }: { open: boolean; on
               <div style={{ whiteSpace: "pre-wrap" }}>{INTRO}</div>
             </div>
           ) : (
-            msgs.map((m) => (
-              <div key={m.id} className={`msg ${m.sender}`}>
-                <div style={{ whiteSpace: "pre-wrap" }}>{m.body}</div>
-              </div>
-            ))
+            <>
+              {msgs.map((m) => (
+                <div key={m.id} className={`msg ${m.sender}`}>
+                  <div style={{ whiteSpace: "pre-wrap" }}>{m.body}</div>
+                </div>
+              ))}
+              {/* Auto-ack notification (not a chat bubble) under the user's latest
+                  unanswered message. */}
+              {msgs[msgs.length - 1].sender === "user" && (
+                <p className="coach-ack">{ACK}</p>
+              )}
+            </>
           )}
         </div>
         {error && <p className="muted small" style={{ padding: "0 var(--s-4)" }}>{error}</p>}

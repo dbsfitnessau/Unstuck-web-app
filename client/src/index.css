@@ -721,6 +721,13 @@ input[type="number"]:focus, input[type="text"]:focus {
 .photo-preview img { display: block; width: 100%; max-width: 400px; border-radius: var(--r-md); margin: 6px auto 0; }
 .photo-actions { display: flex; gap: 16px; margin-top: 6px; }
 
+/* Program session header: exercise name (left) and dose/direction (right) split
+   50/50, each wrapping in its own half. Without this the dose (e.g. "60 seconds
+   hold, then 20 seconds PAILs + 20 seconds RAILs") ran off the screen on one line. */
+.ex-head { display: flex; align-items: baseline; gap: var(--s-3); }
+.ex-head h3 { margin: 0; flex: 1 1 50%; min-width: 0; }
+.ex-dose { flex: 1 1 50%; min-width: 0; text-align: right; }
+
 .ex-field { font-size: 14px; line-height: 1.45; margin: var(--s-2) 0 0; }
 .ex-label {
   display: inline-block;
@@ -948,6 +955,16 @@ input[type="number"]:focus, input[type="text"]:focus {
 .msg { padding: 10px 14px; border-radius: var(--r-lg); max-width: 85%; font-size: 14px; box-shadow: var(--shadow-soft); animation: rise 0.35s var(--spring) both; }
 .msg.user { align-self: flex-end; background: var(--olive); color: var(--on-olive); border-bottom-right-radius: 6px; }
 .msg.coach { align-self: flex-start; background: var(--white); color: var(--text); border-bottom-left-radius: 6px; }
+/* Auto-ack: a light notification under the user's message, NOT a chat bubble. */
+.coach-ack {
+  align-self: flex-end;
+  max-width: 85%;
+  margin: -6px 4px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-dim);
+  text-align: right;
+}
 .coach-input { display: flex; gap: var(--s-2); padding: var(--s-3); border-top: 1px solid var(--line); }
 .coach-input input { flex: 1; }
 .coach-input input:disabled, .coach-input button:disabled { opacity: 0.55; cursor: not-allowed; }

@@ -109,9 +109,9 @@ export default function Program() {
         const isSkip = ex.tier.green.startsWith("SKIP");
         return (
           <div className={`card ${isSkip ? "warn-card" : ""}`} key={i} data-ex={ex.name}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <h3 style={{ margin: 0 }}>{i + 1}. {ex.name}</h3>
-              <span className="small muted" style={{ whiteSpace: "nowrap" }}>{ex.setsReps}</span>
+            <div className="ex-head">
+              <h3>{i + 1}. {ex.name}</h3>
+              <span className="small muted ex-dose">{ex.setsReps}</span>
             </div>
 
             {/* Full demonstration photo (800px square shots in /exercises/),
