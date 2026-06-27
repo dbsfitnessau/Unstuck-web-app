@@ -11,6 +11,11 @@ import { loadThread, sendMessage, type CoachMessage } from "../state/coachMessag
 // reply from the coach appears without the user refreshing.
 const POLL_MS = 10_000;
 const MAX_LEN = 2000;
+// localStorage key holding an ISO timestamp. "Clear" sets it to the latest shown
+// message's time, and the panel then hides anything at/older than it. The messages
+// are NOT deleted — every one stays in the database and the coach's inbox; this
+// only changes what THIS user sees in their own panel (and only on this device).
+const CLEARED_KEY = "unstuck:coach-cleared-at";
 
 // Shown when the thread is empty, so the first-time user knows what this is.
 const INTRO =
@@ -33,7 +38,12 @@ export default function MessageCoachPanel({ open, onClose }: { open: boolean; on
     let active = true;
     const refresh = async () => {
       const thread = await loadThread();
-      if (active && !sendingRef.current) setMsgs(thread);
+      // Hide anything at/older than the user's "cleared" cutoff (compare as epoch
+      // ms so any ISO format works). The DB rows are untouched.
+      const clearedAt = localStorage.getItem(CLEARED_KEY);
+      const cutoff = clearedAt ? new Date(clearedAt).getTime() : 0;
+      const visible = cutoff ? thread.filter((m) => new Date(m.created_at).getTime() > cutoff) : thread;
+      if (active && !sendingRef.current) setMsgs(visible);
     };
     setLoading(true);
     refresh().finally(() => {
@@ -83,6 +93,17 @@ export default function MessageCoachPanel({ open, onClose }: { open: boolean; on
     setSending(false);
   }
 
+  // Clear the user's VIEW only. Record a cutoff (the latest shown message's time) so
+  // the thread stays cleared across reloads/polls. Nothing is deleted: every message
+  // remains in the database and the coach's inbox.
+  function clearView() {
+    const cutoff = msgs.length ? msgs[msgs.length - 1].created_at : new Date().toISOString();
+    localStorage.setItem(CLEARED_KEY, cutoff);
+    setMsgs([]);
+    setInput("");
+    setError("");
+  }
+
   if (!open) return null;
 
   return (
@@ -92,6 +113,7 @@ export default function MessageCoachPanel({ open, onClose }: { open: boolean; on
         <div className="coach-head">
           <strong>Message your coach</strong>
           <div className="coach-head-actions">
+            <button className="checkbtn" onClick={clearView} disabled={msgs.length === 0}>Clear</button>
             <button className="checkbtn" onClick={onClose}>Close</button>
           </div>
         </div>
