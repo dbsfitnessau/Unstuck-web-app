@@ -131,10 +131,7 @@ export default function Home() {
             <p className="muted" style={{ marginTop: 4 }}><strong>Why you care:</strong> {v.why}</p>
           </div>
         ))}
-        {/* Method attribution - required, don't remove. */}
-        <p className="small muted" style={{ margin: "4px 2px 0" }}>
-          CARs and PAILs/RAILs come from Dr Andreo Spina's Functional Range Conditioning (FRC).
-        </p>
+        {/* FRC method attribution lives in the legal pages (IP & Copyright + disclaimer). */}
       </Accordion>
 
       <Accordion icon="❓" title="FAQ">
