@@ -29,7 +29,10 @@ interface Entry {
 }
 type Results = Record<string, Record<string, Entry>>; // testId -> dayNumber -> Entry
 
-const DEFAULT_MILESTONES = [0, 28, 56, 84];
+const DEFAULT_MILESTONES = [0, 28, 56, 84]; // Day 0 baseline + three 28-day retests; "+ Round" adds more, no cap
+// One-time reset: clears any rounds added before, snapping saved rounds back to
+// the 0..84 baseline once. Bump the key if you ever need to force it again.
+const ROUNDS_RESET_FLAG = "unstuck:test-rounds-84-reset";
 const roundLabel = (day: number) => `Day ${day}`;
 
 // Average of two numeric field values; "" if either is missing/non-numeric.
@@ -56,6 +59,21 @@ export default function Testing() {
   const [milestones, setMilestones] = useSyncedStorage<number[]>("unstuck:test-milestones", DEFAULT_MILESTONES);
   const [results, setResults] = useSyncedStorage<Results>("unstuck:test-results", {});
   const [activeDay, setActiveDay] = useState<number>(0);
+
+  // One-time "refresh to the 0..84 baseline": reset saved rounds to the default
+  // once (clears any rounds added before this), then "+ Round" adds more freely.
+  // Test RESULTS are untouched - only the list of round day-numbers is reset.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(ROUNDS_RESET_FLAG)) return;
+      localStorage.setItem(ROUNDS_RESET_FLAG, "1");
+      setMilestones(DEFAULT_MILESTONES);
+      setActiveDay(0);
+    } catch {
+      /* localStorage unavailable - skip the reset */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Read one test's entry for the active round. Defensive: older saved data
   // used a different shape ({ checks, metric }); we coerce to the new shape so
@@ -84,7 +102,7 @@ export default function Testing() {
     updateEntry(testId, (cur) => ({ values: cur.values ?? {}, photoPath: path }));
   }
 
-  // Add the next 28-day round (e.g. 84 -> 112) and jump to it.
+  // Add the next 28-day round (e.g. 84 -> 112) and jump to it. No upper limit.
   function addRound() {
     const next = (milestones[milestones.length - 1] ?? 0) + 28;
     setMilestones((prev) => [...prev, next]);
