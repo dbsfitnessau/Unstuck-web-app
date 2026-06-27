@@ -193,6 +193,15 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   color: var(--text);
 }
 .topbar .accent-dot { color: var(--olive); }
+/* Top-right actions: search emoji + profile U, sitting together. */
+.topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
+.topbar-search {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px; /* matches the avatar tap target */
+  font-size: 19px;
+  text-decoration: none;
+}
 .avatar {
   width: 34px; height: 34px;
   border-radius: 50%;
@@ -206,7 +215,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   color: var(--olive); /* olive-green U */
 }
 
-/* ---- Bottom navigation: floating frosted pill, six tabs ---- */
+/* ---- Bottom navigation: floating frosted pill, five tabs ---- */
 .bottom-nav {
   position: fixed;
   left: 50%;
@@ -215,7 +224,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   width: calc(100% - 24px);
   max-width: 600px;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -235,15 +244,15 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   border: none;
   background: none;
   cursor: pointer;
-  color: var(--text-dim);
+  color: var(--text);
   font-family: var(--font-ui);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   border-radius: var(--r-pill);
   transition: background 0.3s, color 0.3s, transform 0.3s var(--spring);
 }
-.bottom-nav .icon { font-size: 17px; line-height: 1; transition: transform 0.35s var(--spring); }
+.bottom-nav .icon { font-size: 19px; line-height: 1; transition: transform 0.35s var(--spring); }
 .bottom-nav a.active,
 .bottom-nav button.active { background: var(--olive); color: var(--on-olive); }
 .bottom-nav a:active,
@@ -378,6 +387,9 @@ button.primary:active, a.cta:active, button.cta:active { transform: scale(0.95);
 .tile.alt .ico { background: var(--olive-tint-2); }
 .tile h4 { font-family: var(--font-ui); font-weight: 800; font-size: 15px; margin: 0 0 4px; }
 .tile p { font-size: 12px; color: var(--text-dim); margin: 0; }
+/* Keep the three tier options together on one line under the intro. Slightly
+   smaller so all three + emoji fit the narrow wide-tile text column. */
+.tile-legend, .tier-legend { display: inline-block; white-space: nowrap; font-size: 11px; }
 .tile.wide { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: var(--s-3); }
 .tile.wide .ico { margin: 2px 0 0; flex: 0 0 auto; }
 

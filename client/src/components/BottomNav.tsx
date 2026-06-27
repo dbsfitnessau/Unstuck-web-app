@@ -12,7 +12,6 @@ const tabs = [
   { to: "/program", icon: "🗓", label: "Program" },
   { to: "/worksheet", icon: "✅", label: "Worksheet" },
   { to: "/testing", icon: "📐", label: "Assessment" },
-  { to: "/search", icon: "🔍", label: "Search" },
 ];
 
 export default function BottomNav({

@@ -76,7 +76,10 @@ export default function Home() {
           <span>
             <h4>Program</h4>
             <p>Your daily sessions. Pick a week, pick a day, follow each movement. Start honest, not heroic.</p>
-            <p style={{ marginTop: 6 }}>Every stretch has three options - 🟢 Recreational, 🟡 Intermediate, 🔴 Athlete.</p>
+            <p style={{ marginTop: 6 }}>
+              Every stretch has three options -<br />
+              <span className="tier-legend">🟢 Recreational, 🟡 Intermediate, 🔴 Athlete.</span>
+            </p>
           </span>
         </Link>
         <Link to="/worksheet" className="tile alt">
