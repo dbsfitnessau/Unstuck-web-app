@@ -59,7 +59,7 @@ export default function App() {
           <Link to="/home" className="topbar-home" aria-label="Home">
             <h1>UNSTUCK<span className="accent-dot">.</span></h1>
           </Link>
-          <Link to="/profile" className="avatar" aria-label="Open profile">💪</Link>
+          <Link to="/profile" className="avatar" aria-label="Open profile">U</Link>
         </header>
         <div className="app-content">
           {/* If a page throws while rendering, the boundary shows a recovery
