@@ -390,6 +390,12 @@ button.primary:active, a.cta:active, button.cta:active { transform: scale(0.95);
 /* Keep the three tier options together on one line under the intro. Slightly
    smaller so all three + emoji fit the narrow wide-tile text column. */
 .tile-legend, .tier-legend { display: inline-block; white-space: nowrap; font-size: 11px; }
+/* Wide (website) screens have room for the whole sentence on one line, so drop
+   the mobile-only line break. Phones keep the break (intro, then the colours). */
+@media (min-width: 600px) {
+  .legend-break { display: none; }
+  .tier-legend { font-size: inherit; }
+}
 .tile.wide { grid-column: 1 / -1; display: flex; align-items: flex-start; gap: var(--s-3); }
 .tile.wide .ico { margin: 2px 0 0; flex: 0 0 auto; }
 

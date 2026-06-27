@@ -77,7 +77,7 @@ export default function Home() {
             <h4>Program</h4>
             <p>Your daily sessions. Pick a week, pick a day, follow each movement. Start honest, not heroic.</p>
             <p style={{ marginTop: 6 }}>
-              Every stretch has three options -<br />
+              Every stretch has three options -<br className="legend-break" />{" "}
               <span className="tier-legend">🟢 Recreational, 🟡 Intermediate, 🔴 Athlete.</span>
             </p>
           </span>
@@ -92,21 +92,21 @@ export default function Home() {
           <h4>Assessment</h4>
           <p>Measure Day 0. Re-test every 28 days.</p>
         </Link>
-        <Link to="/search" className="tile">
-          <span className="ico" aria-hidden="true">🔍</span>
-          <h4>Search</h4>
-          <p>Any movement, term, or test in a second.</p>
-        </Link>
         {/* Coach isn't a route - it opens the coach sheet. App listens for this event. */}
         <button
           type="button"
-          className="tile alt"
+          className="tile"
           onClick={() => window.dispatchEvent(new Event("unstuck:coach"))}
         >
           <span className="ico" aria-hidden="true">💬</span>
           <h4>Coach</h4>
           <p>Stuck on a cue or need a swap? Ask anytime.</p>
         </button>
+        <Link to="/search" className="tile alt">
+          <span className="ico" aria-hidden="true">🔍</span>
+          <h4>Search</h4>
+          <p>Any movement, term, or test in a second.</p>
+        </Link>
       </div>
 
       {/* ---- Reference material, collapsed by default ---- */}
