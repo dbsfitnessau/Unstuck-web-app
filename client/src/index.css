@@ -964,6 +964,7 @@ input[type="number"]:focus, input[type="text"]:focus {
   font-style: italic;
   color: var(--text-dim);
   text-align: right;
+  white-space: pre-line; /* honour the line break in the message */
 }
 .coach-input { display: flex; gap: var(--s-2); padding: var(--s-3); border-top: 1px solid var(--line); }
 .coach-input input { flex: 1; }

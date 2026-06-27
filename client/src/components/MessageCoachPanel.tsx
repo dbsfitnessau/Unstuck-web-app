@@ -25,7 +25,7 @@ const INTRO =
 // Auto-acknowledgement shown (UI-only, not stored) whenever the user's latest
 // message hasn't been answered yet - reassurance that it landed, since the human
 // reply comes later. It disappears once a real coach reply arrives.
-const ACK = "Thanks for your message. We will respond to you soon.";
+const ACK = "Thanks for your message.\nWe will respond to you soon.";
 
 export default function MessageCoachPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [input, setInput] = useState("");
