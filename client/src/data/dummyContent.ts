@@ -107,6 +107,14 @@ export interface TestScore {
   field?: string;            // scorecard value = this field's value
   averageOf?: [string, string]; // scorecard value = mean of these two fields
   averageLabel?: string;     // on-card label for the computed average row
+  // 0–10 scoring anchors: the raw value that scores 0/10 and the one that
+  // scores 10/10. Values in between map linearly and clamp to 0..10. Set
+  // tenAt < zeroAt for "lower is better" tests (asymmetry, distance-to-wall) —
+  // the same maths then scores them the right way round. Anchored to the
+  // program's published benchmarks (UNSTUCK_01_Main_Program_REVISED.md);
+  // change any number here to re-scale a test's 0–10 score.
+  zeroAt?: number;           // raw value that scores 0/10
+  tenAt?: number;            // raw value that scores 10/10
 }
 
 export interface MobilityTest {
@@ -130,7 +138,7 @@ export const tests: MobilityTest[] = [
       { key: "spine", type: "check", label: "Spine stays long throughout?" },
       { key: "hold", type: "number", label: "Hold time before form breaks (or 60 seconds+)", unit: "seconds" },
     ],
-    score: { label: "Deep Squat Hold", unit: "sec", field: "hold" },
+    score: { label: "Deep Squat Hold", unit: "sec", field: "hold", zeroAt: 0, tenAt: 60 },
     image: "/exercises/deep-squat-hold.jpg",
   },
   {
@@ -144,7 +152,7 @@ export const tests: MobilityTest[] = [
       { key: "heelR", type: "check", label: "Heel stayed down", side: "right" },
       { key: "toeR", type: "number", label: "Toe to wall", unit: "cm", side: "right" },
     ],
-    score: { label: "Wall Ankle (Knee-to-Wall)", unit: "cm", averageOf: ["toeL", "toeR"], averageLabel: "Average (Toe to wall)" },
+    score: { label: "Wall Ankle (Knee-to-Wall)", unit: "cm", averageOf: ["toeL", "toeR"], averageLabel: "Average (Toe to wall)", zeroAt: 0, tenAt: 13 },
     image: "/exercises/wall-ankle-test.jpg",
   },
   {
@@ -155,7 +163,7 @@ export const tests: MobilityTest[] = [
       { key: "longspine", type: "check", label: "Did you stay long-spined?" },
       { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)" },
     ],
-    score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist" },
+    score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist", zeroAt: -10, tenAt: 15 },
     image: "/exercises/sit-and-reach.jpg",
   },
   {
@@ -167,7 +175,7 @@ export const tests: MobilityTest[] = [
       { key: "lowback", type: "choice", label: "Low back stays in contact?", options: ["Yes", "Lifted slightly", "Lifted heavily"] },
       { key: "wrist", type: "number", label: "Wrist to wall distance", unit: "cm" },
     ],
-    score: { label: "Wall Shoulder Flexion", unit: "cm", field: "wrist" },
+    score: { label: "Wall Shoulder Flexion", unit: "cm", field: "wrist", zeroAt: 20, tenAt: 0 },
     image: "/exercises/wall-shoulder-flexion.jpg",
   },
   {
@@ -182,7 +190,7 @@ export const tests: MobilityTest[] = [
       { key: "kneeR", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "right" },
       { key: "asym", type: "number", label: "Asymmetry", unit: "°" },
     ],
-    score: { label: "Thomas Test", unit: "°", field: "asym" },
+    score: { label: "Thomas Test", unit: "°", field: "asym", zeroAt: 20, tenAt: 0 },
     image: "/exercises/thomas-test.jpg",
   },
   {
@@ -196,7 +204,7 @@ export const tests: MobilityTest[] = [
       { key: "hipR", type: "check", label: "Right hip lifted?", side: "right" },
       { key: "rotR", type: "number", label: "Rotation", unit: "°", side: "right" },
     ],
-    score: { label: "Seated Thoracic Rotation", unit: "°", averageOf: ["rotL", "rotR"], averageLabel: "Rotation Average" },
+    score: { label: "Seated Thoracic Rotation", unit: "°", averageOf: ["rotL", "rotR"], averageLabel: "Rotation Average", zeroAt: 0, tenAt: 45 },
     image: "/exercises/seated-thoracic-rotation.jpg",
   },
   {
@@ -214,7 +222,7 @@ export const tests: MobilityTest[] = [
       { key: "legR", type: "check", label: "Straight leg fully flexed?", side: "right" },
       { key: "hipfloorR", type: "number", label: "Hip off floor", unit: "cm", side: "right" },
     ],
-    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average" },
+    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average", zeroAt: 25, tenAt: 0 },
     image: "/exercises/cossack-squat-depth.jpg",
   },
 ];

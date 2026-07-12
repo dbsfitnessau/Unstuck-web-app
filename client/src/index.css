@@ -527,6 +527,29 @@ table.grid th {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+/* Scorecard 0–10 layer: a highlighted headline row for "Overall mobility", and
+   a small olive score shown under each raw measurement. */
+table.grid tr.score-overall td {
+  background: var(--olive-tint);
+  color: var(--olive-deep);
+  font-weight: 800;
+  border-bottom: 2px solid var(--olive-tint-2);
+}
+.score-10 {
+  display: block;
+  margin-top: 2px;
+  color: var(--olive);
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+}
+/* Direction-aware "Change" cell: a positive magnitude, coloured olive for an
+   improvement and red when the test moved the wrong way — so a good result
+   never reads as a scary minus. */
+.chg { font-weight: 700; white-space: nowrap; }
+.chg-better { color: var(--olive-deep); }
+.chg-worse { color: var(--stop); }
+.chg-none { color: var(--text-dim); }
 
 /* ---- Forms ---- */
 /* Note: input[type="search"] is deliberately NOT in this width rule — the

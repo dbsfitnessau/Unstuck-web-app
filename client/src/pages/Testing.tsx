@@ -65,6 +65,40 @@ function scoreValue(t: MobilityTest, e: Entry | undefined): string {
   return "";
 }
 
+// Turn a test's raw scorecard value into a 0–10 score using its anchors:
+// linearly map so `zeroAt` -> 0 and `tenAt` -> 10, then clamp to 0..10. When a
+// test sets tenAt < zeroAt ("lower is better", e.g. asymmetry or distance to a
+// wall) the same formula scores it the right way round. Returns null when the
+// test has no anchors or this round has no numeric value.
+function score10(t: MobilityTest, raw: string): number | null {
+  const s = t.score;
+  if (!s || s.zeroAt == null || s.tenAt == null || s.tenAt === s.zeroAt) return null;
+  const v = parseFloat(raw);
+  if (isNaN(v)) return null;
+  const scaled = ((v - s.zeroAt) / (s.tenAt - s.zeroAt)) * 10;
+  return Math.max(0, Math.min(10, scaled));
+}
+
+type ChangeDir = "better" | "worse" | "none";
+
+// The Day 0 -> latest change for a test, as a positive magnitude + a direction.
+// Direction respects the test's "good way": when a test's 10/10 anchor sits
+// BELOW its 0/10 anchor (asymmetry, distance-to-a-wall), a FALLING raw number
+// is an improvement. We show the size of the change (always positive) and let
+// the "better"/"worse" word carry the direction, so a good result never shows
+// as a confusing minus.
+function changeOf(t: MobilityTest, baseline: string, latest: string): { mag: string; unit: string; dir: ChangeDir } {
+  const s = t.score!;
+  const unit = s.unit.replace(/\s*\([^)]*\)\s*/g, "").trim(); // "cm (+/-)" -> "cm"
+  if (!baseline || !latest || isNaN(+baseline) || isNaN(+latest)) return { mag: "", unit, dir: "none" };
+  const delta = +latest - +baseline;
+  if (delta === 0) return { mag: "0", unit, dir: "none" };
+  // Higher raw = better UNLESS the anchors say otherwise (tenAt < zeroAt).
+  const higherBetter = s.tenAt == null || s.zeroAt == null ? true : s.tenAt > s.zeroAt;
+  const better = higherBetter ? delta > 0 : delta < 0;
+  return { mag: Math.abs(delta).toFixed(1).replace(/\.0$/, ""), unit, dir: better ? "better" : "worse" };
+}
+
 export default function Testing() {
   const [milestones, setMilestones] = useSyncedStorage<number[]>("unstuck:test-milestones", DEFAULT_MILESTONES);
   const [results, setResults] = useSyncedStorage<Results>("unstuck:test-results", {});
@@ -430,6 +464,20 @@ function PhotoUpload({
   );
 }
 
+// One "Change" cell: a positive magnitude (or "–" when there's nothing to
+// compare). Colour carries the direction — a change that moved the wrong way
+// shows in red; improvements stay olive. Degrees hug the number; other units
+// get a space (e.g. "6°", "3 cm", "2.8 pts").
+function ChangeCell({ mag, unit, dir }: { mag: string; unit: string; dir: ChangeDir }) {
+  if (dir === "none" || !mag) return <td className="chg-none">–</td>;
+  const label = unit === "°" ? `${mag}°` : `${mag} ${unit}`;
+  return (
+    <td>
+      <span className={`chg chg-${dir}`}>{label}</span>
+    </td>
+  );
+}
+
 // Scorecard: for each test, show every round's value and the change from the
 // Day 0 baseline to the latest round that has a value. Rows follow the test
 // order; L/R tests contribute their average.
@@ -440,6 +488,7 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
       const byDay = results[t.id] ?? {};
       const valueAt = (day: number) => scoreValue(t, byDay[String(day)] as Entry | undefined);
       const values = milestones.map(valueAt);
+      const scores = values.map((v) => score10(t, v)); // 0–10 per round (or null)
       const baseline = valueAt(0);
       // Latest round (other than baseline) that actually has a value.
       let latest = "";
@@ -451,12 +500,30 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
           break;
         }
       }
-      const change =
-        baseline && latest && !isNaN(+baseline) && !isNaN(+latest)
-          ? (+latest - +baseline).toFixed(1)
-          : "-";
-      return { name: t.score!.label, unit: t.score!.unit, values, change };
+      const change = changeOf(t, baseline, latest); // { mag, unit, dir } — direction-aware
+      return { name: t.score!.label, unit: t.score!.unit, values, scores, change };
     });
+
+  // Overall mobility per round = the mean of every test's 0–10 score that has a
+  // value that round. This is the one friendly headline number on top.
+  const overall = milestones.map((_, idx) => {
+    const s = rows.map((r) => r.scores[idx]).filter((x): x is number => x != null);
+    return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null;
+  });
+  // Overall change: Day 0 -> the latest round that actually has an overall score.
+  const overallBase = overall[0];
+  let overallLatest: number | null = null;
+  for (let i = milestones.length - 1; i >= 0; i--) {
+    if (milestones[i] === 0) continue;
+    if (overall[i] != null) { overallLatest = overall[i]; break; }
+  }
+  // Overall change is in 0–10 points; higher overall is always better.
+  const overallDelta = overallBase != null && overallLatest != null ? overallLatest - overallBase : null;
+  const overallChange: { mag: string; unit: string; dir: ChangeDir } =
+    overallDelta == null || overallDelta === 0
+      ? { mag: overallDelta == null ? "" : "0", unit: "pts", dir: "none" }
+      : { mag: Math.abs(overallDelta).toFixed(1), unit: "pts", dir: overallDelta > 0 ? "better" : "worse" };
+  const fmt10 = (n: number | null) => (n == null ? "-" : n.toFixed(1));
 
   return (
     <>
@@ -473,22 +540,40 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
             </tr>
           </thead>
           <tbody>
+            {/* Headline: overall mobility out of 10, averaged across the tests. */}
+            <tr className="score-overall">
+              <td>Overall mobility <span className="muted small">(/10)</span></td>
+              {overall.map((n, j) => (
+                <td key={j}>{fmt10(n)}</td>
+              ))}
+              <ChangeCell {...overallChange} />
+            </tr>
             {rows.map((r, i) => (
               <tr key={i}>
                 <td>
                   {r.name} <span className="muted small">({r.unit})</span>
                 </td>
                 {r.values.map((v, j) => (
-                  <td key={j}>{v || "-"}</td>
+                  <td key={j}>
+                    {v || "-"}
+                    {r.scores[j] != null && (
+                      <span className="score-10">{r.scores[j]!.toFixed(1)}/10</span>
+                    )}
+                  </td>
                 ))}
-                <td style={{ color: r.change !== "-" ? "var(--olive)" : "var(--text-dim)", fontWeight: 700 }}>
-                  {r.change}
-                </td>
+                <ChangeCell {...r.change} />
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <p className="muted small" style={{ marginTop: "var(--s-2)" }}>
+        Each score is out of 10, anchored to the program's benchmarks. "Overall" is the
+        average across every test you logged that round. Change shows how far you moved from
+        Day 0 in each test's own units; a change shown in red means that test moved the wrong
+        way — this already accounts for the tests where a lower number is the goal (shoulder,
+        Thomas, Cossack).
+      </p>
     </>
   );
 }
