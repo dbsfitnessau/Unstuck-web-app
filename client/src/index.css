@@ -184,7 +184,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   border-bottom: 1px solid rgba(17, 17, 17, 0.06);
 }
 .topbar h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-ui); /* League Spartan - the DBS sub-heading font */
   font-size: 20px;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -192,7 +192,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   font-weight: 700;
   color: var(--text);
 }
-.topbar .accent-dot { color: var(--olive); }
+.accent-dot { color: var(--olive); } /* the olive dot on every UNSTUCK logo */
 /* Top-right actions: search emoji + profile U, sitting together. */
 .topbar-actions { display: flex; align-items: center; gap: var(--s-2); }
 .topbar-search {
@@ -208,7 +208,7 @@ h1, h2, h3, h4 { font-family: var(--font-ui); font-weight: 800; line-height: 1.1
   background: var(--olive-tint-2);
   display: grid;
   place-items: center;
-  font-family: var(--font-display); /* Oswald, matching the UNSTUCK logo */
+  font-family: var(--font-ui); /* League Spartan, matching the UNSTUCK logo */
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -1054,7 +1054,7 @@ input[type="number"]:focus, input[type="text"]:focus {
   text-align: center;
   animation: rise 0.5s var(--spring) both;
 }
-.gate-logo { font-family: var(--font-display); text-transform: uppercase; font-size: 36px; margin: 0 0 4px; }
+.gate-logo { font-family: var(--font-ui); text-transform: uppercase; font-size: 36px; margin: 0 0 4px; }
 .gate-tag { margin: 0 0 18px; }
 .gate-form { display: flex; flex-direction: column; gap: 10px; }
 .gate-error { color: #b3261e; margin: 12px 0 0; }
