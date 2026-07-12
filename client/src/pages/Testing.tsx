@@ -13,21 +13,31 @@ import { uploadTestPhoto, getTestPhotoUrl, deleteTestPhoto } from "../state/phot
 // a tick / number / choice, optionally tagged left or right. Left/right fields
 // render in a two-column block (left on the left, right on the right) so a
 // per-side assessment reads differently from a full-body test, with the
-// average shown underneath. Each test also takes a user-uploaded result photo,
-// stored in Supabase Storage (see state/photos.ts).
+// average shown underneath. Each test also takes any number of user-uploaded
+// result photos, stored in Supabase Storage (see state/photos.ts).
 //
 // Storage shapes (localStorage, mirrored to the cloud via useSyncedStorage):
 //   - milestones: the round day-numbers, e.g. [0, 28, 56, 84].
-//   - results: results[testId][day] = { values, photoPath }, where `values` is
+//   - results: results[testId][day] = { values, photoPaths }, where `values` is
 //     keyed by field key (boolean for ticks, string for numbers/choices) and
-//     `photoPath` is the Storage path of the uploaded photo, if any.
+//     `photoPaths` is the list of Storage paths of the uploaded photos. (Older
+//     saved data used a single `photoPath` string; we coerce it, see pathsOf.)
 // ---------------------------------------------------------------------------
 
 interface Entry {
   values: Record<string, string | boolean>;
-  photoPath?: string;
+  photoPaths?: string[];
 }
 type Results = Record<string, Record<string, Entry>>; // testId -> dayNumber -> Entry
+
+// A (possibly legacy) raw entry, plus the old single-photo field for migration.
+type RawEntry = Partial<Entry> & { photoPath?: string };
+
+// Read an entry's photo paths, coercing legacy single-photo data to an array.
+function pathsOf(raw: RawEntry | undefined): string[] {
+  if (raw?.photoPaths) return raw.photoPaths;
+  return raw?.photoPath ? [raw.photoPath] : [];
+}
 
 const DEFAULT_MILESTONES = [0, 28, 56, 84]; // Day 0 baseline + three 28-day retests; "+ Round" adds more, no cap
 // One-time reset: clears any rounds added before, snapping saved rounds back to
@@ -79,27 +89,31 @@ export default function Testing() {
   // used a different shape ({ checks, metric }); we coerce to the new shape so
   // a legacy entry shows blank fields rather than crashing the page.
   function entry(testId: string): Entry {
-    const raw = results[testId]?.[String(activeDay)] as Partial<Entry> | undefined;
-    return { values: raw?.values ?? {}, photoPath: raw?.photoPath };
+    const raw = results[testId]?.[String(activeDay)] as RawEntry | undefined;
+    return { values: raw?.values ?? {}, photoPaths: pathsOf(raw) };
   }
 
   // Both writers below patch the active round's entry for one test, leaving
   // every other test/round untouched. This shared helper does the drill-in and
   // write-back so the two only have to say *how* to change the current entry.
-  function updateEntry(testId: string, change: (cur: Partial<Entry>) => Entry) {
+  function updateEntry(testId: string, change: (cur: RawEntry) => Entry) {
     setResults((prev) => {
       const forTest = prev[testId] ?? {};
-      const cur = (forTest[String(activeDay)] as Partial<Entry> | undefined) ?? {};
+      const cur = (forTest[String(activeDay)] as RawEntry | undefined) ?? {};
       return { ...prev, [testId]: { ...forTest, [String(activeDay)]: change(cur) } };
     });
   }
 
   function setField(testId: string, key: string, value: string | boolean) {
-    updateEntry(testId, (cur) => ({ values: { ...(cur.values ?? {}), [key]: value }, photoPath: cur.photoPath }));
+    updateEntry(testId, (cur) => ({ values: { ...(cur.values ?? {}), [key]: value }, photoPaths: pathsOf(cur) }));
   }
 
-  function setPhotoPath(testId: string, path: string | undefined) {
-    updateEntry(testId, (cur) => ({ values: cur.values ?? {}, photoPath: path }));
+  function addPhoto(testId: string, path: string) {
+    updateEntry(testId, (cur) => ({ values: cur.values ?? {}, photoPaths: [...pathsOf(cur), path] }));
+  }
+
+  function removePhoto(testId: string, path: string) {
+    updateEntry(testId, (cur) => ({ values: cur.values ?? {}, photoPaths: pathsOf(cur).filter((p) => p !== path) }));
   }
 
   // Add the next 28-day round (e.g. 84 -> 112) and jump to it. No upper limit.
@@ -154,7 +168,8 @@ export default function Testing() {
           day={activeDay}
           entry={entry(t.id)}
           onField={(k, v) => setField(t.id, k, v)}
-          onPhoto={(p) => setPhotoPath(t.id, p)}
+          onAddPhoto={(p) => addPhoto(t.id, p)}
+          onRemovePhoto={(p) => removePhoto(t.id, p)}
         />
       ))}
 
@@ -170,13 +185,15 @@ function TestCard({
   day,
   entry,
   onField,
-  onPhoto,
+  onAddPhoto,
+  onRemovePhoto,
 }: {
   test: MobilityTest;
   day: number;
   entry: Entry;
   onField: (key: string, value: string | boolean) => void;
-  onPhoto: (path: string | undefined) => void;
+  onAddPhoto: (path: string) => void;
+  onRemovePhoto: (path: string) => void;
 }) {
   const sideFields = test.fields.filter((f) => f.side);
 
@@ -249,7 +266,7 @@ function TestCard({
         })()}
       </div>
 
-      <PhotoUpload testId={test.id} day={day} path={entry.photoPath} onChange={onPhoto} />
+      <PhotoUpload testId={test.id} day={day} paths={entry.photoPaths ?? []} onAdd={onAddPhoto} onRemove={onRemovePhoto} />
     </div>
   );
 }
@@ -311,90 +328,104 @@ function FieldInput({
   );
 }
 
-// Upload / view the user's own result photo for this test + round. The image
-// lives in Supabase Storage; we keep only its path in the synced results.
+// Upload / view the user's own result photos for this test + round. Several are
+// allowed; the images live in Supabase Storage and we keep only their paths in
+// the synced results.
 function PhotoUpload({
   testId,
   day,
-  path,
-  onChange,
+  paths,
+  onAdd,
+  onRemove,
 }: {
   testId: string;
   day: number;
-  path?: string;
-  onChange: (path: string | undefined) => void;
+  paths: string[];
+  onAdd: (path: string) => void;
+  onRemove: (path: string) => void;
 }) {
-  const [url, setUrl] = useState<string | null>(null);
+  const [urls, setUrls] = useState<Record<string, string>>({}); // path -> displayable URL
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Fetch a fresh signed URL whenever the stored path changes.
+  // Fetch a signed URL for any stored path we don't already have one for.
+  // (Freshly-uploaded paths already carry a local blob preview, so they're skipped.)
   useEffect(() => {
     let cancelled = false;
-    if (!path) {
-      setUrl(null);
-      return;
-    }
-    getTestPhotoUrl(path).then((u) => {
-      if (!cancelled) setUrl(u);
+    const missing = paths.filter((p) => !urls[p]);
+    if (missing.length === 0) return;
+    Promise.all(missing.map((p) => getTestPhotoUrl(p).then((u) => [p, u] as const))).then((pairs) => {
+      if (cancelled) return;
+      setUrls((prev) => {
+        const next = { ...prev };
+        for (const [p, u] of pairs) if (u) next[p] = u;
+        return next;
+      });
     });
     return () => {
       cancelled = true;
     };
-  }, [path]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paths.join("|")]);
 
+  // Upload every selected file, in order. Each gets an instant local preview.
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = ""; // let the user re-pick the same file later
-    if (!file) return;
+    if (files.length === 0) return;
     setBusy(true);
     setErr("");
-    setUrl(URL.createObjectURL(file)); // instant local preview
-    try {
-      const newPath = await uploadTestPhoto(testId, day, file);
-      onChange(newPath);
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Upload failed. Check your connection and try again.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onRemove() {
-    if (path) {
+    for (const file of files) {
       try {
-        await deleteTestPhoto(path);
-      } catch {
-        /* best-effort */
+        const newPath = await uploadTestPhoto(testId, day, file);
+        setUrls((prev) => ({ ...prev, [newPath]: URL.createObjectURL(file) }));
+        onAdd(newPath);
+      } catch (e) {
+        setErr(e instanceof Error ? e.message : "One or more uploads failed. Check your connection and try again.");
       }
     }
-    onChange(undefined);
-    setUrl(null);
+    setBusy(false);
+  }
+
+  async function remove(path: string) {
+    try {
+      await deleteTestPhoto(path);
+    } catch {
+      /* best-effort */
+    }
+    onRemove(path);
+    setUrls((prev) => {
+      const next = { ...prev };
+      delete next[path];
+      return next;
+    });
   }
 
   return (
     <div className="photo-upload">
-      <span className="ex-label">Your photo</span>
-      {url ? (
-        <div className="photo-preview">
-          <img src={url} alt="Your test result" />
-          <div className="photo-actions">
-            <button className="reset-link" onClick={() => fileRef.current?.click()} disabled={busy}>
-              {busy ? "Uploading…" : "Replace"}
-            </button>
-            <button className="reset-link" onClick={onRemove} disabled={busy}>
-              Remove
-            </button>
-          </div>
+      <span className="ex-label">Your photos</span>
+      {paths.length > 0 && (
+        <div className="photo-grid">
+          {paths.map((p) => (
+            <div className="photo-thumb" key={p}>
+              {urls[p] ? (
+                <img src={urls[p]} alt="Your test result" />
+              ) : (
+                <div className="photo-thumb__loading" aria-hidden="true">…</div>
+              )}
+              <button className="photo-thumb__remove" onClick={() => remove(p)} disabled={busy} aria-label="Remove photo">
+                ✕
+              </button>
+            </div>
+          ))}
         </div>
-      ) : (
-        <button className="photo-add" onClick={() => fileRef.current?.click()} disabled={busy}>
-          {busy ? "Uploading…" : "＋ Upload a photo of your result"}
-        </button>
       )}
+      <button className="photo-add" onClick={() => fileRef.current?.click()} disabled={busy}>
+        {busy ? "Uploading…" : paths.length ? "＋ Add more photos" : "＋ Upload photos of your result"}
+      </button>
       {err && <p className="gate-error small">{err}</p>}
-      <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
+      <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={onPick} />
     </div>
   );
 }

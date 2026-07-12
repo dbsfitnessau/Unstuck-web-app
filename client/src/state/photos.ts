@@ -7,8 +7,8 @@
 // kept in the synced test-results (so every device knows a photo exists and
 // can fetch it).
 //
-// Layout: one object per user / test / round at
-//   <userId>/<testId>/<day>.jpg
+// Layout: one object per uploaded photo (a test + round can have several) at
+//   <userId>/<testId>/<day>/<unique>.jpg
 // Row-level security (see server/supabase-schema.sql) lets each signed-in user
 // read/write only files under a folder named after their own user id.
 //
@@ -23,8 +23,12 @@ const QUALITY = 0.8;  // JPEG quality
 // failure points in compress() report the same message).
 const COMPRESS_ERROR = "Could not process the image.";
 
+// A UNIQUE object path per photo, so a test + round can hold several photos
+// without them overwriting each other. The first path segment stays <userId> so
+// the storage RLS ("each user only touches their own folder") still holds.
 function photoPath(userId: string, testId: string, day: number): string {
-  return `${userId}/${testId}/${day}.jpg`;
+  const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${userId}/${testId}/${day}/${unique}.jpg`;
 }
 
 async function currentUserId(): Promise<string | null> {
@@ -58,16 +62,16 @@ async function compress(file: File): Promise<Blob> {
   );
 }
 
-// Upload (or replace) the photo for a test + round. Returns the storage path.
+// Upload ONE photo for a test + round (several are allowed). Returns its path.
 export async function uploadTestPhoto(testId: string, day: number, file: File): Promise<string> {
   if (!supabase) throw new Error("No cloud connection — sign in to upload photos.");
   const userId = await currentUserId();
   if (!userId) throw new Error("Sign in to upload photos.");
   const blob = await compress(file);
-  const path = photoPath(userId, testId, day);
+  const path = photoPath(userId, testId, day); // unique per call
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(path, blob, { upsert: true, contentType: "image/jpeg" });
+    .upload(path, blob, { upsert: false, contentType: "image/jpeg" });
   if (error) throw error;
   return path;
 }

@@ -741,8 +741,18 @@ input[type="number"]:focus, input[type="text"]:focus {
   border: 1px dashed var(--line); background: var(--paper); color: var(--text-dim);
   border-radius: var(--r-md); font-family: var(--font-ui); font-weight: 700; cursor: pointer;
 }
-.photo-preview img { display: block; width: 100%; max-width: 400px; border-radius: var(--r-md); margin: 6px auto 0; }
-.photo-actions { display: flex; gap: 16px; margin-top: 6px; }
+/* Uploaded result photos: a wrap grid of square thumbnails, each removable. */
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+.photo-thumb { position: relative; width: 92px; height: 92px; border-radius: var(--r-md); overflow: hidden; }
+.photo-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb__loading { display: grid; place-items: center; width: 100%; height: 100%; background: var(--paper); color: var(--text-dim); }
+.photo-thumb__remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 22px; height: 22px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(17, 17, 17, 0.6); color: #fff;
+  font-size: 11px; line-height: 1; display: grid; place-items: center;
+}
+.photo-thumb__remove:disabled { opacity: 0.5; cursor: default; }
 
 /* Program session header: exercise name (left) and dose/direction (right) split
    50/50, each wrapping in its own half. Without this the dose (e.g. "60 seconds
