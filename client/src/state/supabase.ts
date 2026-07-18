@@ -30,3 +30,46 @@ export async function getCoachToken(): Promise<string> {
     return "";
   }
 }
+
+// Where the coach server lives (same value the access gate uses).
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787";
+
+// A user's access level. 'none' = signed up but not activated (must redeem a
+// license); 'beta'/'paid' = in. Only the SERVER can raise this — see the
+// server's entitlement.ts — so it's safe to trust here for showing/hiding UI.
+export type Entitlement = "none" | "beta" | "paid";
+
+// Read THIS signed-in user's entitlement from their own profile row. Row-level
+// security lets a user read only their own profile, so this is safe from the
+// browser. Fails "closed" (returns 'none') so a hiccup never wrongly unlocks.
+export async function getEntitlement(): Promise<Entitlement> {
+  if (!supabase) return "none";
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return "none";
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("entitlement")
+    .eq("id", uid)
+    .single();
+  if (error || !data) return "none";
+  return (data.entitlement as Entitlement) ?? "none";
+}
+
+// Send a Gumroad license key to the server to activate this account. The server
+// verifies it with Gumroad and binds it to the account; here we just report
+// success or the server's human-readable message.
+export async function redeemLicense(key: string): Promise<{ ok: boolean; message?: string }> {
+  const token = await getCoachToken(); // the signed-in user's Supabase session token
+  try {
+    const res = await fetch(`${API_URL}/api/redeem`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-access-token": token },
+      body: JSON.stringify({ code: key }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok && data.ok === true, message: data.message };
+  } catch {
+    return { ok: false, message: "Couldn't reach the server. Try again in a moment." };
+  }
+}

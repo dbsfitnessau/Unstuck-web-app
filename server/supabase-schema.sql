@@ -27,14 +27,53 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
--- Auto-create the profile row the moment someone signs up.
+-- One Gumroad license = one account, forever. This unique index is the hard
+-- guarantee behind the "you can't give it away" promise: once a key is stamped
+-- onto a profile, NO other profile can ever claim the same key. The server's
+-- redeem step checks first so it can show a friendly message, but even if that
+-- check lost a race, this index makes the second write fail at the database.
+-- It's a PARTIAL index (`where redeemed_code is not null`) so the many accounts
+-- that haven't redeemed yet — all with redeemed_code = null — don't collide.
+create unique index if not exists profiles_redeemed_code_key
+  on public.profiles (redeemed_code)
+  where redeemed_code is not null;
+
+-- PAID EMAILS: when someone buys on Gumroad, Gumroad pings the server, which
+-- records the buyer's email here (see entitlement.ts -> grantByEmail). This is
+-- how we know an email has paid BEFORE that person has ever signed in. The table
+-- is server-only: no RLS policies + revoked from public roles, so only the
+-- service-role key can read or write it. Emails are stored lowercased.
+create table if not exists public.entitled_emails (
+  email text primary key,
+  source text default 'gumroad',
+  created_at timestamptz not null default now()
+);
+alter table public.entitled_emails enable row level security;
+revoke all on public.entitled_emails from anon, authenticated;
+
+-- Auto-create the profile row the moment someone signs up — and if their email
+-- is already a known paid buyer (bought first, then signed in), unlock them on
+-- the spot. Otherwise they start at 'none' and unlock when their Gumroad ping
+-- arrives (grantByEmail also updates any existing profile).
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql security definer set search_path = public
 as $$
+declare
+  is_paid boolean;
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email)
+  select exists(
+    select 1 from public.entitled_emails e
+     where lower(e.email) = lower(new.email)
+  ) into is_paid;
+
+  insert into public.profiles (id, email, entitlement, entitlement_source)
+  values (
+    new.id,
+    new.email,
+    case when is_paid then 'paid' else 'none' end,
+    case when is_paid then 'gumroad' else null end
+  )
   on conflict (id) do nothing;
   return new;
 end;
@@ -223,3 +262,22 @@ create policy "admin reads all messages" on public.coach_messages
 drop policy if exists "admin sends replies" on public.coach_messages;
 create policy "admin sends replies" on public.coach_messages
   for insert with check (sender = 'coach' and public.is_admin());
+
+-- ---------------------------------------------------------------------------
+-- 7. ONE-TIME MIGRATION — grandfather existing testers (DO NOT auto-run).
+--    Once the app starts REQUIRING an entitlement to enter (Plan A), every
+--    account currently at 'none' would be locked out and asked for a license
+--    key. Before you deploy that, run ONE of the lines below ONCE to grant
+--    access to the people who are already in. This is commented out on purpose
+--    so re-running this whole file never re-grants access to new signups.
+--
+--    Grant to EVERY existing account (simplest — good for a private beta):
+--      update public.profiles set entitlement = 'beta',
+--             entitlement_source = 'grandfathered'
+--       where entitlement = 'none';
+--
+--    …or grant to a specific list of emails only (safer for a public launch):
+--      update public.profiles set entitlement = 'beta',
+--             entitlement_source = 'grandfathered'
+--       where email in ('tester1@example.com', 'tester2@example.com');
+-- ---------------------------------------------------------------------------

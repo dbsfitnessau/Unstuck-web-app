@@ -18,6 +18,16 @@ const PRODUCT_ID = process.env.GUMROAD_PRODUCT_ID ?? "";
 const PRODUCT_PERMALINK = process.env.GUMROAD_PRODUCT_PERMALINK ?? "";
 export const gumroadConfigured = PRODUCT_ID.length > 0 || PRODUCT_PERMALINK.length > 0;
 
+// Does a Gumroad sale notification refer to OUR product? Gumroad's "ping" (the
+// sale webhook) sends the product's id and permalink; we accept the sale only if
+// one of them matches what we configured — so pings for any other product on the
+// same Gumroad account are ignored. If nothing is configured, nothing matches.
+export function matchesOurProduct(productId: string, permalink: string): boolean {
+  if (PRODUCT_ID && productId && productId === PRODUCT_ID) return true;
+  if (PRODUCT_PERMALINK && permalink && permalink === PRODUCT_PERMALINK) return true;
+  return false;
+}
+
 // Max devices/activations per purchase. Generous enough for reinstalls; low enough to stop
 // "I bought it and shared the key with ten friends".
 export const MAX_ACTIVATIONS = Number(process.env.MAX_ACTIVATIONS) || 4;
@@ -35,7 +45,11 @@ export async function verifyLicense(licenseKey: string): Promise<LicenseResult> 
 
   const params = new URLSearchParams({
     license_key: licenseKey,
-    increment_uses_count: "true", // counts this as one activation
+    // We no longer use Gumroad's uses-counter as the anti-sharing limit — binding the
+    // key to a single ACCOUNT (see entitlement.ts) does that now, and it's stronger.
+    // So we DON'T increment: this is just a "is this a real purchase?" check, and a
+    // buyer re-entering their key (reinstall, retry) never trips a device cap.
+    increment_uses_count: "false",
   });
   // Prefer product_id; fall back to the easier-to-find permalink.
   if (PRODUCT_ID) params.set("product_id", PRODUCT_ID);

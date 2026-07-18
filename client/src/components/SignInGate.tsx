@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "../state/supabase";
 import { pullAll } from "../state/sync";
 import AccessGate from "./AccessGate";
+import EntitlementGate from "./EntitlementGate";
 
 // The front door. Replaces the beta access-code gate with real accounts:
 //
@@ -82,7 +83,10 @@ export default function SignInGate({ children }: { children: ReactNode }) {
     );
   }
 
-  if (session) return <>{children}</>;
+  // Signed in — but access now also requires an ACTIVATED account. EntitlementGate
+  // shows the app if this account has redeemed a license, or the "activate" screen
+  // (asking for the Gumroad key) if it hasn't.
+  if (session) return <EntitlementGate>{children}</EntitlementGate>;
 
   return (
     <div className="gate">

@@ -54,3 +54,29 @@ export async function verifySupabaseToken(token: string): Promise<boolean> {
     return false;
   }
 }
+
+// Like verifySupabaseToken, but returns WHO the user is (id + email) instead of
+// just yes/no. Redeeming a license needs the account id so we can stamp the
+// right profile row. Returns null if the token isn't a genuine signed-in user.
+// (No caching here: it's only called on the rare redeem action, not per request.)
+export interface SupabaseUser {
+  id: string;
+  email: string | null;
+}
+
+export async function getSupabaseUser(token: string): Promise<SupabaseUser | null> {
+  if (!supabaseConfigured) return null;
+  if (token.split(".").length !== 3) return null; // not a JWT (e.g. a beta code)
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const user = (await res.json()) as { id?: string; email?: string };
+    return user.id ? { id: user.id, email: user.email ?? null } : null;
+  } catch (err) {
+    console.error("[supabaseAuth] getSupabaseUser failed:", err);
+    return null;
+  }
+}

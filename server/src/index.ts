@@ -8,8 +8,9 @@ import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
 import { signToken, verifyToken } from "./auth.js";
-import { verifyLicense, gumroadConfigured, MAX_ACTIVATIONS } from "./gumroad.js";
-import { verifySupabaseToken, supabaseConfigured } from "./supabaseAuth.js";
+import { verifyLicense, gumroadConfigured, matchesOurProduct } from "./gumroad.js";
+import { getSupabaseUser, supabaseConfigured } from "./supabaseAuth.js";
+import { getEntitlement, redeemForUser, grantByEmail, revokeByEmail, entitlementConfigured } from "./entitlement.js";
 import { deleteAccountByToken, accountDeletionConfigured } from "./account.js";
 import { notifyNewMessage, notifyConfigured } from "./notify.js";
 import { accessBodySchema, coachBodySchema, notifyBodySchema } from "./validation.js";
@@ -20,6 +21,8 @@ const app = express();
 // Parse JSON request bodies (the chat history arrives as JSON). Cap the size so a
 // runaway client can't post megabytes.
 app.use(express.json({ limit: "1mb" }));
+// Gumroad's sale "ping" arrives as form-encoded data (not JSON), so parse that too.
+app.use(express.urlencoded({ extended: false, limit: "1mb" }));
 
 // CORS = which browser origins may call us. We allow only the Vite dev URLs by default
 // (configurable via CORS_ORIGIN). This is a guardrail, not the security boundary — the
@@ -113,15 +116,33 @@ const accessLimiter = rateLimit({
 });
 
 // Gate middleware for protected endpoints (the coach). When the gate is on, the request
-// must carry a valid credential in the x-access-token header. Three kinds are accepted,
-// oldest to newest: a raw beta code, a legacy signed token, or a Supabase session token
-// (a signed-in user). The first two stay during the accounts transition so nothing
-// breaks for existing testers; they retire in Phase 2.
+// must carry a valid credential in the x-access-token header. Kinds accepted, oldest to
+// newest: a raw beta code, a legacy signed token, or a Supabase session token from a
+// signed-in user. The first two stay during the accounts transition so nothing breaks for
+// existing testers. For the accounts path we go one step further than "signed in": the
+// account must also be ACTIVATED (entitlement 'beta' or 'paid'), so a free signup can't
+// use paid server features. This is the server-side half of the paywall — the browser
+// gate alone could be bypassed, this can't.
 async function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (!gateEnabled) return next();
   const token = String(req.header("x-access-token") ?? "").trim();
   if (ACCESS_CODES.includes(token) || verifyToken(token)) return next();
-  if (await verifySupabaseToken(token)) return next();
+
+  const user = await getSupabaseUser(token);
+  if (user) {
+    // If entitlements aren't wired up yet (older deploy), fall back to "signed in is
+    // enough" so a valid user is never locked out by missing config.
+    if (!entitlementConfigured) return next();
+    const ent = await getEntitlement(user.id);
+    if (ent !== "none") return next();
+    return res.status(403).json({
+      error: "Activation required.",
+      reply: "Your account isn't activated yet. Enter your license key to unlock the program.",
+      citations: [],
+      locked: true,
+    });
+  }
+
   return res.status(401).json({
     error: "Access required.",
     reply: "This is locked. Sign in (or enter your access code) to continue.",
@@ -130,9 +151,11 @@ async function requireAccess(req: express.Request, res: express.Response, next: 
   });
 }
 
-// The gate check the client calls. Validates a beta code OR a Gumroad license key, and on
-// success returns a SIGNED session token to store (see auth.ts). Rate-limited to slow
-// guessing/brute-forcing.
+// The legacy gate check, kept only for the beta-code fallback (old builds with no
+// Supabase config). It no longer handles Gumroad licenses: a license used to mint a
+// SIGNED token that anyone could copy out of their browser and share, bypassing every
+// limit. Licenses are now redeemed onto a specific ACCOUNT (see /api/redeem) instead —
+// access rides on the signed-in account, not on a copyable token.
 app.post("/api/access", accessLimiter, async (req, res) => {
   const parsed = accessBodySchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ ok: false, error: "Invalid request." });
@@ -140,32 +163,93 @@ app.post("/api/access", accessLimiter, async (req, res) => {
 
   if (!gateEnabled) return res.json({ ok: true, token: signToken({ kind: "open" }) });
 
-  // 1) Beta access code.
+  // Beta access code (the only thing this route still grants).
   if (ACCESS_CODES.includes(input)) {
     return res.json({ ok: true, token: signToken({ kind: "beta" }) });
   }
 
-  // 2) Gumroad license key.
-  if (gumroadConfigured && input) {
-    try {
-      const result = await verifyLicense(input);
-      if (result.valid && !result.overLimit) {
-        return res.json({ ok: true, token: signToken({ kind: "license" }) });
-      }
-      if (result.overLimit) {
-        return res.status(403).json({
-          ok: false,
-          reason: "device_limit",
-          message: `This purchase has reached its device limit (${MAX_ACTIVATIONS} devices). Use one of your existing devices, or contact support to reset it.`,
-        });
-      }
-    } catch (err) {
-      console.error("[/api/access] Gumroad verify error:", err);
-      return res.status(502).json({ ok: false, reason: "verify_failed", message: "Couldn't check your license right now — try again in a moment." });
-    }
+  return res.status(401).json({ ok: false });
+});
+
+// ── License redemption (bind a Gumroad key to THIS account) ───────────────────────────
+// The heart of the anti-sharing design. A SIGNED-IN user posts their Gumroad license key.
+// We (1) confirm who they are from their Supabase token, (2) verify the key is a real,
+// non-refunded purchase of OUR product with Gumroad, then (3) stamp their account as
+// 'paid' and BIND the key to it — so the same key can never activate a second account.
+// Sharing the key now does nothing; sharing access means sharing your own email login.
+app.post("/api/redeem", accessLimiter, async (req, res) => {
+  const parsed = accessBodySchema.safeParse(req.body); // reuse: same { code } shape
+  if (!parsed.success) return res.status(400).json({ ok: false, message: "Invalid request." });
+  const key = parsed.data.code.trim();
+  if (!key) return res.status(400).json({ ok: false, message: "Enter your license key." });
+
+  // Who is asking? Must be a genuinely signed-in Supabase user.
+  const token = String(req.header("x-access-token") ?? "").trim();
+  const user = await getSupabaseUser(token);
+  if (!user) return res.status(401).json({ ok: false, message: "Please sign in first, then enter your key." });
+
+  if (!gumroadConfigured || !entitlementConfigured) {
+    return res.status(503).json({ ok: false, message: "Activation isn't available right now — contact support." });
   }
 
-  return res.status(401).json({ ok: false });
+  // 1) + 2) Verify the key is a real, non-refunded purchase.
+  let result;
+  try {
+    result = await verifyLicense(key);
+  } catch (err) {
+    console.error("[/api/redeem] Gumroad verify error:", err);
+    return res.status(502).json({ ok: false, message: "Couldn't check your license right now — try again in a moment." });
+  }
+  if (!result.valid) {
+    return res.status(403).json({ ok: false, message: "That license key isn't valid (or the purchase was refunded). Check it and try again." });
+  }
+
+  // 3) Bind the key to THIS account. One key = one account, enforced in the database.
+  const outcome = await redeemForUser(user.id, user.email, key);
+  if (outcome === "ok") return res.json({ ok: true });
+  if (outcome === "already-other") {
+    return res.status(409).json({
+      ok: false,
+      message: "This license is already activated on another account. Sign in with the email you first used, or contact support to move it.",
+    });
+  }
+  return res.status(500).json({ ok: false, message: "Couldn't activate right now — try again in a moment." });
+});
+
+// ── Gumroad sale ping (auto-unlock by email) ──────────────────────────────────────────
+// Gumroad calls this on every sale/refund of our product. It's how a buyer gets access
+// with NOTHING to paste: we record their email as paid, and when they sign in with that
+// same email they're let straight in. Not a user-facing route, so it's not behind the
+// access gate — instead it's locked with a secret that lives in the URL Lea pastes into
+// Gumroad (…/api/gumroad/ping?secret=XXXX), compared in constant time so only Gumroad's
+// configured ping can trigger it. Always answers 200 on handled cases so Gumroad doesn't
+// retry-storm; the body says what happened for diagnostics.
+app.post("/api/gumroad/ping", async (req, res) => {
+  const secret = process.env.GUMROAD_PING_SECRET ?? "";
+  const given = String(req.query.secret ?? "");
+  const ok =
+    secret.length > 0 &&
+    given.length === secret.length &&
+    timingSafeEqual(Buffer.from(given), Buffer.from(secret));
+  if (!ok) return res.status(401).json({ ok: false });
+
+  if (!entitlementConfigured) {
+    console.error("[/api/gumroad/ping] received a sale but entitlements aren't configured (SUPABASE_URL / SERVICE_ROLE_KEY missing).");
+    return res.status(200).json({ ok: true, skipped: "not_configured" });
+  }
+
+  // Gumroad ping fields (form-encoded). Only act on OUR product.
+  const body = (req.body ?? {}) as Record<string, string>;
+  const email = String(body.email ?? "").trim().toLowerCase();
+  const productId = String(body.product_id ?? "");
+  const permalink = String(body.product_permalink ?? body.permalink ?? "");
+  const refunded = String(body.refunded ?? "false") === "true";
+
+  if (!matchesOurProduct(productId, permalink)) return res.json({ ok: true, skipped: "other_product" });
+  if (!email) return res.json({ ok: true, skipped: "no_email" });
+
+  const result = refunded ? await revokeByEmail(email) : await grantByEmail(email);
+  return res.json({ ok: result === "ok", action: refunded ? "revoked" : "granted" });
 });
 
 // Pull the chat history off the request and validate it (Zod) BEFORE spending a single
@@ -201,6 +285,9 @@ app.get("/api/health", (_req, res) => {
     commit: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? "unknown",
     supabaseUrlSet: !!process.env.SUPABASE_URL,
     supabaseServiceKeySet: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    // Auto-unlock-by-email (Gumroad ping) config visibility — booleans only.
+    gumroadProductSet: gumroadConfigured,
+    gumroadPingSecretSet: !!process.env.GUMROAD_PING_SECRET,
     // Email-notification config visibility (booleans only — never the values),
     // so a misconfigured notification setup can be diagnosed from the outside.
     notifyConfigured, // GMAIL_USER + GMAIL_APP_PASSWORD both present
