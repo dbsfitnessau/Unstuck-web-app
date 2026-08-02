@@ -181,7 +181,10 @@ export const tests: MobilityTest[] = [
       { key: "longspine", type: "check", label: "Did you stay long-spined?" },
       { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)", signed: true, signLabels: ["Short of toes", "Past toes"] },
     ],
-    score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist", zeroAt: -10, tenAt: 15 },
+    // Symmetric about the toes on purpose: fingertips level with your toes is the
+    // neutral mark and scores 5/10, 15cm past scores 10, 15cm short scores 0. See
+    // the Benchmark note in UNSTUCK_01_Main_Program_REVISED.md, Test 3.
+    score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist", zeroAt: -15, tenAt: 15 },
     image: "/exercises/sit-and-reach.jpg",
   },
   {

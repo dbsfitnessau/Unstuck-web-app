@@ -193,6 +193,8 @@ Record everything in the **Progress Worksheet** (separate document).
 
 **Measure:** Distance past or short of toes (cm).
 
+**Benchmark:** Fingertips **level with your toes is the neutral mark** — not restricted, not mobile, just even. The scorecard treats that as **5/10**, with 15cm past your toes scoring 10/10 and 15cm short scoring 0/10. Be careful comparing this number with anyone else's: sit-and-reach is strongly affected by the ratio of your arm length to your leg and torso length, so two people with identical hamstring length can score centimetres apart. Track your own change across 28 days — that delta is the honest signal, not the absolute number.
+
 **Why:** Hamstring length and lumbar/thoracic flexion combined.
 
 \[ILLUSTRATION PLACEHOLDER — Side-on long-sit reach with measuring marker.\]
