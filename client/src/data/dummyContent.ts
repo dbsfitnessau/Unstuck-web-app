@@ -201,14 +201,10 @@ export const tests: MobilityTest[] = [
     name: "Thomas Test",
     setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
     sideHeadings: ["Left leg down", "Right leg down"],
-    measureNote:
-      "\"Horizontal\" means the line of the bench top. " +
-      "Photograph each hanging leg with your phone off to one side, level with your " +
-      "hip, so the thigh and the bench edge are both in shot. If the thigh rests on that " +
-      "line or lower, enter 0 — nothing to measure. If it sits above the line, a tight hip " +
-      "flexor is holding it up: measure the angle between the thigh and the line with a " +
-      "free protractor app. Most people are 0–25°, and smaller is better. Enter both legs " +
-      "and the app works out your average (that's your score) and the gap between sides.",
+    // One line only, on purpose. Its job is to define the word the fields below
+    // use ("horizontal"), not to teach the method — the full how-to lives in the
+    // programme doc and the printed worksheet.
+    measureNote: "\"Horizontal\" means the line of the bench top.",
     fields: [
       { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
       { key: "kneeL", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "left" },
