@@ -202,18 +202,18 @@ export const tests: MobilityTest[] = [
     setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
     sideHeadings: ["Left leg down", "Right leg down"],
     measureNote:
-      "Measuring the thigh angle: get a side-on photo of each leg hanging (prop your " +
-      "phone on a chair, or ask someone). If the thigh rests level with the bench or " +
-      "lower, enter 0. If it sits higher than level, measure the angle between the thigh " +
-      "and level using a protractor app on the photo, and enter that. Most people are " +
-      "between 0° and 25°. Do each leg, and the app works out the difference for you.",
+      "\"Horizontal\" means the line of the bench top — parallel to the floor. Take a " +
+      "side-on photo of each leg hanging, with the bench edge in shot. If the thigh rests " +
+      "on that line or drops below it, enter 0. If it sits above the line, measure the " +
+      "angle between the thigh and the line with a protractor app and enter that. Most " +
+      "people are 0–25°. Do both legs — the app works out the difference for you.",
     fields: [
       { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
       { key: "kneeL", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "left" },
-      { key: "angleL", type: "number", label: "Thigh above level", unit: "°", side: "left" },
+      { key: "angleL", type: "number", label: "If above, how far above horizontal?", unit: "°", side: "left" },
       { key: "thighR", type: "check", label: "Thigh at or below horizontal?", side: "right" },
       { key: "kneeR", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "right" },
-      { key: "angleR", type: "number", label: "Thigh above level", unit: "°", side: "right" },
+      { key: "angleR", type: "number", label: "If above, how far above horizontal?", unit: "°", side: "right" },
     ],
     score: {
       label: "Thomas Test",
