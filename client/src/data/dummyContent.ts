@@ -162,7 +162,7 @@ export const tests: MobilityTest[] = [
   {
     id: "wall-ankle",
     name: "Wall Ankle Test",
-    setup: "Half-kneel facing wall, drive knee to wall with heel glued down. Measure toe-to-wall.",
+    setup: "Put one foot next to the tape measure. Slowly bend your front knee forward to touch the wall. If your knee touches easily, move your foot back from the wall. If your heel lifts up or your knee cannot reach, move your foot closer. Measure distance from big toe to wall.",
     sideHeadings: ["Left leg", "Right leg"],
     fields: [
       { key: "heelL", type: "check", label: "Heel stayed down", side: "left" },
