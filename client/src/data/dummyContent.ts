@@ -202,8 +202,8 @@ export const tests: MobilityTest[] = [
     setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
     sideHeadings: ["Left leg down", "Right leg down"],
     measureNote:
-      "\"Horizontal\" means the line of the bench top — the flat line parallel to the " +
-      "floor. Photograph each hanging leg with your phone off to one side, level with your " +
+      "\"Horizontal\" means the line of the bench top. " +
+      "Photograph each hanging leg with your phone off to one side, level with your " +
       "hip, so the thigh and the bench edge are both in shot. If the thigh rests on that " +
       "line or lower, enter 0 — nothing to measure. If it sits above the line, a tight hip " +
       "flexor is holding it up: measure the angle between the thigh and the line with a " +
