@@ -202,11 +202,13 @@ export const tests: MobilityTest[] = [
     setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
     sideHeadings: ["Left leg down", "Right leg down"],
     measureNote:
-      "\"Horizontal\" means the line of the bench top — parallel to the floor. Take a " +
-      "side-on photo of each leg hanging, with the bench edge in shot. If the thigh rests " +
-      "on that line or drops below it, enter 0. If it sits above the line, measure the " +
-      "angle between the thigh and the line with a protractor app and enter that. Most " +
-      "people are 0–25°. Do both legs — the app works out the difference for you.",
+      "\"Horizontal\" means the line of the bench top — the flat line parallel to the " +
+      "floor. Photograph each hanging leg with your phone off to one side, level with your " +
+      "hip, so the thigh and the bench edge are both in shot. If the thigh rests on that " +
+      "line or lower, enter 0 — nothing to measure. If it sits above the line, a tight hip " +
+      "flexor is holding it up: measure the angle between the thigh and the line with a " +
+      "free protractor app. Most people are 0–25°, and smaller is better. Enter both legs " +
+      "and the app works out your average (that's your score) and the gap between sides.",
     fields: [
       { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
       { key: "kneeL", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "left" },
