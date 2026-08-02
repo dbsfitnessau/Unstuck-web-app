@@ -149,7 +149,7 @@ export const tests: MobilityTest[] = [
   {
     id: "deep-squat",
     name: "Deep Squat Hold",
-    setup: "Feet shoulder-width, toes slightly out. Sink deep with clean form, hold until form breaks or 60 seconds.",
+    setup: "Stand with feet shoulder-width apart, toes pointing forward, and hold hands to chest. Slowly lower your hips as deep as possible, descending until your thighs break parallel below the level of your knees. Pause and hold the absolute bottom position, while maintaining balance and posture.",
     fields: [
       { key: "heels", type: "check", label: "Heels stay down throughout?" },
       { key: "knees", type: "check", label: "Knees track over toes throughout?" },
@@ -176,7 +176,7 @@ export const tests: MobilityTest[] = [
   {
     id: "sit-reach",
     name: "Sit and Reach",
-    setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.",
+    setup: "Sit on the floor with your legs straight out in front of you. Place the bottoms of your feet flat against a measuring tape. Keep your knees flat and locked on the floor. Reach forward from the hips slowly as far as you can. Hold your furthest reach for a moment and measure where fingertips land.",
     fields: [
       { key: "longspine", type: "check", label: "Did you stay long-spined?" },
       { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)", signed: true, signLabels: ["Short of toes", "Past toes"] },
@@ -190,7 +190,7 @@ export const tests: MobilityTest[] = [
   {
     id: "wall-shoulder",
     name: "Wall Shoulder Flexion",
-    setup: "Back, head, glutes and heels on wall. Arms overhead, try to touch the wall without arching.",
+    setup: "Stand with your back, glutes, and head touching a flat wall. Keep your feet a few inches away from the base. Press your lower back into the wall so there is no large gap. Keep your elbows straight and thumbs pointing up, then slowly lift both arms straight up toward the ceiling and back toward the wall. See if your thumbs and arms can touch the wall without your lower back arching away from it.",
     fields: [
       { key: "hands", type: "check", label: "Hands touch the wall?" },
       { key: "lowback", type: "choice", label: "Low back stays in contact?", options: ["Yes", "Lifted slightly", "Lifted heavily"] },
@@ -202,7 +202,7 @@ export const tests: MobilityTest[] = [
   {
     id: "thomas",
     name: "Thomas Test",
-    setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
+    setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides. Measure the distance from the bottom of your lower leg to the top of the horizontal surface.",
     sideHeadings: ["Left leg down", "Right leg down"],
     // One line only, on purpose. Its job is to define the word the fields below
     // use ("horizontal"), not to teach the method — the full how-to lives in the
@@ -248,7 +248,7 @@ export const tests: MobilityTest[] = [
   {
     id: "cossack",
     name: "Cossack Squat Depth",
-    setup: "Wide stance, shift to one leg, sink down. Loaded heel down, hip below knee, straight leg flexed.",
+    setup: "Stand with your feet much wider than your shoulders. Slowly bend one knee and push your hips down and back toward that heel. Keep your opposite leg completely straight with your foot flat. Try to keep the heel of your bending foot flat on the floor. Notice how low you can go without your heel rising or your chest collapsing forward.",
     sideHeadings: ["Left side", "Right side"],
     fields: [
       { key: "heelL", type: "check", label: "Heel down?", side: "left" },
