@@ -58,9 +58,13 @@ export default function SignInGate({ children }: { children: ReactNode }) {
     });
     setBusy(false);
     if (err) {
+      // Supabase's free email service allows only a couple of sign-in emails
+      // per hour ACROSS ALL USERS, so "rate limited" usually isn't this
+      // person's fault — and retrying in a minute won't help. Be honest about
+      // the wait so they don't hammer the button (which is what burns quota).
       setError(
-        err.message.includes("rate")
-          ? "Too many link requests — wait a minute and try again."
+        err.message.toLowerCase().includes("rate")
+          ? "Our email service has hit its hourly sending limit. If you requested a link earlier, check your inbox and spam first — otherwise wait an hour and try once more."
           : "Couldn't send the link. Check the email address and try again.",
       );
     } else {
@@ -93,6 +97,9 @@ export default function SignInGate({ children }: { children: ReactNode }) {
       <div className="gate-card">
         <h1 className="gate-logo">UNSTUCK<span className="accent-dot">.</span></h1>
         {sent ? (
+          // Once the link is sent, the button goes away on purpose: a second
+          // request invalidates the first link AND eats into the project-wide
+          // hourly email quota. The only job now is to open the email.
           <>
             <p className="gate-tag small">
               <strong>Check your email.</strong>
@@ -101,9 +108,9 @@ export default function SignInGate({ children }: { children: ReactNode }) {
               We sent a sign-in link to <strong>{email.trim()}</strong>. Open it on
               this device and you're in. (Check spam if it's not there in a minute.)
             </p>
-            <button className="reset-link" onClick={() => setSent(false)}>
-              Use a different email
-            </button>
+            <p className="small muted">
+              Typed the wrong address? Refresh this page to start over.
+            </p>
           </>
         ) : (
           <>
