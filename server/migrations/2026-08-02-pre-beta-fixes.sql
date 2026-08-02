@@ -1,5 +1,10 @@
 -- Pre-beta security fixes — 2 August 2026
 --
+-- STATUS: APPLIED to the production project (nxybhescxnfhkwzgxjra) on 2 Aug 2026.
+-- Verified afterwards: coach_messages has 5 policies, and the DELETE one reads
+-- ((auth.uid() = user_id) AND (sender = 'user'::text)). profiles has exactly one
+-- is_admin row. Kept here as the record of the change.
+--
 -- HOW TO RUN: Supabase dashboard -> SQL Editor -> New query -> paste this whole file
 -- -> Run. It is safe to run more than once.
 --
