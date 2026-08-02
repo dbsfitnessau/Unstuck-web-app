@@ -53,11 +53,22 @@ function avg(a: unknown, b: unknown): string {
   return String(Math.round(((x + y) / 2) * 10) / 10);
 }
 
+// The gap between two numeric field values, always positive; "" if either is
+// missing/non-numeric. Used for side-to-side asymmetry so the person records each
+// side and the app does the subtraction.
+function diff(a: unknown, b: unknown): string {
+  const x = parseFloat(String(a));
+  const y = parseFloat(String(b));
+  if (isNaN(x) || isNaN(y)) return "";
+  return String(Math.round(Math.abs(x - y) * 10) / 10);
+}
+
 // The scorecard value for a test from one round's entry (numeric string or "").
 function scoreValue(t: MobilityTest, e: Entry | undefined): string {
   const vals = e?.values ?? {};
   if (!t.score) return "";
   if (t.score.averageOf) return avg(vals[t.score.averageOf[0]], vals[t.score.averageOf[1]]);
+  if (t.score.diffOf) return diff(vals[t.score.diffOf[0]], vals[t.score.diffOf[1]]);
   if (t.score.field) {
     const v = vals[t.score.field];
     return v == null ? "" : String(v);
@@ -253,6 +264,13 @@ function TestCard({
         <img className="ex-image assessment-photo" src={test.image} alt={`${test.name} demonstration`} loading="lazy" />
       )}
       <p className="small muted">{test.setup}</p>
+      {/* How to arrive at the number, in plain language. Full width, because the
+          left/right columns below are too narrow to carry an instruction. */}
+      {test.measureNote && (
+        <p className="small measure-note">
+          <span aria-hidden="true">📏</span> {test.measureNote}
+        </p>
+      )}
 
       <div className="test-fields">
         {blocks.map((b, i) =>
@@ -295,6 +313,20 @@ function TestCard({
             <div className="test-average">
               <span className="ex-label">{s.averageLabel ?? "Average"}</span>
               <strong>{m === "" ? "—" : `${m} ${s.unit}`}</strong>
+            </div>
+          );
+        })()}
+
+        {/* Computed left-vs-right gap (feeds the scorecard). Shown so the number
+            being scored is visible, rather than appearing from nowhere. */}
+        {(() => {
+          const s = test.score;
+          if (!s?.diffOf) return null;
+          const d = diff(entry.values[s.diffOf[0]], entry.values[s.diffOf[1]]);
+          return (
+            <div className="test-average">
+              <span className="ex-label">{s.diffLabel ?? "Difference"}</span>
+              <strong>{d === "" ? "—" : `${d} ${s.unit}`}</strong>
             </div>
           );
         })()}

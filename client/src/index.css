@@ -735,6 +735,13 @@ input[type="number"]:focus, input[type="text"]:focus {
 /* ---- Assessment test fields (data-driven: tick / number / choice) ---- */
 .test-fields { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 4px; }
 .test-check { display: block; width: 100%; text-align: left; font-size: 13px; }
+/* "How to measure this" note above a test's fields. Olive tint so it reads as
+   help rather than a safety warning (those are the red treatment). */
+.measure-note {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin: 0 0 12px; padding: 10px 12px;
+  background: var(--olive-tint); border-radius: var(--r-md); color: var(--text-dim);
+}
 .test-field-label { display: block; margin-bottom: 4px; }
 .test-number { display: block; }
 .test-number input { width: 100%; }

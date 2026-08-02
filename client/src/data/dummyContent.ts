@@ -116,6 +116,11 @@ export interface TestScore {
   field?: string;            // scorecard value = this field's value
   averageOf?: [string, string]; // scorecard value = mean of these two fields
   averageLabel?: string;     // on-card label for the computed average row
+  // scorecard value = the gap between two fields, as a positive number. Use for
+  // side-to-side asymmetry: record each side, let the app do the subtraction —
+  // never ask someone to work out a difference in their head.
+  diffOf?: [string, string];
+  diffLabel?: string;        // on-card label for the computed difference row
   // 0–10 scoring anchors: the raw value that scores 0/10 and the one that
   // scores 10/10. Values in between map linearly and clamp to 0..10. Set
   // tenAt < zeroAt for "lower is better" tests (asymmetry, distance-to-wall) —
@@ -130,6 +135,10 @@ export interface MobilityTest {
   id: string;
   name: string;                     // card heading
   setup: string;
+  // "How to measure this" — shown full-width above the fields. Lives here rather
+  // than on a field because the left/right columns are far too narrow on a phone
+  // to hold an instruction, and the method is usually the same for both sides.
+  measureNote?: string;
   fields: TestField[];
   score: TestScore | null;          // null = not shown in the scorecard
   sideHeadings?: [string, string];  // column headers for the L/R block
@@ -192,14 +201,28 @@ export const tests: MobilityTest[] = [
     name: "Thomas Test",
     setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides.",
     sideHeadings: ["Left leg down", "Right leg down"],
+    measureNote:
+      "Measuring the thigh angle: get a side-on photo of each leg hanging (prop your " +
+      "phone on a chair, or ask someone). If the thigh rests level with the bench or " +
+      "lower, enter 0. If it sits higher than level, measure the angle between the thigh " +
+      "and level using a protractor app on the photo, and enter that. Most people are " +
+      "between 0° and 25°. Do each leg, and the app works out the difference for you.",
     fields: [
       { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
       { key: "kneeL", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "left" },
+      { key: "angleL", type: "number", label: "Thigh above level", unit: "°", side: "left" },
       { key: "thighR", type: "check", label: "Thigh at or below horizontal?", side: "right" },
       { key: "kneeR", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "right" },
-      { key: "asym", type: "number", label: "Asymmetry", unit: "°" },
+      { key: "angleR", type: "number", label: "Thigh above level", unit: "°", side: "right" },
     ],
-    score: { label: "Thomas Test", unit: "°", field: "asym", zeroAt: 20, tenAt: 0 },
+    score: {
+      label: "Thomas Test",
+      unit: "°",
+      diffOf: ["angleL", "angleR"],
+      diffLabel: "Difference between sides",
+      zeroAt: 20,
+      tenAt: 0,
+    },
     image: "/exercises/thomas-test.jpg",
   },
   {
