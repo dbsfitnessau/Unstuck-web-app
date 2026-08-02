@@ -818,6 +818,28 @@ input[type="number"]:focus, input[type="text"]:focus {
 }
 .contra .ex-label { color: var(--stop); }
 
+/* ---- Worksheet: weeks 3-4 warm-up row (tickable, above the stretches) ---- */
+.warmup-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  padding: var(--s-3);
+  background: var(--olive-tint);
+  border-radius: var(--r-md);
+}
+.warmup-row .checkbtn { flex: 0 0 auto; border-radius: 50%; width: 36px; height: 36px; padding: 0; }
+.warmup-row.done .warmup-label { opacity: 0.55; transition: opacity 0.3s; }
+.warmup-label { font-size: 13px; line-height: 1.4; color: var(--olive-deep); }
+.warmup-label strong {
+  display: block;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  color: var(--olive);
+}
+
 /* ---- Worksheet: compact per-stretch list under each training day ---- */
 .stretch-list { margin-top: var(--s-3); border-top: 1px solid var(--line); }
 .stretch-row {

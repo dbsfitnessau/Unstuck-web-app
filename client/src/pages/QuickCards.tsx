@@ -30,9 +30,12 @@ import Timer from "../components/Timer";
 
 // One day's log. `stretchDone` is keyed by the stretch's index in the session.
 // Empty strings / empty object = "not filled in yet".
-interface Entry { tier: Tier | ""; effort: string; load: string; note: string; stretchDone: Record<number, boolean>; rested: boolean; }
+// `warmedUp` is the weeks-3/4 warm-up tick. It's a logged item (like effort /
+// load / note), NOT a completion gate — a day still counts as done on its
+// stretches alone, so adding this never un-completes anyone's past sessions.
+interface Entry { tier: Tier | ""; effort: string; load: string; note: string; stretchDone: Record<number, boolean>; rested: boolean; warmedUp: boolean; }
 interface Reflection { hardest: string; surprising: string; differently: string; }
-const EMPTY_ENTRY: Entry = { tier: "", effort: "", load: "", note: "", stretchDone: {}, rested: false };
+const EMPTY_ENTRY: Entry = { tier: "", effort: "", load: "", note: "", stretchDone: {}, rested: false, warmedUp: false };
 const EMPTY_REFLECTION: Reflection = { hardest: "", surprising: "", differently: "" };
 
 interface LogState {
@@ -114,7 +117,7 @@ export default function QuickCards() {
   // load and quick note all clear. "Today's colour" (tier) is kept - it's a
   // preference, not part of the day's log.
   const resetDay = (week: number, day: number) =>
-    setEntry(week, day, { stretchDone: {}, effort: "", load: "", note: "" });
+    setEntry(week, day, { stretchDone: {}, effort: "", load: "", note: "", warmedUp: false });
 
   const reflection = (week: number): Reflection =>
     ({ ...EMPTY_REFLECTION, ...log.reflections[week] });
@@ -218,6 +221,26 @@ export default function QuickCards() {
                     ))}
                   </div>
                 </div>
+
+                {/* Weeks 3-4 (loaded) sessions start with a warm-up. Shown as a
+                    tickable row above the stretches so it can be marked off like
+                    the rest of the session (but it doesn't gate "Done"). */}
+                {w.loaded && (
+                  <div className={`warmup-row ${e.warmedUp ? "done" : ""}`}>
+                    <button
+                      className={`checkbtn ${e.warmedUp ? "on" : ""}`}
+                      aria-pressed={e.warmedUp}
+                      aria-label="Mark warm-up done"
+                      onClick={() => setEntry(w.week, d.day, { warmedUp: !e.warmedUp })}
+                    >
+                      {e.warmedUp ? "✓" : "○"}
+                    </button>
+                    <span className="warmup-label">
+                      <strong>Warm-up</strong>
+                      Warm up 2–3 min first (brisk walk, 30 jumping jacks, or skipping).
+                    </span>
+                  </div>
+                )}
 
                 <StretchChecklist
                   exercises={stretchesFor(w.week, d.day)}
