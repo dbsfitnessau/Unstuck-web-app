@@ -234,7 +234,7 @@ export const tests: MobilityTest[] = [
   {
     id: "tspine-rot",
     name: "Seated Thoracic Rotation",
-    setup: "Sit with a cushion between knees, arms crossed. Rotate each way without lifting hips (target: 45°+).",
+    setup: "Sit on a chair or box with your feet flat. Knees and feet pinned tightly together to lock the lower body. Place a light stick across the top of your shoulders, holding it with your hands. Turn your upper body as far as possible to the right, then to the left.",
     sideHeadings: ["Left", "Right"],
     fields: [
       { key: "hipL", type: "check", label: "Left hip lifted?", side: "left" },
