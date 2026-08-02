@@ -116,11 +116,6 @@ export interface TestScore {
   field?: string;            // scorecard value = this field's value
   averageOf?: [string, string]; // scorecard value = mean of these two fields
   averageLabel?: string;     // on-card label for the computed average row
-  // scorecard value = the gap between two fields, as a positive number. Use for
-  // side-to-side asymmetry: record each side, let the app do the subtraction —
-  // never ask someone to work out a difference in their head.
-  diffOf?: [string, string];
-  diffLabel?: string;        // on-card label for the computed difference row
   // 0–10 scoring anchors: the raw value that scores 0/10 and the one that
   // scores 10/10. Values in between map linearly and clamp to 0..10. Set
   // tenAt < zeroAt for "lower is better" tests (asymmetry, distance-to-wall) —
@@ -139,6 +134,11 @@ export interface MobilityTest {
   // than on a field because the left/right columns are far too narrow on a phone
   // to hold an instruction, and the method is usually the same for both sides.
   measureNote?: string;
+  // Show the gap between two numeric fields on the card, as a positive number.
+  // Purely informational — side-to-side balance is worth seeing, but scoring it
+  // would rank someone equally tight on both sides as perfect. Record each side
+  // and let the app subtract; never ask for a difference to be worked out by hand.
+  showDifference?: { of: [string, string]; label: string };
   fields: TestField[];
   score: TestScore | null;          // null = not shown in the scorecard
   sideHeadings?: [string, string];  // column headers for the L/R block
@@ -215,12 +215,17 @@ export const tests: MobilityTest[] = [
       { key: "kneeR", type: "check", label: "Knee bend ~80°+ at the knee joint?", side: "right" },
       { key: "angleR", type: "number", label: "If above, how far above horizontal?", unit: "°", side: "right" },
     ],
+    showDifference: { of: ["angleL", "angleR"], label: "Difference between sides" },
+    // Scored on the AVERAGE of the two legs, not the gap between them: hip flexor
+    // length is what the programme trains, and scoring the gap alone would hand
+    // 10/10 to someone equally tight on both sides. 25° -> 0/10, flat -> 10/10,
+    // matching the 0–25° range the main programme quotes for this test.
     score: {
       label: "Thomas Test",
       unit: "°",
-      diffOf: ["angleL", "angleR"],
-      diffLabel: "Difference between sides",
-      zeroAt: 20,
+      averageOf: ["angleL", "angleR"],
+      averageLabel: "Average (above horizontal)",
+      zeroAt: 25,
       tenAt: 0,
     },
     image: "/exercises/thomas-test.jpg",

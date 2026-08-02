@@ -68,7 +68,6 @@ function scoreValue(t: MobilityTest, e: Entry | undefined): string {
   const vals = e?.values ?? {};
   if (!t.score) return "";
   if (t.score.averageOf) return avg(vals[t.score.averageOf[0]], vals[t.score.averageOf[1]]);
-  if (t.score.diffOf) return diff(vals[t.score.diffOf[0]], vals[t.score.diffOf[1]]);
   if (t.score.field) {
     const v = vals[t.score.field];
     return v == null ? "" : String(v);
@@ -317,16 +316,16 @@ function TestCard({
           );
         })()}
 
-        {/* Computed left-vs-right gap (feeds the scorecard). Shown so the number
-            being scored is visible, rather than appearing from nowhere. */}
+        {/* Computed left-vs-right gap. Informational only — it isn't scored, so
+            it sits below the average in a quieter treatment. */}
         {(() => {
-          const s = test.score;
-          if (!s?.diffOf) return null;
-          const d = diff(entry.values[s.diffOf[0]], entry.values[s.diffOf[1]]);
+          const sd = test.showDifference;
+          if (!sd) return null;
+          const d = diff(entry.values[sd.of[0]], entry.values[sd.of[1]]);
           return (
-            <div className="test-average">
-              <span className="ex-label">{s.diffLabel ?? "Difference"}</span>
-              <strong>{d === "" ? "—" : `${d} ${s.unit}`}</strong>
+            <div className="test-average test-average--muted">
+              <span className="ex-label">{sd.label}</span>
+              <strong>{d === "" ? "—" : `${d} ${test.score?.unit ?? ""}`}</strong>
             </div>
           );
         })()}
