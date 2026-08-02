@@ -7,7 +7,6 @@ import express from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 import { runCoach, runCoachStream, type ChatMessage } from "./coach.js";
-import { signToken, verifyToken } from "./auth.js";
 import { verifyLicense, gumroadConfigured, matchesOurProduct } from "./gumroad.js";
 import { getSupabaseUser, supabaseConfigured } from "./supabaseAuth.js";
 import { getEntitlement, redeemForUser, grantByEmail, revokeByEmail, entitlementConfigured } from "./entitlement.js";
@@ -94,17 +93,13 @@ const coachLimiter = rateLimit({
   },
 });
 
-// ── Beta access gate ────────────────────────────────────────────────────────────────
-// A simple shared/per-tester access code locks the app during the private beta. Codes
-// live in BETA_ACCESS_CODES (comma-separated) so you can add or revoke testers without a
-// code change — just edit the env var and redeploy. If it's empty the gate is OFF (handy
-// for local dev), so the app behaves exactly as before until you set codes in production.
-const ACCESS_CODES = (process.env.BETA_ACCESS_CODES ?? "")
-  .split(",")
-  .map((c) => c.trim())
-  .filter(Boolean);
-// The gate is active if there are beta codes OR Gumroad licensing is configured.
-const gateEnabled = ACCESS_CODES.length > 0 || gumroadConfigured;
+// ── Access gate ─────────────────────────────────────────────────────────────────────
+// Access rides entirely on a signed-in Supabase account with an entitlement. The old
+// shared BETA_ACCESS_CODES / signed-token paths were removed before the beta launch:
+// a shared code (or a copied 180-day token) let anyone who ever saw it use paid server
+// features forever, with no account and no way to revoke just them.
+// The gate is active whenever Gumroad licensing is configured (i.e. in production).
+const gateEnabled = gumroadConfigured;
 
 // Slow down code-guessing: max 10 attempts per IP per 5 minutes.
 const accessLimiter = rateLimit({
@@ -116,17 +111,14 @@ const accessLimiter = rateLimit({
 });
 
 // Gate middleware for protected endpoints (the coach). When the gate is on, the request
-// must carry a valid credential in the x-access-token header. Kinds accepted, oldest to
-// newest: a raw beta code, a legacy signed token, or a Supabase session token from a
-// signed-in user. The first two stay during the accounts transition so nothing breaks for
-// existing testers. For the accounts path we go one step further than "signed in": the
-// account must also be ACTIVATED (entitlement 'beta' or 'paid'), so a free signup can't
-// use paid server features. This is the server-side half of the paywall — the browser
-// gate alone could be bypassed, this can't.
+// must carry a Supabase session token from a signed-in user in the x-access-token header
+// — that is now the ONLY accepted credential. We go one step further than "signed in":
+// the account must also be ACTIVATED (entitlement 'beta' or 'paid'), so a free signup
+// can't use paid server features. This is the server-side half of the paywall — the
+// browser gate alone could be bypassed, this can't.
 async function requireAccess(req: express.Request, res: express.Response, next: express.NextFunction) {
   if (!gateEnabled) return next();
   const token = String(req.header("x-access-token") ?? "").trim();
-  if (ACCESS_CODES.includes(token) || verifyToken(token)) return next();
 
   const user = await getSupabaseUser(token);
   if (user) {
@@ -145,30 +137,23 @@ async function requireAccess(req: express.Request, res: express.Response, next: 
 
   return res.status(401).json({
     error: "Access required.",
-    reply: "This is locked. Sign in (or enter your access code) to continue.",
+    reply: "This is locked. Sign in with your email to continue.",
     citations: [],
     locked: true,
   });
 }
 
-// The legacy gate check, kept only for the beta-code fallback (old builds with no
-// Supabase config). It no longer handles Gumroad licenses: a license used to mint a
-// SIGNED token that anyone could copy out of their browser and share, bypassing every
-// limit. Licenses are now redeemed onto a specific ACCOUNT (see /api/redeem) instead —
-// access rides on the signed-in account, not on a copyable token.
-app.post("/api/access", accessLimiter, async (req, res) => {
-  const parsed = accessBodySchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ ok: false, error: "Invalid request." });
-  const input = parsed.data.code.trim();
-
-  if (!gateEnabled) return res.json({ ok: true, token: signToken({ kind: "open" }) });
-
-  // Beta access code (the only thing this route still grants).
-  if (ACCESS_CODES.includes(input)) {
-    return res.json({ ok: true, token: signToken({ kind: "beta" }) });
-  }
-
-  return res.status(401).json({ ok: false });
+// Retired. This route used to mint a shareable signed token from a shared beta code (and,
+// earlier still, from a Gumroad license). Both were copyable credentials that worked with
+// no account, so there was no way to revoke one tester without revoking everyone. Access
+// now rides entirely on a signed-in account: sign in with a magic link, then redeem the
+// license onto that account (see /api/redeem). The route is kept only so any old client
+// build gets a clear answer instead of a confusing 404.
+app.post("/api/access", accessLimiter, (_req, res) => {
+  return res.status(410).json({
+    ok: false,
+    error: "Access codes have been retired. Sign in with your email to continue.",
+  });
 });
 
 // ── License redemption (bind a Gumroad key to THIS account) ───────────────────────────
@@ -420,5 +405,5 @@ app.listen(port, () => {
   console.log(`UNSTUCK coach server listening on http://localhost:${port}`);
   console.log(`Model: ${process.env.COACH_MODEL ?? "claude-sonnet-4-5"} · allowed origins: ${allowedOrigins.join(", ")}`);
   console.log(`Limits: global ${API_RATE_MAX} req/IP per ${API_RATE_WINDOW_MS / 1000}s · coach ${RATE_MAX} req/IP per ${RATE_WINDOW_MS / 1000}s · max ${MAX_MESSAGES} msgs · ${MAX_CONTENT_CHARS} chars/msg`);
-  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · beta codes: ${ACCESS_CODES.length} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"} · Email notify: ${notifyConfigured ? "configured" : "off"}`);
+  console.log(`Access gate: ${gateEnabled ? "ON" : "OFF"} · Gumroad: ${gumroadConfigured ? "configured" : "off"} · Supabase auth: ${supabaseConfigured ? "configured" : "off"} · Email notify: ${notifyConfigured ? "configured" : "off"}`);
 });
