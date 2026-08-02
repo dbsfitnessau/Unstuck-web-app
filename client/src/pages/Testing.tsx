@@ -345,20 +345,87 @@ function FieldInput({
   }
 
   // number
+  const str = typeof value === "string" ? value : "";
+  const label = (
+    <span className="small muted test-field-label">
+      {field.label}
+      {field.unit ? ` (${field.unit})` : ""}
+    </span>
+  );
+
+  // Plain measurement that can't go below zero (a time, a distance to a wall).
+  if (!field.signed) {
+    return (
+      <label className="test-number">
+        {label}
+        <input
+          type="number"
+          inputMode="decimal"
+          value={str}
+          placeholder={field.unit ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </label>
+    );
+  }
+
+  // Signed measurement (sit-and-reach: past the toes is +, short of them is −).
+  // Two things are deliberate here:
+  //   1. type="text", not type="number". A number input discards a lone "-" while
+  //      it's still being typed, so the minus can never "stick".
+  //   2. inputMode="decimal" keeps the phone's number pad — but that pad has NO
+  //      minus key, which is why the −/+ buttons exist. They're the only way to
+  //      set the sign on a phone. Typing "-" still works on a desktop keyboard.
+  const negative = str.trim().startsWith("-");
+  const [negLabel, posLabel] = field.signLabels ?? ["", ""];
+
+  // Flip the sign, keeping whatever digits are already there. With an empty box
+  // this leaves a bare "-", so you can pick the sign first and then type.
+  function setNegative(next: boolean) {
+    const digits = str.trim().replace(/-/g, "");
+    onChange(next ? `-${digits}` : digits);
+  }
+
+  // Keep the value to something parseFloat can read: an optional leading minus,
+  // digits, and at most one decimal point.
+  function handleType(raw: string) {
+    const wasNegative = raw.trim().startsWith("-");
+    const parts = raw.replace(/[^0-9.]/g, "").split(".");
+    const body = parts.length > 1 ? `${parts[0]}.${parts.slice(1).join("")}` : parts[0];
+    onChange(wasNegative ? `-${body}` : body);
+  }
+
   return (
-    <label className="test-number">
-      <span className="small muted test-field-label">
-        {field.label}
-        {field.unit ? ` (${field.unit})` : ""}
-      </span>
-      <input
-        type="number"
-        inputMode="decimal"
-        value={typeof value === "string" ? value : ""}
-        placeholder={field.unit ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
+    <div className="test-number test-number--signed">
+      <label>
+        {label}
+        <input
+          type="text"
+          inputMode="decimal"
+          value={str}
+          placeholder={field.unit ?? ""}
+          onChange={(e) => handleType(e.target.value)}
+        />
+      </label>
+      <div className="choice-row sign-row" role="group" aria-label={`Sign for ${field.label}`}>
+        <button
+          type="button"
+          className={`choice-btn ${negative ? "on" : ""}`}
+          aria-pressed={negative}
+          onClick={() => setNegative(true)}
+        >
+          – {negLabel}
+        </button>
+        <button
+          type="button"
+          className={`choice-btn ${negative ? "" : "on"}`}
+          aria-pressed={!negative}
+          onClick={() => setNegative(false)}
+        >
+          + {posLabel}
+        </button>
+      </div>
+    </div>
   );
 }
 

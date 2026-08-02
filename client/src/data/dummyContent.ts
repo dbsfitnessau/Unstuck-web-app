@@ -99,6 +99,15 @@ export interface TestField {
   side?: "left" | "right";   // present → renders in the L/R two-column block
   unit?: string;             // number fields (e.g. "cm", "°", "seconds")
   options?: string[];        // choice fields
+  // number fields that can legitimately go below zero (e.g. sit-and-reach, where
+  // stopping short of the toes is negative). These render −/+ buttons, because a
+  // phone's number pad has no minus key — without it the value can't be entered
+  // on mobile at all. Leave unset for distances and times, which can't be negative.
+  signed?: boolean;
+  // Wording for the −/+ buttons on a signed field, as [negative, positive].
+  // Defaults to a bare "–" and "+"; set it when plain words read better than
+  // signs (sit-and-reach says "Short" / "Past" rather than minus and plus).
+  signLabels?: [string, string];
 }
 
 export interface TestScore {
@@ -161,7 +170,7 @@ export const tests: MobilityTest[] = [
     setup: "Sit tall, legs straight, feet flexed. Hinge from hips, reach past toes without rounding hard.",
     fields: [
       { key: "longspine", type: "check", label: "Did you stay long-spined?" },
-      { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)" },
+      { key: "dist", type: "number", label: "Distance past or short of toes", unit: "cm (+/–)", signed: true, signLabels: ["Short of toes", "Past toes"] },
     ],
     score: { label: "Sit and Reach", unit: "cm (+/-)", field: "dist", zeroAt: -10, tenAt: 15 },
     image: "/exercises/sit-and-reach.jpg",

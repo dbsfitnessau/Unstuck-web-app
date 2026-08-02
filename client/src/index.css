@@ -738,6 +738,13 @@ input[type="number"]:focus, input[type="text"]:focus {
 .test-field-label { display: block; margin-bottom: 4px; }
 .test-number { display: block; }
 .test-number input { width: 100%; }
+/* Signed measurement: the box plus the −/+ buttons that set its sign. The buttons
+   exist because a phone's number pad has no minus key. */
+.test-number--signed { display: flex; flex-direction: column; gap: 6px; }
+.test-number--signed > label { display: block; }
+.sign-row { display: flex; gap: 6px; }
+/* 44px min so the buttons are a comfortable phone target. */
+.sign-row .choice-btn { min-height: 44px; }
 .test-choice .choice-row { display: flex; gap: 6px; }
 .choice-btn {
   flex: 1; min-width: 0; padding: 8px 6px;
