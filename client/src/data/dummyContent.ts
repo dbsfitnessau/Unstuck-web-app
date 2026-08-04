@@ -260,18 +260,18 @@ export const tests: MobilityTest[] = [
     sideHeadings: ["Left side", "Right side"],
     fields: [
       { key: "heelL", type: "check", label: "Heel down?", side: "left" },
-      { key: "hipkneeL", type: "check", label: "Hip below knee?", side: "left" },
-      { key: "legL", type: "check", label: "Straight leg fully flexed?", side: "left" },
+      { key: "hipkneeL", type: "check", label: "Knee tracking over middle toes?", side: "left" },
+      { key: "legL", type: "check", label: "Torso upright?", side: "left" },
       { key: "hipfloorL", type: "number", label: "Hip off floor", unit: "cm", side: "left" },
       { key: "heelR", type: "check", label: "Heel down?", side: "right" },
-      { key: "hipkneeR", type: "check", label: "Hip below knee?", side: "right" },
-      { key: "legR", type: "check", label: "Straight leg fully flexed?", side: "right" },
+      { key: "hipkneeR", type: "check", label: "Knee tracking over middle toes?", side: "right" },
+      { key: "legR", type: "check", label: "Torso upright?", side: "right" },
       { key: "hipfloorR", type: "number", label: "Hip off floor", unit: "cm", side: "right" },
     ],
-    // Form + depth: the six ticks are 0.5 each (3 pts) and the depth average is
-    // the other 7 - full credit at 5cm or lower, fading to nothing by 30cm.
+    // Form + depth: the six ticks are 1 point each (6 pts) and the depth average
+    // is the other 4 - full credit at 5cm or lower, fading to nothing by 30cm.
     // Depth alone can't max this test; neither can ticks with a shallow squat.
-    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average", composite: { perCheck: 0.5, depthPoints: 7, depthFullAt: 5, depthZeroAt: 30 } },
+    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average", composite: { perCheck: 1, depthPoints: 4, depthFullAt: 5, depthZeroAt: 30 } },
     image: "/exercises/cossack-squat-depth.jpg",
   },
 ];
