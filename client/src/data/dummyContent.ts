@@ -124,6 +124,18 @@ export interface TestScore {
   // change any number here to re-scale a test's 0–10 score.
   zeroAt?: number;           // raw value that scores 0/10
   tenAt?: number;            // raw value that scores 10/10
+  // Composite scoring (the Cossack): the ticked form boxes earn points ON TOP
+  // of the depth number, so clean form counts and depth alone can't max the
+  // score. score = ticks × perCheck + depth points, where the depth average
+  // maps linearly from depthZeroAt cm (nothing) down to depthFullAt cm (all of
+  // depthPoints), clamped. Lower depth is always the good direction here.
+  // When this is set, zeroAt/tenAt are ignored.
+  composite?: {
+    perCheck: number;        // points per ticked box (every check field in the test)
+    depthPoints: number;     // points available from the depth average
+    depthFullAt: number;     // cm at or below this → full depthPoints
+    depthZeroAt: number;     // cm at or above this → zero depth points
+  };
 }
 
 export interface MobilityTest {
@@ -256,7 +268,10 @@ export const tests: MobilityTest[] = [
       { key: "legR", type: "check", label: "Straight leg fully flexed?", side: "right" },
       { key: "hipfloorR", type: "number", label: "Hip off floor", unit: "cm", side: "right" },
     ],
-    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average", zeroAt: 25, tenAt: 0 },
+    // Form + depth: the six ticks are 0.5 each (3 pts) and the depth average is
+    // the other 7 - full credit at 5cm or lower, fading to nothing by 30cm.
+    // Depth alone can't max this test; neither can ticks with a shallow squat.
+    score: { label: "Cossack Squat Depth", unit: "cm", averageOf: ["hipfloorL", "hipfloorR"], averageLabel: "Hip off floor average", composite: { perCheck: 0.5, depthPoints: 7, depthFullAt: 5, depthZeroAt: 30 } },
     image: "/exercises/cossack-squat-depth.jpg",
   },
 ];

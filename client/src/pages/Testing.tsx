@@ -89,6 +89,22 @@ function score10(t: MobilityTest, raw: string): number | null {
   return Math.max(0, Math.min(10, scaled));
 }
 
+// The 0–10 score for one round's entry. Composite tests (the Cossack) blend
+// the ticked form boxes with the depth average — see TestScore.composite;
+// every other test maps its single scorecard number through score10's anchors.
+// Like the anchor path, no depth number recorded means no score yet.
+function scoreOf(t: MobilityTest, e: Entry | undefined): number | null {
+  const c = t.score?.composite;
+  if (!c) return score10(t, scoreValue(t, e));
+  const depth = parseFloat(scoreValue(t, e));
+  if (isNaN(depth)) return null;
+  const vals = e?.values ?? {};
+  const tickPts = t.fields.reduce(
+    (sum, f) => sum + (f.type === "check" && vals[f.key] === true ? c.perCheck : 0), 0);
+  const frac = Math.max(0, Math.min(1, (c.depthZeroAt - depth) / (c.depthZeroAt - c.depthFullAt)));
+  return Math.min(10, tickPts + frac * c.depthPoints);
+}
+
 type ChangeDir = "better" | "worse" | "none";
 
 // The Day 0 -> latest change for a test, as a positive magnitude + a direction.
@@ -103,8 +119,9 @@ function changeOf(t: MobilityTest, baseline: string, latest: string): { mag: str
   if (!baseline || !latest || isNaN(+baseline) || isNaN(+latest)) return { mag: "", unit, dir: "none" };
   const delta = +latest - +baseline;
   if (delta === 0) return { mag: "0", unit, dir: "none" };
-  // Higher raw = better UNLESS the anchors say otherwise (tenAt < zeroAt).
-  const higherBetter = s.tenAt == null || s.zeroAt == null ? true : s.tenAt > s.zeroAt;
+  // Higher raw = better UNLESS the anchors say otherwise (tenAt < zeroAt), or
+  // the test is composite — its raw number is cm off the floor, lower is better.
+  const higherBetter = s.composite ? false : s.tenAt == null || s.zeroAt == null ? true : s.tenAt > s.zeroAt;
   const better = higherBetter ? delta > 0 : delta < 0;
   return { mag: Math.abs(delta).toFixed(1).replace(/\.0$/, ""), unit, dir: better ? "better" : "worse" };
 }
@@ -586,7 +603,7 @@ function Scorecard({ results, milestones }: { results: Results; milestones: numb
       const byDay = results[t.id] ?? {};
       const valueAt = (day: number) => scoreValue(t, byDay[String(day)] as Entry | undefined);
       const values = milestones.map(valueAt);
-      const scores = values.map((v) => score10(t, v)); // 0–10 per round (or null)
+      const scores = milestones.map((d) => scoreOf(t, byDay[String(d)] as Entry | undefined)); // 0–10 per round (or null)
       const baseline = valueAt(0);
       // Latest round (other than baseline) that actually has a value.
       let latest = "";
