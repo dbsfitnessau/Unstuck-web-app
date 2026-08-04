@@ -202,7 +202,7 @@ export const tests: MobilityTest[] = [
   {
     id: "thomas",
     name: "Thomas Test",
-    setup: "Lie back on a bench edge, hug one knee to chest, let the other leg hang. Swap sides. Measure the distance from the bottom of your lower leg to the top of the horizontal surface.",
+    setup: "Lie back on a bed or bench edge, hug one knee to chest, let the other leg hang. Swap sides. Measure the distance from the bottom of your lower leg to the top of the horizontal surface.",
     sideHeadings: ["Left leg down", "Right leg down"],
     fields: [
       { key: "thighL", type: "check", label: "Thigh at or below horizontal?", side: "left" },
