@@ -56,11 +56,23 @@ const makeState = (phases: Phase[]): TimerState => ({
 // happens after the user has pressed Start - browsers require a user gesture
 // before audio can play).
 let audioCtx: AudioContext | null = null;
-function beep(times = 1) {
+// Open (or wake) the AudioContext. MUST be called from inside a user-gesture
+// handler (the Start button): browsers - iOS Safari especially - only allow a
+// page to start audio during a tap/click. Creating the context lazily at
+// beep-time (after the countdown, not during a tap) gets silently blocked.
+function unlockAudio() {
   try {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     audioCtx = audioCtx || new Ctx();
     if (audioCtx.state === "suspended") void audioCtx.resume();
+  } catch {
+    /* audio unavailable - the visual countdown still works */
+  }
+}
+function beep(times = 1) {
+  try {
+    unlockAudio();
+    if (!audioCtx) return;
     let t = audioCtx.currentTime;
     for (let i = 0; i < times; i++) {
       const osc = audioCtx.createOscillator();
@@ -109,6 +121,32 @@ export default function Timer() {
     if (state.finished) { beep(2); vibrate([200, 120, 200]); }
   }, [state.finished]);
 
+  // Keep the screen awake while the timer runs. A locked phone throttles the
+  // page and can swallow the finish beep; the Wake Lock API prevents the
+  // auto-lock. The OS releases the lock if the user switches apps, so we
+  // re-request it when they come back mid-countdown. On browsers without the
+  // API this whole effect is a no-op and the timer behaves as before.
+  useEffect(() => {
+    if (!state.running) return;
+    const wl = (navigator as { wakeLock?: { request(type: "screen"): Promise<{ release(): Promise<void> }> } }).wakeLock;
+    if (!wl) return;
+    let sentinel: { release(): Promise<void> } | null = null;
+    let stopped = false;
+    const acquire = () => {
+      wl.request("screen")
+        .then((s) => { if (stopped) void s.release(); else sentinel = s; })
+        .catch(() => { /* denied (e.g. low battery mode) - not fatal */ });
+    };
+    const onVisible = () => { if (document.visibilityState === "visible") acquire(); };
+    acquire();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      stopped = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      if (sentinel) void sentinel.release().catch(() => {});
+    };
+  }, [state.running]);
+
   // The clock. One interval while running; it only READS the deadline and
   // recomputes seconds-left - it never decrements a counter.
   useEffect(() => {
@@ -145,6 +183,9 @@ export default function Timer() {
   }
 
   function toggleRun() {
+    // We're inside a real tap right now - the only moment browsers let us open
+    // the audio path. Do it before any state work so later beeps are audible.
+    unlockAudio();
     setState((s) => {
       if (s.finished) {
         // Restart from the top.
@@ -239,7 +280,7 @@ export default function Timer() {
         </button>
       </div>
       <p className="small muted" style={{ margin: "8px 0 0", textAlign: "center" }}>
-        Beeps at each change. Earn depth - don't force it.
+        Beeps at each change (and vibrates, on phones that allow it) - keep your ringer on. Earn depth - don't force it.
       </p>
     </div>
   );
