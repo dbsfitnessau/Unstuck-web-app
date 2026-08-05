@@ -326,7 +326,7 @@ export const searchIndex: SearchItem[] = [
   ...cheatsheet.principles.map((p) => ({ title: p.title, text: p.body + " " + p.practical, surface: "Home", path: "/home" })),
   ...cheatsheet.vocabulary.map((v) => ({ title: v.term, text: v.sub + " " + v.meaning + " " + v.why, surface: "Home", path: "/home" })),
   ...cheatsheet.faq.map((f) => ({ title: f.q, text: f.a, surface: "Home", path: "/home" })),
-  { title: "Tiers - one colour per session", text: cheatsheet.tierGuide.rules.join(" "), surface: "Home", path: "/home" },
+  { title: "Tiers", text: cheatsheet.tierGuide.rules.join(" "), surface: "Home", path: "/home" },
   ...tests.map((t) => ({ title: t.name, text: t.setup + " " + t.fields.map((f) => f.label).join(" "), surface: "Assessment", path: "/testing" })),
   ...programSearch,
 ];
