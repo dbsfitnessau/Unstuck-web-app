@@ -57,7 +57,7 @@ Every exercise is built with three levels. The colour tiers are editorial labels
 - **🟡 Intermediate** — unsupported, longer holds, deeper ranges.
 - **🔴 Athlete** — loaded, end-range, integrated patterns. Earn this tier — don't jump to it because it sounds harder.
 
-**When to step up a tier:** only when the current tier feels *controlled and clean for two sessions in a row*. Dropping a tier on a tired, stressed, or under-slept day is not regression — it's good coaching. Staying on 🟢 the whole 28 days is a complete program.
+**When to step up a tier:** only when the current tier feels *controlled and clean for two sessions in a row*. The tier is a whole-session decision, made before you start — never bump a single movement mid-session because it felt easy while you were warm. Mid-session changes only go one way: down. Dropping a tier on a tired, stressed, or under-slept day is not regression — it's good coaching. Staying on 🟢 the whole 28 days is a complete program.
 
 ---
 

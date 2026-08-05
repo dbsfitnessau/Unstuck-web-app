@@ -134,6 +134,21 @@ export default function Home() {
         {/* FRC method attribution lives in the legal pages (IP & Copyright + disclaimer). */}
       </Accordion>
 
+      <Accordion icon="🚦" title="Tiers - one colour per session">
+        {cheatsheet.tierGuide.tiers.map((t, i) => (
+          <div className="mini" key={i}>
+            <h5>{t.colour} {t.name}</h5>
+            <p>{t.meaning}</p>
+          </div>
+        ))}
+        <div className="mini">
+          <h5>How to run them</h5>
+          <ul>
+            {cheatsheet.tierGuide.rules.map((r, i) => <li key={i}>{r}</li>)}
+          </ul>
+        </div>
+      </Accordion>
+
       <Accordion icon="❓" title="FAQ">
         {cheatsheet.faq.map((f, i) => (
           <div className="mini" key={i}>

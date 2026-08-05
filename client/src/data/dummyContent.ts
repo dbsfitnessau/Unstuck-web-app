@@ -71,6 +71,22 @@ export const cheatsheet = {
     { term: "Fascia", sub: "", meaning: "Connective tissue that wraps around everything.", why: "Real and important - but probably not what you think it is." },
     { term: "Active control", sub: "", meaning: "Force production you generate at a given range.", why: "The whole point of this programme." },
   ] as Vocab[],
+  // Home-page tier guide. The rule wording mirrors the Main Program's tier
+  // section (and the coach reads that doc) - keep the two in step.
+  tierGuide: {
+    tiers: [
+      { colour: "🟢", name: "Recreational", meaning: "Bodyweight, supported, conservative ranges. Start here if you're new to mobility work or coming back from time off." },
+      { colour: "🟡", name: "Intermediate", meaning: "Unsupported, longer holds, deeper ranges." },
+      { colour: "🔴", name: "Athlete", meaning: "Loaded, end-range, integrated patterns. Earn this tier - don't jump to it because it sounds harder." },
+    ],
+    rules: [
+      "Pick your colour before the session starts, and run every movement at that tier for the whole session.",
+      "Don't bump one movement up mid-session because it felt easy. Warm tissue lies - make the tier call cold, before you start.",
+      "Step up only when the current tier felt controlled and clean for two sessions in a row - and step the whole session up together.",
+      "Down is always allowed: any movement, any time. Sharp pain - drop a tier or skip that exercise immediately. Dropping on a tired day is coaching, not failure.",
+      "Staying 🟢 for the whole 28 days is a complete program.",
+    ],
+  },
   faq: [
     { q: "What if I miss a session?", a: "One missed session in 28 days is noise - pick up where you left off, don't double up. Two or more in a week - restart the week. Consistent stimulus beats heroics." },
     { q: "Should I train through DOMS?", a: "Mobility, yes. It's often the best thing for sore muscles. Skip loaded end-range work if soreness is sharp or limits clean form. Drop a tier and keep moving." },
@@ -310,6 +326,7 @@ export const searchIndex: SearchItem[] = [
   ...cheatsheet.principles.map((p) => ({ title: p.title, text: p.body + " " + p.practical, surface: "Home", path: "/home" })),
   ...cheatsheet.vocabulary.map((v) => ({ title: v.term, text: v.sub + " " + v.meaning + " " + v.why, surface: "Home", path: "/home" })),
   ...cheatsheet.faq.map((f) => ({ title: f.q, text: f.a, surface: "Home", path: "/home" })),
+  { title: "Tiers - one colour per session", text: cheatsheet.tierGuide.rules.join(" "), surface: "Home", path: "/home" },
   ...tests.map((t) => ({ title: t.name, text: t.setup + " " + t.fields.map((f) => f.label).join(" "), surface: "Assessment", path: "/testing" })),
   ...programSearch,
 ];
