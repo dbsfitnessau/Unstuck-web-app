@@ -81,9 +81,9 @@ export const cheatsheet = {
     ],
     rules: [
       "Pick your colour before the session starts, and run every movement at that tier for the whole session.",
-      "Don't bump one movement up mid-session because it felt easy. Warm tissue lies - make the tier call cold, before you start.",
-      "Step up only when the current tier felt controlled and clean for two sessions in a row - and step the whole session up together.",
-      "Down is always allowed: any movement, any time. Sharp pain - drop a tier or skip that exercise immediately. Dropping on a tired day is coaching, not failure.",
+      "Don't bump one movement up mid-session because it felt easy. Warm tissue lies. Make the tier call cold, before you start.",
+      "Step up only when the current tier felt controlled and clean for two sessions in a row, and step the whole session up together.",
+      "Moving down is always allowed, at any time. Any pain, drop a tier or skip that exercise immediately. Dropping on a tired day is coaching, not failure.",
       "Staying 🟢 for the whole 28 days is a complete program.",
     ],
   },
